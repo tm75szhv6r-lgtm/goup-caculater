@@ -1,2 +1,2 @@
-# goup-caculater
-GOUP Savings Calculater
+# goup-caculator
+GOUP Savings Calculator
