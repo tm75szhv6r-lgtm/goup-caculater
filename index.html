@@ -26,6 +26,8 @@
   .result h2 { font-size:1.1rem; margin:0 0 10px; }
   .big { font-size:clamp(1.45rem,6vw,2rem); font-weight:800; line-height:1.35; overflow-wrap:anywhere; }
   .sub { color:#c2d2e9; margin-top:7px; line-height:1.6; }
+  .detail-highlight { font-size:1.12rem; font-weight:650; }
+.detail-note { font-size:.92rem; opacity:.9; }
   .error { color:#ffb8b8; margin-top:12px; }
   footer { color:var(--muted); font-size:.82rem; line-height:1.6; margin:17px 4px 0; }
   @media (max-width:420px) { .card { padding:15px; } .row { grid-template-columns:minmax(0,1fr) 100px; } }
@@ -134,16 +136,6 @@ function calculate() {
   });
   $("duration").textContent = formatDuration(seconds);
   $("detail").innerHTML =
-    `必要な残り金額：約 ${new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:7}).format(remaining / Math.pow(10, exponent[targetUnit]))} ${targetUnit}<br>` +
-    `到達予定（日本時間）：${fmt.format(arrival)}<br>` +
-    `計算開始：${fmt.format(now)}`;
-  $("result").classList.add("show");
-}
-$("calculate").addEventListener("click", calculate);
-["rate","current","target","rateUnit","currentUnit","targetUnit"].forEach(id => {
-  $(id).addEventListener("keydown", e => { if (e.key === "Enter") calculate(); });
-});
-calculate();
-</script>
-</body>
-</html>
+    `<span class="detail-highlight">必要な残り金額：約 ${new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:7}).format(remaining / Math.pow(10, exponent[targetUnit]))} ${targetUnit}<br>` +
+    `到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
+    `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
