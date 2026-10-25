@@ -26,8 +26,9 @@
   .result h2 { font-size:1.1rem; margin:0 0 10px; }
   .big { font-size:clamp(1.45rem,6vw,2rem); font-weight:800; line-height:1.35; overflow-wrap:anywhere; }
   .sub { color:#c2d2e9; margin-top:7px; line-height:1.6; }
-  .detail-highlight { font-size:1.12rem; font-weight:650; }
-.detail-note { font-size:.1.12rem; opacity:.9; }
+ .detail-remaining { font-size:1rem; }
+.detail-arrival { font-size:1.12rem; font-weight:650; }
+.detail-note { font-size:1.12rem; opacity:.9; }
   .error { color:#ffb8b8; margin-top:12px; }
   footer { color:var(--muted); font-size:.82rem; line-height:1.6; margin:17px 4px 0; }
   @media (max-width:420px) { .card { padding:15px; } .row { grid-template-columns:minmax(0,1fr) 100px; } }
@@ -134,10 +135,10 @@ function calculate() {
     timeZone: "Asia/Tokyo", year:"numeric", month:"2-digit", day:"2-digit",
     weekday:"short", hour:"2-digit", minute:"2-digit", second:"2-digit", hourCycle:"h23"
   });
-  $("duration").textContent = formatDuration(seconds);
-  $("detail").innerHTML =
-    `<span class="detail-highlight">必要な残り金額：約 ${new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:7}).format(remaining / Math.pow(10, exponent[targetUnit]))} ${targetUnit}<br>` +
-    `到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
+   $("detail").innerHTML =
+    `<span class="detail-remaining">必要な残り金額：約 ${new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:7}).format(remaining / Math.pow(10, exponent[targetUnit]))} ${targetUnit}</span><br>` +
+    `<span class="detail-arrival">到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
+    `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
     `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
   $("result").classList.add("show");
 }
