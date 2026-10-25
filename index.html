@@ -139,7 +139,6 @@ function calculate() {
     `<span class="detail-remaining">必要な残り金額：約 ${new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:7}).format(remaining / Math.pow(10, exponent[targetUnit]))} ${targetUnit}</span><br>` +
     `<span class="detail-arrival">到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
     `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
-    `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
   $("result").classList.add("show");
 }
 
