@@ -143,7 +143,7 @@ function calculate() {
   }).format(remainingDisplay);
   $("detail").innerHTML =
     `<span class="detail-remaining">必要な残り金額：約 ${formattedRemaining} ${targetUnit}</span><br>` +
-    `<span class="detail-arrival">到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
+    `<span class="detail-arrival">到達予定：${fmt.format(arrival)}</span><br>` +
     `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
   $("result").classList.add("show");
 }
