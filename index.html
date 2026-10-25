@@ -135,12 +135,8 @@ function calculate() {
     weekday:"short", hour:"2-digit", minute:"2-digit", second:"2-digit", hourCycle:"h23"
   });
   $("duration").textContent = formatDuration(seconds);
-  $("detail").innerHTML =  
-$("result").classList.add("show");
-}
-
-$("calculate").addEventListener("click", calculate);
-</script>
-</body>
-</html>
-    
+  $("detail").innerHTML =
+    `<span class="detail-highlight">必要な残り金額：約 ${new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:7}).format(remaining / Math.pow(10, exponent[targetUnit]))} ${targetUnit}<br>` +
+    `到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
+    `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
+  $("result").classList.add("show");
