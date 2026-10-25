@@ -140,3 +140,9 @@ function calculate() {
     `到達予定（日本時間）：${fmt.format(arrival)}</span><br>` +
     `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
   $("result").classList.add("show");
+}
+
+$("calculate").addEventListener("click", calculate);
+</script>
+</body>
+</html>
