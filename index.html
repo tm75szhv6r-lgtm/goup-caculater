@@ -73,7 +73,7 @@ nav button,
   padding: 10px 15px;
   background: #202437;
   color: var(--text);
-  transition: background 0.2s, transform 0.2s;
+  transition: background .2s, transform .2s;
 }
 
 nav button:hover,
@@ -102,7 +102,7 @@ main {
 }
 
 .card {
-  background: rgba(25, 28, 41, 0.96);
+  background: rgba(25, 28, 41, .96);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: clamp(18px, 4vw, 28px);
@@ -113,6 +113,10 @@ main {
 h1 {
   font-size: 1.55rem;
   line-height: 1.3;
+}
+
+h2 {
+  font-size: 1.2rem;
 }
 
 .grid {
@@ -129,7 +133,7 @@ h1 {
 
 label {
   font-weight: 700;
-  font-size: 0.93rem;
+  font-size: .93rem;
 }
 
 input,
@@ -151,7 +155,7 @@ select:focus {
 }
 
 .hint {
-  font-size: 0.82rem;
+  font-size: .82rem;
   margin: 0;
 }
 
@@ -225,18 +229,75 @@ select:focus {
 
 .tile span {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: .9rem;
+}
+
+.notice {
+  border-left: 3px solid var(--accent2);
+  padding: 10px 13px;
+  background: #5ce1c00d;
+  border-radius: 0 10px 10px 0;
+  color: var(--muted);
+  font-size: .9rem;
+  margin-top: 18px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.summary-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px;
+  background: #ffffff04;
+}
+
+.summary-item .label {
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+.summary-item .value {
+  font-weight: 800;
+  font-size: 1.08rem;
+  overflow-wrap: anywhere;
+}
+
+.breakdown {
+  margin-top: 14px;
+  padding: 13px;
+  border-radius: 12px;
+  background: #ffffff04;
+  border: 1px solid var(--border);
+}
+
+.breakdown summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.breakdown ol {
+  padding-left: 1.5rem;
+}
+
+.breakdown li {
+  margin: 5px 0;
 }
 
 footer {
   text-align: center;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: .8rem;
   padding: 10px 18px 28px;
 }
 
 @media (max-width: 560px) {
-  .grid {
+  .grid,
+  .summary-grid {
     grid-template-columns: 1fr;
   }
 
@@ -259,12 +320,13 @@ footer {
 
 <header>
   <div class="logo">GOUP <span>Calculator</span></div>
-  <p>ゲーム内のお金が貯まる時間を計算</p>
+  <p>ゲーム内のお金・リバース計画を計算</p>
 </header>
 
 <nav aria-label="メニュー">
   <button class="active" data-page="home" type="button">ホーム</button>
   <button data-page="saving" type="button">貯金時間計算</button>
+  <button data-page="rebirth" type="button">リバース計算</button>
 </nav>
 
 <main>
@@ -274,8 +336,7 @@ footer {
     <h1>GOUP Calculatorへようこそ！</h1>
 
     <p class="description">
-      ゲーム内のお金を目標金額まで貯めるために、
-      必要な時間と到達予定日時を計算できます。
+      貯金に必要な時間や、目標リバースまでに必要なお金・ジャンプ数を計算できます。
     </p>
 
     <div class="tiles">
@@ -286,16 +347,30 @@ footer {
           必要時間と到達予定日時を計算します。
         </span>
       </div>
+
+      <div class="tile">
+        <strong>🔄 リバース計算</strong>
+        <span>
+          現在のリバースと目標リバースから、
+          必要な費用の合計とリバースでリセットされる
+          ジャンプ数を計算します。
+        </span>
+      </div>
     </div>
 
     <div class="actions">
       <button class="btn primary" data-goto="saving" type="button">
         貯金時間を計算
       </button>
+
+      <button class="btn" data-goto="rebirth" type="button">
+        リバースを計算
+      </button>
     </div>
   </div>
 </section>
 
+<!-- 貯金時間計算 -->
 <section id="saving" class="page">
   <div class="card">
     <h1>💰 貯金時間計算</h1>
@@ -310,13 +385,7 @@ footer {
 
         <div class="field">
           <label for="rate">増加速度（毎秒）</label>
-          <input
-            id="rate"
-            type="number"
-            min="0"
-            step="any"
-            placeholder="例：1"
-          >
+          <input id="rate" type="number" min="0" step="any" placeholder="例：1">
           <p class="hint">例：1 Sx/sなら「1」</p>
         </div>
 
@@ -334,13 +403,7 @@ footer {
 
         <div class="field">
           <label for="held">現在の所持金</label>
-          <input
-            id="held"
-            type="number"
-            min="0"
-            step="any"
-            placeholder="例：1"
-          >
+          <input id="held" type="number" min="0" step="any" placeholder="例：1">
           <p class="hint">空欄の場合は0として計算します。</p>
         </div>
 
@@ -358,13 +421,7 @@ footer {
 
         <div class="field">
           <label for="goal">目標金額</label>
-          <input
-            id="goal"
-            type="number"
-            min="0"
-            step="any"
-            placeholder="例：10"
-          >
+          <input id="goal" type="number" min="0" step="any" placeholder="例：10">
           <p class="hint">例：10 Ocを目標にするなら「10」</p>
         </div>
 
@@ -392,9 +449,62 @@ footer {
   </div>
 </section>
 
+<!-- リバース計算 -->
+<section id="rebirth" class="page">
+  <div class="card">
+    <h1>🔄 リバース費用計算</h1>
+
+    <p class="description">
+      現在のリバースと目標リバースを入力すると、
+      次のリバースから目標までのCost合計と、
+      リバースでジャンプが0に戻ることを考慮した必要ジャンプ数を計算します。
+    </p>
+
+    <form id="rebirthForm" novalidate>
+      <div class="grid">
+
+        <div class="field">
+          <label for="currentRebirth">現在のリバース番号</label>
+          <input id="currentRebirth" type="number" min="0" max="75" step="1" value="0">
+          <p class="hint">まだリバースしていない場合は0</p>
+        </div>
+
+        <div class="field">
+          <label for="targetRebirth">目標のリバース番号</label>
+          <input id="targetRebirth" type="number" min="1" max="75" step="1" value="10">
+          <p class="hint">表にある#1〜#75から指定</p>
+        </div>
+
+        <div class="field">
+          <label for="currentJump">現在のジャンプ数</label>
+          <input id="currentJump" type="number" min="0" step="1" value="0">
+          <p class="hint">リバース直後なら0。今のジャンプ数が分かる場合は入力</p>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" type="submit">必要な費用を計算</button>
+        <button class="btn" type="reset">リセット</button>
+      </div>
+    </form>
+
+    <div id="rebirthResult" class="result" aria-live="polite"></div>
+
+    <div class="notice">
+      計算に使うCostとJumpは、提供された表の#1〜#75の数値です。
+      必要なリバース費用の合計を表示しますが、
+      ジャンプ自体にかかる費用は表にないため合計には含めません。
+      ジャンプ数は各リバース後に0へ戻るものとして計算します。
+    </div>
+  </div>
+</section>
+
 </main>
 
-<footer>GOUP Calculator</footer>
+<footer>
+  GOUP Calculator · リバース費用は提供された表の数値を使用
+</footer>
 
 <script>
 "use strict";
@@ -427,7 +537,7 @@ document.querySelectorAll("[data-goto]").forEach(button => {
 });
 
 
-/* 単位変換 */
+/* 貯金時間計算用の単位（元の計算方式を維持） */
 const UNIT_POWER = {
   "1": 0,
   Sx: 1,
@@ -441,8 +551,6 @@ function toBase(value, unit) {
   return value * Math.pow(1000, UNIT_POWER[unit] ?? 0);
 }
 
-
-/* 所要時間 */
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) {
     return "計算できません";
@@ -473,7 +581,7 @@ function formatDuration(seconds) {
 }
 
 
-/* 日本時間の日時を取得 */
+/* 日本時間の日時表示 */
 function getJapanDateParts(date) {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -496,8 +604,6 @@ function getJapanDateParts(date) {
   return values;
 }
 
-
-/* 現在時刻の表示 */
 function formatJapanClockTime(date) {
   const parts = getJapanDateParts(date);
 
@@ -509,17 +615,9 @@ function formatJapanClockTime(date) {
   );
 }
 
-
-/* 到達予定日時
-   今日なら時刻だけ、別の日なら月日も表示 */
 function formatJapanArrivalDateTime(arrivalDate, now) {
   const arrival = getJapanDateParts(arrivalDate);
   const current = getJapanDateParts(now);
-
-  const sameDay =
-    arrival.year === current.year &&
-    arrival.month === current.month &&
-    arrival.day === current.day;
 
   const time =
     String(arrival.hour).padStart(2, "0") +
@@ -527,30 +625,44 @@ function formatJapanArrivalDateTime(arrivalDate, now) {
     String(arrival.minute).padStart(2, "0") +
     "分";
 
-  if (sameDay) {
-    return time;
-  }
+  const sameDay =
+    arrival.year === current.year &&
+    arrival.month === current.month &&
+    arrival.day === current.day;
 
-  return arrival.month + "月" + arrival.day + "日" + time;
+  return sameDay
+    ? time
+    : arrival.month + "月" + arrival.day + "日" + time;
 }
 
-
-/* エラー表示 */
 const savingForm = document.getElementById("savingForm");
 const savingResult = document.getElementById("savingResult");
 
-function showError(message) {
-  savingResult.className = "result show error";
-  savingResult.replaceChildren();
+function setError(result, message, detail = "入力内容を確認して、もう一度計算してください。") {
+  result.className = "result show error";
+  result.replaceChildren();
 
   const title = document.createElement("div");
   title.className = "big";
   title.textContent = message;
 
-  const detail = document.createElement("p");
-  detail.textContent = "入力内容を確認して、もう一度計算してください。";
+  const p = document.createElement("p");
+  p.textContent = detail;
 
-  savingResult.append(title, detail);
+  result.append(title, p);
+}
+
+function addText(parent, tag, className, text) {
+  const element = document.createElement(tag);
+
+  if (className) {
+    element.className = className;
+  }
+
+  element.textContent = text;
+  parent.appendChild(element);
+
+  return element;
 }
 
 
@@ -573,7 +685,6 @@ savingForm.addEventListener("submit", event => {
   const goal = Number(goalText);
   const goalUnit = document.getElementById("goalUnit").value;
 
-  /* 入力チェック。必須項目が空でも結果欄にエラーを表示する */
   if (
     rateText === "" ||
     goalText === "" ||
@@ -584,7 +695,11 @@ savingForm.addEventListener("submit", event => {
     !Number.isFinite(goal) ||
     goal < 0
   ) {
-    showError("入力を確認してください");
+    setError(
+      savingResult,
+      "入力を確認してください",
+      "増加速度は0より大きく、目標金額は必須です。所持金は空欄でも計算できます。"
+    );
     return;
   }
 
@@ -593,36 +708,29 @@ savingForm.addEventListener("submit", event => {
   const remaining = goalBase - heldBase;
 
   if (!Number.isFinite(remaining)) {
-    showError("金額が大きすぎます");
+    setError(savingResult, "金額が大きすぎます");
     return;
   }
 
-  /* 目標達成済み */
   if (remaining <= 0) {
     savingResult.className = "result show";
-    savingResult.innerHTML =
-      "<div class=\"big\">目標達成済み！</div>" +
-      "<p>現在の所持金が目標金額以上です。</p>";
+    addText(savingResult, "div", "big", "目標達成済み！");
+    addText(savingResult, "p", "", "現在の所持金が目標金額以上です。");
     return;
   }
 
-  const baseRate = toBase(rate, rateUnit);
-  const seconds = remaining / baseRate;
+  const seconds = remaining / toBase(rate, rateUnit);
 
   if (!Number.isFinite(seconds) || seconds < 0) {
-    showError("計算できません");
+    setError(savingResult, "計算できません");
     return;
   }
 
   const now = new Date();
-  const arrivalTimestamp = now.getTime() + Math.ceil(seconds) * 1000;
-  const arrivalDate = new Date(arrivalTimestamp);
+  const arrivalDate = new Date(now.getTime() + Math.ceil(seconds) * 1000);
 
-  if (
-    !Number.isFinite(arrivalTimestamp) ||
-    Number.isNaN(arrivalDate.getTime())
-  ) {
-    showError("日時を計算できません");
+  if (Number.isNaN(arrivalDate.getTime())) {
+    setError(savingResult, "日時を計算できません");
     return;
   }
 
@@ -634,46 +742,42 @@ savingForm.addEventListener("submit", event => {
       maximumFractionDigits: 6
     });
 
-  const duration = formatDuration(seconds);
-  const arrival = formatJapanArrivalDateTime(arrivalDate, now);
-  const currentTime = formatJapanClockTime(now);
-
-  /* HTMLに入力値を直接埋め込まず、安全に結果表示 */
   savingResult.className = "result show";
   savingResult.replaceChildren();
 
-  function addText(tag, className, text) {
-    const element = document.createElement(tag);
+  addText(savingResult, "div", "", "目標までに必要な時間");
+  addText(savingResult, "div", "big", formatDuration(seconds));
 
-    if (className) {
-      element.className = className;
-    }
-
-    element.textContent = text;
-    savingResult.appendChild(element);
-
-    return element;
-  }
-
-  addText("div", "", "目標までに必要な時間");
-  addText("div", "big", duration);
-
-  addText("div", "", "到達予定日時");
-  addText("div", "result-datetime", arrival);
-
-  addText("div", "current-time", "現在時刻：" + currentTime);
+  addText(savingResult, "div", "", "到達予定日時");
+  addText(
+    savingResult,
+    "div",
+    "result-datetime",
+    formatJapanArrivalDateTime(arrivalDate, now)
+  );
 
   addText(
+    savingResult,
+    "div",
+    "current-time",
+    "現在時刻：" + formatJapanClockTime(now)
+  );
+
+  addText(
+    savingResult,
     "p",
     "",
     `あと ${formattedRemaining} ${goalUnit} 必要です。`
   );
 
-  addText("p", "hint", "日本時間（JST）で表示しています。");
+  addText(
+    savingResult,
+    "p",
+    "hint",
+    "日本時間（JST）で表示しています。"
+  );
 });
 
-
-/* リセット */
 savingForm.addEventListener("reset", () => {
   setTimeout(() => {
     document.getElementById("rateUnit").value = "Sx";
@@ -682,6 +786,363 @@ savingForm.addEventListener("reset", () => {
 
     savingResult.className = "result";
     savingResult.replaceChildren();
+  }, 0);
+});
+
+
+/* ===========================
+   リバースデータ
+   CostとJumpは提供された表の数値
+=========================== */
+
+const REBIRTH_DATA = [
+  [1,10,"260","x1.5",""],
+  [2,20,"1.87K","x2",""],
+  [3,30,"11.8K","x2.5",""],
+  [4,40,"73.4K","x3",""],
+  [5,50,"455K","x3.5",""],
+  [6,60,"2.82M","x4",""],
+  [7,70,"17.4M","x4.5",""],
+  [8,80,"108M","x5",""],
+  [9,90,"669M","x5.5",""],
+  [10,100,"4.14B","x6",""],
+  [11,110,"25.6B","x6.5",""],
+  [12,120,"159B","x7",""],
+  [13,130,"983B","x7.5",""],
+  [14,140,"6.09T","x8","Speed 1"],
+  [15,150,"37.7T","x8.5",""],
+  [16,160,"233T","x9",""],
+  [17,170,"1.44Qa","x9.5","Speed 2"],
+  [18,180,"8.95Qa","x10",""],
+  [19,190,"55.4Qa","x10.5","Speed 3"],
+  [20,200,"343Qa","x11",""],
+  [21,210,"2.12Qi","x11.5",""],
+  [22,220,"13.1Qi","x12","Speed 4"],
+  [23,230,"81.4Qi","x12.5",""],
+  [24,240,"504Qi","x13",""],
+  [25,250,"3.12Sx","x13.5",""],
+  [26,260,"14.1Sx","x14",""],
+  [27,270,"42.4Sx","x14.5",""],
+  [28,280,"113Sx","x15",""],
+  [29,290,"274Sx","x15.5",""],
+  [30,300,"578Sx","x16",""],
+  [31,310,"1.08Sp","x16.5",""],
+  [32,320,"1.89Sp","x17",""],
+  [33,330,"3.22Sp","x17.5",""],
+  [34,340,"5.34Sp","x18",""],
+  [35,350,"8.68Sp","x18.5",""],
+  [36,360,"13.8Sp","x19",""],
+  [37,370,"21.4Sp","x19.5",""],
+  [38,380,"32.2Sp","x20",""],
+  [39,390,"46.8Sp","x20.5",""],
+  [40,400,"65.4Sp","x21",""],
+  [41,410,"88.2Sp","x21.5",""],
+  [42,420,"116Sp","x22",""],
+  [43,430,"150Sp","x22.5",""],
+  [44,440,"191Sp","x23",""],
+  [45,450,"241Sp","x23.5",""],
+  [46,460,"301Sp","x24",""],
+  [47,470,"374Sp","x24.5",""],
+  [48,480,"461Sp","x25",""],
+  [49,490,"564Sp","x25.5",""],
+  [50,500,"686Sp","x26",""],
+  [51,510,"828Sp","x26.5",""],
+  [52,520,"993Sp","x27",""],
+  [53,530,"1.18Oc","x27.5",""],
+  [54,540,"1.40Oc","x28",""],
+  [55,550,"1.63Oc","x28.5",""],
+  [56,560,"1.91Oc","x29",""],
+  [57,570,"2.25Oc","x29.5",""],
+  [58,580,"2.66Oc","x30",""],
+  [59,590,"3.17Oc","x30.5",""],
+  [60,600,"3.78Oc","x31",""],
+  [61,610,"4.52Oc","x31.5",""],
+  [62,620,"5.43Oc","x32",""],
+  [63,630,"6.53Oc","x32.5",""],
+  [64,640,"7.86Oc","x33",""],
+  [65,650,"9.46Oc","x33.5",""],
+  [66,660,"11.4Oc","x34",""],
+  [67,670,"13.7Oc","x34.5",""],
+  [68,680,"16.5Oc","x35",""],
+  [69,690,"19.9Oc","x35.5",""],
+  [70,700,"23.8Oc","x36",""],
+  [71,710,"28.5Oc","x36.5",""],
+  [72,720,"34.1Oc","x37",""],
+  [73,730,"40.6Oc","x37.5",""],
+  [74,740,"48.3Oc","x38",""],
+  [75,750,"57.2Oc","x38.5",""]
+].map(([rebirth,jump,cost,cash,note]) => ({
+  rebirth,
+  jump,
+  cost,
+  cash,
+  note
+}));
+
+
+/* Costの単位変換。接尾辞は1000倍ずつ */
+const GAME_SUFFIX_POWER = {
+  "": 0,
+  K: 1,
+  M: 2,
+  B: 3,
+  T: 4,
+  Qa: 5,
+  Qi: 6,
+  Sx: 7,
+  Sp: 8,
+  Oc: 9
+};
+
+function parseGameAmount(text) {
+  const match = String(text).trim().match(
+    /^([0-9]+(?:\.[0-9]+)?)\s*(Qa|Qi|Sx|Sp|Oc|K|M|B|T)?$/
+  );
+
+  if (!match) {
+    throw new Error("不明なCost形式: " + text);
+  }
+
+  const value = Number(match[1]);
+  const suffix = match[2] || "";
+
+  return value * Math.pow(1000, GAME_SUFFIX_POWER[suffix]);
+}
+
+const GAME_SUFFIXES = [
+  "", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"
+];
+
+function formatGameAmount(value) {
+  if (!Number.isFinite(value)) {
+    return "計算できません";
+  }
+
+  if (value === 0) {
+    return "0";
+  }
+
+  const abs = Math.abs(value);
+
+  let power = Math.floor(Math.log10(abs) / 3);
+  power = Math.max(0, Math.min(power, GAME_SUFFIXES.length - 1));
+
+  const scaled = value / Math.pow(1000, power);
+  const rounded = Number(scaled.toPrecision(4));
+
+  return rounded.toLocaleString("en-US", {
+    maximumFractionDigits: 3
+  }) + GAME_SUFFIXES[power];
+}
+
+
+/* ===========================
+   リバース費用計算
+=========================== */
+
+const rebirthForm = document.getElementById("rebirthForm");
+const rebirthResult = document.getElementById("rebirthResult");
+
+rebirthForm.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const currentText =
+    document.getElementById("currentRebirth").value.trim();
+
+  const targetText =
+    document.getElementById("targetRebirth").value.trim();
+
+  const jumpText =
+    document.getElementById("currentJump").value.trim();
+
+  const current = Number(currentText);
+  const target = Number(targetText);
+  const currentJump = Number(jumpText);
+
+  if (
+    currentText === "" ||
+    targetText === "" ||
+    jumpText === "" ||
+    !Number.isInteger(current) ||
+    current < 0 ||
+    current > 75 ||
+    !Number.isInteger(target) ||
+    target < 1 ||
+    target > 75 ||
+    target <= current ||
+    !Number.isInteger(currentJump) ||
+    currentJump < 0
+  ) {
+    setError(
+      rebirthResult,
+      "入力を確認してください",
+      "現在のリバースは0〜74、目標は現在より大きい1〜75、ジャンプ数は0以上の整数にしてください。"
+    );
+    return;
+  }
+
+  /* 現在の次のリバースから目標までを抽出 */
+  const stages = REBIRTH_DATA.filter(row =>
+    row.rebirth > current && row.rebirth <= target
+  );
+
+  if (stages.length !== target - current) {
+    setError(
+      rebirthResult,
+      "データが見つかりません",
+      "現在と目標のリバース番号を確認してください。"
+    );
+    return;
+  }
+
+  let totalCost = 0;
+  let totalJumpAdvances = 0;
+
+  const breakdown = [];
+
+  stages.forEach((stage, index) => {
+    const costValue = parseGameAmount(stage.cost);
+    totalCost += costValue;
+
+    /*
+      最初のリバースだけ、現在のジャンプ数を考慮する。
+      リバースするとジャンプが0になるため、
+      2回目以降は各目標ジャンプ数ぶん必要。
+    */
+    const startingJump = index === 0 ? currentJump : 0;
+    const neededJumps = Math.max(0, stage.jump - startingJump);
+
+    totalJumpAdvances += neededJumps;
+
+    breakdown.push({
+      stage,
+      costValue,
+      neededJumps,
+      startingJump
+    });
+  });
+
+  if (
+    !Number.isFinite(totalCost) ||
+    !Number.isFinite(totalJumpAdvances)
+  ) {
+    setError(
+      rebirthResult,
+      "計算できません",
+      "入力数値または費用データを確認してください。"
+    );
+    return;
+  }
+
+  rebirthResult.className = "result show";
+  rebirthResult.replaceChildren();
+
+  addText(
+    rebirthResult,
+    "div",
+    "",
+    `リバース #${current} → #${target}`
+  );
+
+  addText(
+    rebirthResult,
+    "div",
+    "big",
+    "必要なCost合計：" + formatGameAmount(totalCost)
+  );
+
+  addText(
+    rebirthResult,
+    "p",
+    "",
+    `リバース回数：${stages.length}回`
+  );
+
+  /* 結果の要約 */
+  const grid = document.createElement("div");
+  grid.className = "summary-grid";
+
+  const lastStage = stages[stages.length - 1];
+
+  const summaries = [
+    [
+      "追加で必要なジャンプ合計",
+      totalJumpAdvances.toLocaleString("ja-JP") + "回"
+    ],
+    [
+      "最後のリバースに必要なジャンプ",
+      lastStage.jump.toLocaleString("ja-JP")
+    ],
+    [
+      "目標リバース後のCash倍率",
+      lastStage.cash
+    ],
+    [
+      "目標リバースのCost",
+      lastStage.cost
+    ]
+  ];
+
+  for (const [label, value] of summaries) {
+    const box = document.createElement("div");
+    box.className = "summary-item";
+
+    addText(box, "div", "label", label);
+    addText(box, "div", "value", value);
+
+    grid.appendChild(box);
+  }
+
+  rebirthResult.appendChild(grid);
+
+  /* リバースごとの内訳 */
+  const details = document.createElement("details");
+  details.className = "breakdown";
+
+  const summary = document.createElement("summary");
+  summary.textContent = "リバースごとの内訳を表示";
+
+  details.appendChild(summary);
+
+  const list = document.createElement("ol");
+
+  breakdown.forEach(({ stage, neededJumps }) => {
+    const item = document.createElement("li");
+
+    const note = stage.note
+      ? `（${stage.note}）`
+      : "";
+
+    item.textContent =
+      `#${stage.rebirth}${note}：` +
+      `Jump ${stage.jump}、` +
+      `Cost ${stage.cost}、` +
+      `必要な追加ジャンプ ${neededJumps.toLocaleString("ja-JP")}回`;
+
+    list.appendChild(item);
+  });
+
+  details.appendChild(list);
+  rebirthResult.appendChild(details);
+
+  addText(
+    rebirthResult,
+    "p",
+    "hint",
+    "注意：Cost合計は各リバースの表記費用を合算しています。ジャンプを増やすために別途必要な費用は、ジャンプ費用データがないため含まれていません。"
+  );
+});
+
+
+/* リバース計算のリセット */
+rebirthForm.addEventListener("reset", () => {
+  setTimeout(() => {
+    document.getElementById("currentRebirth").value = "0";
+    document.getElementById("targetRebirth").value = "10";
+    document.getElementById("currentJump").value = "0";
+
+    rebirthResult.className = "result";
+    rebirthResult.replaceChildren();
   }, 0);
 });
 </script>
