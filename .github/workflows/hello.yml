@@ -1,0 +1,22 @@
+name: GOUP Calculator - First Workflow
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: コードを取得
+        uses: actions/checkout@v6
+
+      - name: リポジトリを確認
+        run: |
+          echo "GOUP Calculator のワークフローが起動しました！"
+          echo "ファイル一覧:"
+          ls -la
