@@ -1,36 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GOUP 貯蓄時間計算機</title>
-<style>/* ===== サイドバー ===== */
+<meta name="theme-color" content="#10111a">
+<title>GOUP Calculator</title>
+
+<style>
+:root {
+  --bg: #10111a;
+  --panel: #191e2d;
+  --panel2: #20283a;
+  --text: #f3f5ff;
+  --muted: #a4aec4;
+  --accent: #8b9cff;
+  --accent2: #b69cff;
+  --line: #30394e;
+  --green: #7be0b1;
+  --red: #ff929c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 24px;
+}
+
 body {
+  margin: 0;
   padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans JP", sans-serif;
+  line-height: 1.6;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
 }
 
 .site-sidebar {
   position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
+  inset: 0 auto 0 0;
   width: 248px;
   padding: 24px 16px;
-  background: rgba(12, 18, 32, 0.97);
+  background: #0c1220;
   border-right: 1px solid var(--line);
   z-index: 20;
-
   display: flex;
   flex-direction: column;
   gap: 24px;
-
   overflow-y: auto;
 }
 
 .brand {
   color: var(--text);
   text-decoration: none;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 900;
   line-height: 1.4;
 }
@@ -68,7 +102,7 @@ body {
 .site-nav a:hover,
 .site-nav a.active {
   color: var(--text);
-  background: #202b43;
+  background: var(--panel2);
   border-color: var(--line);
 }
 
@@ -76,595 +110,240 @@ body {
   margin-top: auto;
   color: var(--muted);
   font-size: 0.78rem;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-/* ===== メインコンテンツ ===== */
 .main-area {
   margin-left: 248px;
   min-height: 100vh;
-  padding: 28px 16px 40px;
+  padding: 32px 20px 48px;
 }
 
-.main-area main {
-  max-width: 680px;
+main {
+  max-width: 780px;
   margin: 0 auto;
 }
 
-/* ===== スマホ用メニューボタン ===== */
 .menu-toggle {
   display: none;
   position: fixed;
   top: 12px;
   left: 12px;
   z-index: 31;
-
   width: 46px;
   height: 46px;
-
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #1a2230;
+  background: var(--panel);
   color: var(--text);
   font-size: 1.35rem;
 }
 
-/* 背景オーバーレイ */
 .sidebar-backdrop {
   display: none;
 }
 
-/* ===== iPad・スマホ対応 ===== */
-@media (max-width: 760px) {
-  .site-sidebar {
-    width: min(280px, 84vw);
-    transform: translateX(-105%);
-    transition: transform 0.22s ease;
-  }
-</style>
-  .site-sidebar.open {
-    transform: translateX(0);
-  }
-
-  .main-area {
-    margin-left: 0;
-    padding: 70px 14px 32px;
-  }
-
-  .menu-toggle {
-    display: block;
-  }
-
-  .sidebar-backdrop.show {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: #0009;
-    z-index: 19;
-  }
-}<style>/* ===== サイドバー ===== */
-body {
-  padding: 0;
+.hero {
+  padding: 30px;
+  margin-bottom: 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(135deg, #242d49, #191e2d 70%);
 }
 
-.site-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 248px;
-  padding: 24px 16px;
-  background: rgba(12, 18, 32, 0.97);
-  border-right: 1px solid var(--line);
-  z-index: 20;
-
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-
-  overflow-y: auto;
-}
-
-.brand {
-  color: var(--text);
-  text-decoration: none;
-  font-size: 1.05rem;
-  font-weight: 900;
-  line-height: 1.4;
-}
-
-.brand span {
-  display: block;
+.eyebrow {
   color: var(--accent);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  margin-top: 6px;
-}
-
-.nav-label {
-  color: var(--muted);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  font-weight: 800;
-  margin: 0 0 8px 10px;
-}
-
-.site-nav {
-  display: grid;
-  gap: 7px;
-}
-
-.site-nav a {
-  color: var(--muted);
-  text-decoration: none;
-  padding: 12px 13px;
-  border-radius: 11px;
-  font-weight: 700;
-  border: 1px solid transparent;
-}
-
-.site-nav a:hover,
-.site-nav a.active {
-  color: var(--text);
-  background: #202b43;
-  border-color: var(--line);
-}
-
-.sidebar-note {
-  margin-top: auto;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.6;
-}
-
-/* ===== メインコンテンツ ===== */
-.main-area {
-  margin-left: 248px;
-  min-height: 100vh;
-  padding: 28px 16px 40px;
-}
-
-.main-area main {
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-/* ===== スマホ用メニューボタン ===== */
-.menu-toggle {
-  display: none;
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 31;
-
-  width: 46px;
-  height: 46px;
-
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #1a2230;
-  color: var(--text);
-  font-size: 1.35rem;
-}
-
-/* 背景オーバーレイ */
-.sidebar-backdrop {
-  display: none;
-}
-
-/* ===== iPad・スマホ対応 ===== */
-@media (max-width: 760px) {
-  .site-sidebar {
-    width: min(280px, 84vw);
-    transform: translateX(-105%);
-    transition: transform 0.22s ease;
-  }
-
-  .site-sidebar.open {
-    transform: translateX(0);
-  }
-
-  .main-area {
-    margin-left: 0;
-    padding: 70px 14px 32px;
-  }
-
-  .menu-toggle {
-    display: block;
-  }
-
-  .sidebar-backdrop.show {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: #0009;
-    z-index: 19;
-  }
-}/* ===== サイドバー ===== */
-body {
-  padding: 0;
-}
-
-.site-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 248px;
-  padding: 24px 16px;
-  background: rgba(12, 18, 32, 0.97);
-  border-right: 1px solid var(--line);
-  z-index: 20;
-
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-
-  overflow-y: auto;
-}
-
-.brand {
-  color: var(--text);
-  text-decoration: none;
-  font-size: 1.05rem;
+  font-size: 0.76rem;
   font-weight: 900;
-  line-height: 1.4;
+  letter-spacing: 0.14em;
 }
 
-.brand span {
-  display: block;
-  color: var(--accent);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  margin-top: 6px;
+h1 {
+  margin: 8px 0 12px;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  line-height: 1.25;
 }
 
-.nav-label {
+h2 {
+  margin: 0 0 8px;
+  font-size: 1.4rem;
+}
+
+h3 {
+  margin-top: 0;
+}
+
+p {
   color: var(--muted);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  font-weight: 800;
-  margin: 0 0 8px 10px;
 }
 
-.site-nav {
+.section {
+  margin: 28px 0;
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  scroll-margin-top: 20px;
+}
+
+.section-intro {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+
+.field-grid {
   display: grid;
-  gap: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
-.site-nav a {
+.field {
+  min-width: 0;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  display: block;
+  margin-bottom: 7px;
   color: var(--muted);
-  text-decoration: none;
-  padding: 12px 13px;
-  border-radius: 11px;
+  font-size: 0.88rem;
   font-weight: 700;
-  border: 1px solid transparent;
 }
 
-.site-nav a:hover,
-.site-nav a.active {
+input,
+select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
   color: var(--text);
-  background: #202b43;
-  border-color: var(--line);
+  background: #101522;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
 }
 
-.sidebar-note {
-  margin-top: auto;
+input:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #8b9cff22;
+}
+
+input::placeholder {
+  color: #68748b;
+}
+
+.field-help {
+  display: block;
+  margin-top: 5px;
   color: var(--muted);
   font-size: 0.78rem;
-  line-height: 1.6;
 }
 
-/* ===== メインコンテンツ ===== */
-.main-area {
-  margin-left: 248px;
-  min-height: 100vh;
-  padding: 28px 16px 40px;
+.primary-button,
+.secondary-button {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 11px;
+  font-weight: 900;
+  margin-top: 18px;
 }
 
-.main-area main {
-  max-width: 680px;
-  margin: 0 auto;
+.primary-button {
+  color: #10111a;
+  background: var(--accent);
+  border: 0;
 }
 
-/* ===== スマホ用メニューボタン ===== */
-.menu-toggle {
-  display: none;
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: 31;
+.primary-button:hover {
+  filter: brightness(1.08);
+}
 
-  width: 46px;
-  height: 46px;
+.secondary-button {
+  color: var(--text);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+}
 
+.result {
+  margin-top: 20px;
+  padding: 18px;
+  background: #111827;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  overflow-wrap: anywhere;
+}
+
+.result-title {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.result-value {
+  color: var(--green);
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  font-weight: 900;
+  margin: 4px 0;
+}
+
+.result-detail {
+  font-size: 0.9rem;
+  color: var(--muted);
+  white-space: pre-line;
+}
+
+.error {
+  color: var(--red);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.stat {
+  padding: 14px;
+  background: var(--panel2);
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #1a2230;
-  color: var(--text);
-  font-size: 1.35rem;
+  min-width: 0;
 }
 
-/* 背景オーバーレイ */
-.sidebar-backdrop {
-  display: none;
+.stat-label {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
-/* ===== iPad・スマホ対応 ===== */
-@media (max-width: 760px) {
-  .site-sidebar {
-    width: min(280px, 84vw);
-    transform: translateX(-105%);
-    transition: transform 0.22s ease;
-  }
-
-  .site-sidebar.open {
-    transform: translateX(0);
-  }
-
-  .main-area {
-    margin-left: 0;
-    padding: 70px 14px 32px;
-  }
-
-  .menu-toggle {
-    display: block;
-  }
-
-  .sidebar-backdrop.show {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: #0009;
-    z-index: 19;
-  }
-}
-  :root { color-scheme: dark; --bg:#10141d; --panel:#1a2230; --line:#344155; --text:#f3f6fb; --muted:#aab6c8; --accent:#72a7ff; }
-  * { box-sizing: border-box; }
-  body { margin:0; padding:24px 14px 40px; font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:linear-gradient(160deg,#10141d,#17243a); color:var(--text); }
-  main { max-width:620px; margin:0 auto; }
-  header { text-align:center; margin:10px 0 24px; }
-  h1 { margin:0 0 8px; font-size:clamp(1.55rem,5vw,2.1rem); }
-  header p { margin:0; color:var(--muted); }
-  .card { background:rgba(26,34,48,.96); border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:0 12px 35px #0003; }
-  .field { margin:0 0 17px; }
-  label { display:block; margin-bottom:7px; font-weight:650; }
-  .row { display:grid; grid-template-columns:minmax(0,1fr) 112px; gap:9px; }
-  input, select, button { width:100%; min-height:46px; border-radius:10px; border:1px solid var(--line); background:#111722; color:var(--text); padding:10px 12px; font:inherit; }
-  input::placeholder { color:#748197; }
-  .hint { color:var(--muted); font-size:.86rem; margin-top:6px; }
-  button { cursor:pointer; font-weight:750; border:0; background:var(--accent); color:#0b1423; margin-top:4px; }
-  button:hover { filter:brightness(1.08); }
-  .result { margin-top:18px; border:1px solid #466a9e; background:#15243a; border-radius:14px; padding:17px; display:none; }
-  .result.show { display:block; }
-  .result h2 { font-size:1.1rem; margin:0 0 10px; }
-  .big { font-size:clamp(1.45rem,6vw,2rem); font-weight:800; line-height:1.35; overflow-wrap:anywhere; }
-  .sub { color:#c2d2e9; margin-top:7px; line-height:1.6; }
- .detail-remaining { font-size:1.1rem; font-weight:650; }
-.detail-arrival { font-size:1.8rem; font-weight:650; color:#c1d7a2; }
-.detail-note { font-size:1.8rem; opacity:.9; font-weight:650; color:#c1d7a2; }
-  .error { color:#ffb8b8; margin-top:12px; }
-  footer { color:var(--muted); font-size:.82rem; line-height:1.6; margin:17px 4px 0; }
-  @media (max-width:420px) { .card { padding:15px; } .row { grid-template-columns:minmax(0,1fr) 100px; } }
-</style>
-</head>
-<!-- メニューボタン -->
-<button
-  class="menu-toggle"
-  id="menuToggle"
-  type="button"
-  aria-label="メニューを開く"
-  aria-expanded="false"
->
-  ☰
-</button>
-
-<!-- 背景 -->
-<div
-  class="sidebar-backdrop"
-  id="sidebarBackdrop"
-></div>
-
-<!-- サイドバー -->
-<aside
-  class="site-sidebar"
-  id="siteSidebar"
-  aria-label="サイトメニュー"
->
-  <a class="brand" href="#home">
-    🎮 GO UP FOR<br>
-    BRAINROTS
-    <span>CALCULATOR</span>
-  </a>
-
-  <div>
-    <p class="nav-label">MENU</p>
-
-    <nav class="site-nav">
-      <a class="active" href="#home">
-        🏠 ホーム
-      </a>
-
-      <a href="#calculator">
-        💰 貯金時間計算
-      </a>
-
-      <a href="#guide">
-        📘 使い方・注意点
-      </a>
-    </nav>
-  </div>
-
-  <p class="sidebar-note">
-    増加速度と目標金額から、
-    到達までの時間を計算。
-  </p>
-</aside><body>
-<main>
-  <header>
-    <h1>🎮 GOUP 貯蓄時間計算機</h1>
-    <p>収入速度と目標金額から、到達までの時間を計算！</p>
-  </header>
-  <section class="card" aria-label="計算フォーム">
-    <div class="field">
-      <label for="rate">収入速度（1秒あたり）</label>
-      <div class="row">
-        <input id="rate" type="number" min="0" step="any" placeholder="例：1" inputmode="decimal">
-        <select id="rateUnit" aria-label="収入速度の単位">
-          <option>Sx</option><option>Sp</option><option>Oc</option><option>No</option><option>Qi</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <label for="current">現在の所持金（空欄なら0から計算）</label>
-      <div class="row">
-        <input id="current" type="number" min="0" step="any" placeholder="例：30（空欄でもOK）" inputmode="decimal">
-        <select id="currentUnit" aria-label="所持金の単位">
-          <option>Sp</option><option>Sx</option><option>Oc</option><option>No</option><option>Qi</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <label for="target">目標金額</label>
-      <div class="row">
-        <input id="target" type="number" min="0" step="any" placeholder="例：10" inputmode="decimal">
-        <select id="targetUnit" aria-label="目標金額の単位">
-          <option>Sp</option><option>Oc</option><option>Sx</option><option>No</option><option>Qi</option>
-        </select>
-      </div>
-    </div>
-    <button id="calculate" type="button">計算する</button>
-    <div id="error" class="error" role="alert"></div>
-    <section id="result" class="result" aria-live="polite">
-      <h2>計算結果</h2>
-      <div id="duration" class="big"></div>
-      <div id="detail" class="sub"></div>
-    </section>
-  </section>
-  <footer>
-    ※ Qi → Sx → Sp → Oc → No は、各段階を1000倍として計算します。<br>
-    ※ ゲーム内の単位表記や収入速度が変化する場合、結果と実際の進行に差が出ることがあります。収入速度が一定である前提の計算です。
-  </footer>
-</main>
-<script>
-const exponent = { Qi: 18, Sx: 21, Sp: 24, Oc: 27, No: 30 };
-const $ = id => document.getElementById(id);
-function formatDuration(seconds) {
-  if (!Number.isFinite(seconds)) return "計算できません";
-  let s = Math.max(0, Math.floor(seconds));
-  const days = Math.floor(s / 86400); s %= 86400;
-  const hours = Math.floor(s / 3600); s %= 3600;
-  const minutes = Math.floor(s / 60); s %= 60;
-  const parts = [];
-  if (days) parts.push(`${days}日`);
-  if (hours || days) parts.push(`${hours}時間`);
-  if (minutes || hours || days) parts.push(`${minutes}分`);
-  parts.push(`${s}秒`);
-  return parts.join(" ");
-}
-function valueInBase(number, unit) {
-  return number * Math.pow(10, exponent[unit]);
-}
-function calculate() {
-  $("error").textContent = "";
-  $("result").classList.remove("show");
-  const rate = Number($("rate").value);
-  const currentText = $("current").value.trim();
-  const current = currentText === "" ? 0 : Number(currentText);
-  const target = Number($("target").value);
-  const rateUnit = $("rateUnit").value;
-  const currentUnit = $("currentUnit").value;
-  const targetUnit = $("targetUnit").value;
-  if ($("rate").value.trim() === "" || $("target").value.trim() === "" ||
-      !Number.isFinite(rate) || rate <= 0 || !Number.isFinite(current) || current < 0 ||
-      !Number.isFinite(target) || target <= 0) {
-    $("error").textContent = "収入速度は0より大きく、所持金は0以上、目標金額は0より大きい数を入力してね。";
-    return;
-  }
-  const remaining = valueInBase(target, targetUnit) - valueInBase(current, currentUnit);
-  if (remaining <= 0) {
-    $("result").classList.add("show");
-    $("duration").textContent = "もう目標達成！ 🎉";
-    $("detail").textContent = "現在の所持金が目標金額以上だよ。";
-    return;
-  }
-  const perSecond = valueInBase(rate, rateUnit);
-  const seconds = remaining / perSecond;
-  if (!Number.isFinite(seconds) || seconds > 1e15) {
-    $("error").textContent = "数値が大きすぎて計算できません。入力を確認してね。";
-    return;
-  }
-  const now = new Date();
-  const arrival = new Date(now.getTime() + seconds * 1000);
-  const fmt = new Intl.DateTimeFormat("ja-JP", {
-    timeZone: "Asia/Tokyo", year:"numeric", month:"2-digit", day:"2-digit",
-    weekday:"short", hour:"2-digit", minute:"2-digit", second:"2-digit", hourCycle:"h23"
-  });
-     const remainingDisplay = remaining / Math.pow(10, exponent[targetUnit]);
-  const digits = remainingDisplay < 10 ? 2 : 1;
-  const formattedRemaining = new Intl.NumberFormat("ja-JP", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits
-  }).format(remainingDisplay);
-  $("detail").innerHTML =
-    `<span class="detail-remaining">必要な残り金額：約 ${formattedRemaining} ${targetUnit}</span><br>` +
-    `<span class="detail-arrival">到達予定：${fmt.format(arrival)}</span><br>` +
-    `<span class="detail-note">計算開始：${fmt.format(now)}</span>`;
-  $("result").classList.add("show");
+.stat-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
-$("calculate").addEventListener("click", calculate);
-/* ===== サイドバーの操作 ===== */
-
-const sidebar = document.getElementById("siteSidebar");
-const menuToggle = document.getElementById("menuToggle");
-const backdrop = document.getElementById("sidebarBackdrop");
-
-function closeSidebar() {
-  sidebar.classList.remove("open");
-  backdrop.classList.remove("show");
-
-  menuToggle.setAttribute(
-    "aria-expanded",
-    "false"
-  );
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
 
-/* メニューボタン */
-menuToggle.addEventListener("click", () => {
-  const isOpen = sidebar.classList.toggle("open");
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 420px;
+}
 
-  backdrop.classList.toggle("show", isOpen);
+th, td {
+  padding: 11px 13px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
 
-  menuToggle.setAttribute(
-    "aria-expanded",
-    String(isOpen)
-  );
-});
-
-/* 背景を押したら閉じる */
-backdrop.addEventListener(
-  "click",
-  closeSidebar
-);
-
-/* メニューを押したら移動して閉じる */
-document
-  .querySelectorAll(".site-nav a, .brand")
-  .forEach(link => {
-    link.addEventListener("click", () => {
-      document
-        .querySelectorAll(".site-nav a")
-        .forEach(item => {
-          item.classList.toggle(
-            "active",
-            item.getAttribute("href") ===
-              link.getAttribute("href")
-          );
-        });
-
-      closeSidebar();
-    });
-  });</script>
-</body>
-</html>
+th {
+  color: var(--muted);
+  background: #111
