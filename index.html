@@ -19,7 +19,9 @@
   --danger: #ff8585;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -40,11 +42,15 @@ header {
   font-weight: 850;
 }
 
-.logo span { color: var(--accent2); }
+.logo span {
+  color: var(--accent2);
+}
 
 header p,
 .description,
-.hint { color: var(--muted); }
+.hint {
+  color: var(--muted);
+}
 
 nav {
   display: flex;
@@ -71,7 +77,9 @@ nav button,
 }
 
 nav button:hover,
-.btn:hover { transform: translateY(-1px); }
+.btn:hover {
+  transform: translateY(-1px);
+}
 
 nav button.active,
 .btn.primary {
@@ -85,8 +93,13 @@ main {
   margin: 0 auto 42px;
 }
 
-.page { display: none; }
-.page.active { display: block; }
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
 
 .card {
   background: rgba(25, 28, 41, .96);
@@ -100,6 +113,10 @@ main {
 h1 {
   font-size: 1.55rem;
   line-height: 1.3;
+}
+
+h2 {
+  font-size: 1.2rem;
 }
 
 .grid {
@@ -159,7 +176,9 @@ select:focus {
   overflow-wrap: anywhere;
 }
 
-.result.show { display: block; }
+.result.show {
+  display: block;
+}
 
 .result .big {
   font-size: 1.7rem;
@@ -248,6 +267,35 @@ select:focus {
   overflow-wrap: anywhere;
 }
 
+.time-forecast {
+  margin-top: 14px;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #ffffff04;
+}
+
+.time-forecast h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.time-forecast .forecast-line {
+  margin: 5px 0;
+}
+
+.time-forecast .forecast-date {
+  font-size: 1.7rem;
+  color: #c1d7a2;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.time-forecast .forecast-label {
+  color: var(--muted);
+  font-size: .9rem;
+}
+
 .breakdown {
   margin-top: 14px;
   padding: 13px;
@@ -261,8 +309,13 @@ select:focus {
   font-weight: 700;
 }
 
-.breakdown ol { padding-left: 1.5rem; }
-.breakdown li { margin: 5px 0; }
+.breakdown ol {
+  padding-left: 1.5rem;
+}
+
+.breakdown li {
+  margin: 5px 0;
+}
 
 footer {
   text-align: center;
@@ -273,13 +326,21 @@ footer {
 
 @media (max-width: 560px) {
   .grid,
-  .summary-grid { grid-template-columns: 1fr; }
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
 
-  nav button { flex: 1 1 40%; }
+  nav button {
+    flex: 1 1 40%;
+  }
 
-  .card { border-radius: 16px; }
+  .card {
+    border-radius: 16px;
+  }
 
-  .result .result-datetime { font-size: 1.7rem; }
+  .result .result-datetime {
+    font-size: 1.7rem;
+  }
 }
 </style>
 </head>
@@ -329,6 +390,7 @@ footer {
       <button class="btn primary" data-goto="saving" type="button">
         貯金時間を計算
       </button>
+
       <button class="btn" data-goto="rebirth" type="button">
         リバースを計算
       </button>
@@ -336,6 +398,7 @@ footer {
   </div>
 </section>
 
+<!-- 貯金時間計算 -->
 <section id="saving" class="page">
   <div class="card">
     <h1>💰 貯金時間計算</h1>
@@ -414,6 +477,7 @@ footer {
   </div>
 </section>
 
+<!-- リバース計算 -->
 <section id="rebirth" class="page">
   <div class="card">
     <h1>🔄 リバース費用計算</h1>
@@ -438,7 +502,7 @@ footer {
             step="1"
             value="1"
           >
-          <p class="hint">1〜75の範囲で入力</p>
+          <p class="hint">1〜75の範囲で現在のリバース番号を入力</p>
         </div>
 
         <div class="field">
@@ -451,7 +515,7 @@ footer {
             step="1"
             value="10"
           >
-          <p class="hint">1〜75の範囲で入力</p>
+          <p class="hint">表にある#1〜#75から指定</p>
         </div>
 
         <div class="field">
@@ -466,6 +530,62 @@ footer {
           <p class="hint">現在のジャンプ数を入力</p>
         </div>
 
+        <div class="field">
+          <label for="rebirthCashRate">お金の増加速度（毎秒）</label>
+          <input
+            id="rebirthCashRate"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="例：192"
+          >
+          <p class="hint">時間予測に使用。例：192 Sx/s</p>
+        </div>
+
+        <div class="field">
+          <label for="rebirthCashRateUnit">増加速度の単位</label>
+          <select id="rebirthCashRateUnit">
+            <option value="Sx" selected>Sx/s</option>
+            <option value="Sp">Sp/s</option>
+            <option value="Oc">Oc/s</option>
+            <option value="Qi">Qi/s</option>
+            <option value="Qa">Qa/s</option>
+            <option value="T">T/s</option>
+            <option value="B">B/s</option>
+            <option value="M">M/s</option>
+            <option value="K">K/s</option>
+            <option value="1">通常の数値/s</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="rebirthHeldCash">現在の所持金</label>
+          <input
+            id="rebirthHeldCash"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="空欄なら0"
+          >
+          <p class="hint">目標までに必要な費用から差し引きます。</p>
+        </div>
+
+        <div class="field">
+          <label for="rebirthHeldCashUnit">所持金の単位</label>
+          <select id="rebirthHeldCashUnit">
+            <option value="Sp" selected>Sp</option>
+            <option value="Sx">Sx</option>
+            <option value="Oc">Oc</option>
+            <option value="Qi">Qi</option>
+            <option value="Qa">Qa</option>
+            <option value="T">T</option>
+            <option value="B">B</option>
+            <option value="M">M</option>
+            <option value="K">K</option>
+            <option value="1">通常の数値</option>
+          </select>
+        </div>
+
       </div>
 
       <div class="actions">
@@ -477,10 +597,10 @@ footer {
     <div id="rebirthResult" class="result" aria-live="polite"></div>
 
     <div class="notice">
-      表のCostはジャンプ0から各Jumpに到達するまでの累計費用として扱います。
-      現在のジャンプが目標ジャンプ以上なら、その段階の追加金額は0です。
-      リバース後はジャンプが0に戻ります。
-      表にない途中のジャンプ数は、10ジャンプ刻みのCostから概算します。
+      表のCostは「ジャンプ0からそのJumpに到達するまでの累計費用」として扱います。
+      現在のジャンプが最初の目標ジャンプ以上なら、その段階に必要な追加金額は0です。
+      リバース後はジャンプが0に戻るため、次の段階からは各目標Jumpまでの累計費用が必要です。
+      表にない途中のジャンプ数は、10ジャンプ刻みのCostから線形補間で概算します。
     </div>
   </div>
 </section>
@@ -514,12 +634,11 @@ document.querySelectorAll('[data-goto]').forEach(button => {
 });
 
 
-/* ★重要：リバース番号を入力中から1〜75に制限 */
+/* リバース番号を入力中から1〜75に制限 */
 function limitRebirthNumberInput(input, fallbackValue) {
   function normalizeValue() {
     const raw = input.value.trim();
 
-    // 編集中に全選択して消す操作は許可する
     if (raw === "") return;
 
     const number = Number(raw);
@@ -538,11 +657,9 @@ function limitRebirthNumberInput(input, fallbackValue) {
     }
   }
 
-  // 入力・貼り付け・スピンボタン操作の直後に修正
   input.addEventListener("input", normalizeValue);
   input.addEventListener("change", normalizeValue);
 
-  // 空欄のまま入力欄を離れた場合は初期値へ戻す
   input.addEventListener("blur", () => {
     if (input.value.trim() === "") {
       input.value = String(fallbackValue);
@@ -563,7 +680,7 @@ limitRebirthNumberInput(
 );
 
 
-/* 貯金時間計算 */
+/* 貯金時間計算用の単位 */
 const UNIT_POWER = {
   "1": 0,
   Sx: 1,
@@ -606,6 +723,8 @@ function formatDuration(seconds) {
   return parts.join(" ");
 }
 
+
+/* 日本時間の日時表示 */
 function getJapanDateParts(date) {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
@@ -629,33 +748,34 @@ function getJapanDateParts(date) {
 }
 
 function formatJapanClockTime(date) {
-  const p = getJapanDateParts(date);
+  const parts = getJapanDateParts(date);
 
   return (
-    String(p.hour).padStart(2, "0") +
+    String(parts.hour).padStart(2, "0") +
     "時" +
-    String(p.minute).padStart(2, "0") +
+    String(parts.minute).padStart(2, "0") +
     "分"
   );
 }
 
 function formatJapanArrivalDateTime(arrivalDate, now) {
-  const a = getJapanDateParts(arrivalDate);
-  const c = getJapanDateParts(now);
+  const arrival = getJapanDateParts(arrivalDate);
+  const current = getJapanDateParts(now);
 
   const time =
-    String(a.hour).padStart(2, "0") +
+    String(arrival.hour).padStart(2, "0") +
     "時" +
-    String(a.minute).padStart(2, "0") +
+    String(arrival.minute).padStart(2, "0") +
     "分";
 
-  return (
-    a.year === c.year &&
-    a.month === c.month &&
-    a.day === c.day
-  )
+  const sameDay =
+    arrival.year === current.year &&
+    arrival.month === current.month &&
+    arrival.day === current.day;
+
+  return sameDay
     ? time
-    : a.month + "月" + a.day + "日" + time;
+    : arrival.month + "月" + arrival.day + "日" + time;
 }
 
 const savingForm = document.getElementById("savingForm");
@@ -692,6 +812,8 @@ function addText(parent, tag, className, text) {
   return element;
 }
 
+
+/* 貯金時間計算 */
 savingForm.addEventListener("submit", event => {
   event.preventDefault();
 
@@ -896,11 +1018,26 @@ const REBIRTH_DATA = [
   [74,740,"48.3Oc","x38",""],
   [75,750,"57.2Oc","x38.5",""]
 ].map(([rebirth,jump,cost,cash,note]) => ({
-  rebirth,jump,cost,cash,note
+  rebirth,
+  jump,
+  cost,
+  cash,
+  note
 }));
 
+/* Cost単位を数値にする */
 const GAME_SUFFIX_POWER = {
-  "":0, K:1, M:2, B:3, T:4, Qa:5, Qi:6, Sx:7, Sp:8, Oc:9
+  "1":0,
+  "":0,
+  K:1,
+  M:2,
+  B:3,
+  T:4,
+  Qa:5,
+  Qi:6,
+  Sx:7,
+  Sp:8,
+  Oc:9
 };
 
 function parseGameAmount(text) {
@@ -908,10 +1045,14 @@ function parseGameAmount(text) {
     /^([0-9]+(?:\.[0-9]+)?)\s*(Qa|Qi|Sx|Sp|Oc|K|M|B|T)?$/
   );
 
-  if (!match) throw new Error("不明なCost形式: " + text);
+  if (!match) {
+    throw new Error("不明なCost形式: " + text);
+  }
 
-  return Number(match[1]) *
-    Math.pow(1000, GAME_SUFFIX_POWER[match[2] || ""]);
+  const value = Number(match[1]);
+  const suffix = match[2] || "";
+
+  return value * Math.pow(1000, GAME_SUFFIX_POWER[suffix]);
 }
 
 const GAME_SUFFIXES = [
@@ -923,16 +1064,19 @@ function formatGameAmount(value) {
   if (value === 0) return "0";
 
   const abs = Math.abs(value);
+
   let power = Math.floor(Math.log10(abs) / 3);
   power = Math.max(0, Math.min(power, GAME_SUFFIXES.length - 1));
 
   const scaled = value / Math.pow(1000, power);
+  const rounded = Number(scaled.toPrecision(4));
 
-  return Number(scaled.toPrecision(4)).toLocaleString("en-US", {
+  return rounded.toLocaleString("en-US", {
     maximumFractionDigits: 3
   }) + GAME_SUFFIXES[power];
 }
 
+/* 表のCostは、各Jumpまでに必要な累計費用として扱う */
 function cumulativeJumpCost(jump) {
   if (!Number.isFinite(jump) || jump <= 0) {
     return { value: 0, estimated: false };
@@ -944,7 +1088,10 @@ function cumulativeJumpCost(jump) {
   }));
 
   const exact = known.find(item => item.jump === jump);
-  if (exact) return { value: exact.cost, estimated: false };
+
+  if (exact) {
+    return { value: exact.cost, estimated: false };
+  }
 
   const lower =
     [...known].reverse().find(item => item.jump < jump) ||
@@ -1003,7 +1150,7 @@ rebirthForm.addEventListener("submit", event => {
     setError(
       rebirthResult,
       "入力を確認してください",
-      "現在と目標のリバースは1〜75の整数で入力してください。目標は現在より大きく、ジャンプ数は0以上にしてください。"
+      "現在と目標のリバースは1〜75の整数で入力してください。目標リバースは現在より大きく、ジャンプ数は0以上の整数にしてください。"
     );
     return;
   }
@@ -1024,6 +1171,7 @@ rebirthForm.addEventListener("submit", event => {
   let totalCost = 0;
   let totalJumpAdvances = 0;
   let hasEstimate = false;
+
   const breakdown = [];
 
   stages.forEach((stage, index) => {
@@ -1093,6 +1241,137 @@ rebirthForm.addEventListener("submit", event => {
     "追加で必要なジャンプ費用：" + formatGameAmount(totalCost)
   );
 
+
+  /* 費用結果の直下に時間予測を表示 */
+  const forecast = document.createElement("section");
+  forecast.className = "time-forecast";
+
+  addText(
+    forecast,
+    "h2",
+    "",
+    "⏱ 目標までの時間予測"
+  );
+
+  const now = new Date();
+
+  addText(
+    forecast,
+    "p",
+    "forecast-line",
+    "現在時刻：" + formatJapanClockTime(now)
+  );
+
+  const rateText =
+    document.getElementById("rebirthCashRate").value.trim();
+
+  const rateUnit =
+    document.getElementById("rebirthCashRateUnit").value;
+
+  const heldText =
+    document.getElementById("rebirthHeldCash").value.trim();
+
+  const heldCash =
+    heldText === "" ? 0 : Number(heldText);
+
+  const heldUnit =
+    document.getElementById("rebirthHeldCashUnit").value;
+
+  if (
+    rateText === "" ||
+    !Number.isFinite(Number(rateText)) ||
+    Number(rateText) <= 0 ||
+    !Number.isFinite(heldCash) ||
+    heldCash < 0
+  ) {
+    addText(
+      forecast,
+      "p",
+      "forecast-line",
+      "必要な時間：増加速度を入力すると計算できます。"
+    );
+
+    addText(
+      forecast,
+      "p",
+      "hint",
+      "到達予定日時を計算するには「お金の増加速度（毎秒）」を入力してください。現在の所持金は空欄の場合0として扱います。"
+    );
+
+  } else {
+    const rateValue =
+      Number(rateText) *
+      Math.pow(1000, GAME_SUFFIX_POWER[rateUnit] ?? 0);
+
+    const heldValue =
+      heldCash *
+      Math.pow(1000, GAME_SUFFIX_POWER[heldUnit] ?? 0);
+
+    const remainingCash = Math.max(0, totalCost - heldValue);
+
+    const requiredSeconds =
+      remainingCash === 0 ? 0 : remainingCash / rateValue;
+
+    if (
+      !Number.isFinite(requiredSeconds) ||
+      requiredSeconds < 0
+    ) {
+      addText(
+        forecast,
+        "p",
+        "forecast-line",
+        "必要な時間：計算できません。増加速度と所持金を確認してください。"
+      );
+
+    } else {
+      const arrivalDate = new Date(
+        now.getTime() + Math.ceil(requiredSeconds) * 1000
+      );
+
+      addText(
+        forecast,
+        "p",
+        "forecast-line",
+        "必要な時間：" + formatDuration(requiredSeconds)
+      );
+
+      addText(
+        forecast,
+        "div",
+        "forecast-label",
+        "到達予定日時"
+      );
+
+      addText(
+        forecast,
+        "div",
+        "forecast-date",
+        formatJapanArrivalDateTime(arrivalDate, now)
+      );
+
+      if (remainingCash === 0) {
+        addText(
+          forecast,
+          "p",
+          "hint",
+          "現在の所持金で必要額を満たしています。"
+        );
+
+      } else {
+        addText(
+          forecast,
+          "p",
+          "hint",
+          "残り必要額：約 " +
+          formatGameAmount(remainingCash) +
+          "（現在の所持金を差し引いて計算）"
+        );
+      }
+    }
+  }
+
+  rebirthResult.appendChild(forecast);
+
   addText(
     rebirthResult,
     "p",
@@ -1125,8 +1404,10 @@ rebirthForm.addEventListener("submit", event => {
   for (const [label, value] of summaries) {
     const box = document.createElement("div");
     box.className = "summary-item";
+
     addText(box, "div", "label", label);
     addText(box, "div", "value", value);
+
     grid.appendChild(box);
   }
 
@@ -1137,12 +1418,14 @@ rebirthForm.addEventListener("submit", event => {
 
   const summary = document.createElement("summary");
   summary.textContent = "リバースごとの内訳を表示";
+
   details.appendChild(summary);
 
   const list = document.createElement("ol");
 
   breakdown.forEach(({ stage, neededCost, neededJumps, estimated }) => {
     const item = document.createElement("li");
+
     const note = stage.note ? `（${stage.note}）` : "";
     const estimateLabel = estimated ? "（Cost推定）" : "";
 
@@ -1164,18 +1447,24 @@ rebirthForm.addEventListener("submit", event => {
     "p",
     "hint",
     hasEstimate
-      ? "現在のジャンプ数が表の10刻みと一致しないため、最初の区間の費用は表の前後の値を線形補間した概算です。"
-      : "Costは各Jumpまでの累計費用として計算しています。すでに目標ジャンプ数を満たしていれば、その段階の追加費用は0です。"
+      ? "現在のジャンプ数が表の10刻みと一致しないため、最初の区間の費用は表の前後の値を線形補間した概算です。すでに目標ジャンプ数に達している段階の追加費用は0です。"
+      : "Costは各Jumpまでの累計費用として計算しています。現在のジャンプが最初の目標ジャンプ以上なら、その段階の追加費用は0です。リバース後はジャンプ0へ戻るため、次の段階から再計算します。"
   );
 });
 
 
-/* リセット */
+/* リバース計算のリセット */
 rebirthForm.addEventListener("reset", () => {
   setTimeout(() => {
     document.getElementById("currentRebirth").value = "1";
     document.getElementById("targetRebirth").value = "10";
     document.getElementById("currentJump").value = "0";
+
+    document.getElementById("rebirthCashRate").value = "";
+    document.getElementById("rebirthCashRateUnit").value = "Sx";
+
+    document.getElementById("rebirthHeldCash").value = "";
+    document.getElementById("rebirthHeldCashUnit").value = "Sp";
 
     rebirthResult.className = "result";
     rebirthResult.replaceChildren();
