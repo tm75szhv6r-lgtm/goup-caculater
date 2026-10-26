@@ -288,6 +288,11 @@ select:focus {
   margin: 5px 0;
 }
 
+.money {
+  color: var(--datetime);
+  font-weight: 800;
+}
+
 footer {
   text-align: center;
   color: var(--muted);
@@ -352,8 +357,8 @@ footer {
         <strong>🔄 リバース計算</strong>
         <span>
           現在のリバースと目標リバースから、
-          必要な費用の合計とリバースでリセットされる
-          ジャンプ数を計算します。
+          必要なジャンプ数と追加費用を計算します。
+          リバース後にジャンプが0へ戻ることも考慮します。
         </span>
       </div>
     </div>
@@ -452,12 +457,12 @@ footer {
 <!-- リバース計算 -->
 <section id="rebirth" class="page">
   <div class="card">
-    <h1>🔄 リバース費用計算</h1>
+    <h1>🔄 リバース必要資金計算</h1>
 
     <p class="description">
-      現在のリバースと目標リバースを入力すると、
-      次のリバースから目標までのCost合計と、
-      リバースでジャンプが0に戻ることを考慮した必要ジャンプ数を計算します。
+      現在のリバース、目標のリバース、現在のジャンプ数を入力してください。
+      すでに必要なジャンプ数を満たしている段階の追加費用は0になります。
+      リバースするとジャンプは0に戻ります。
     </p>
 
     <form id="rebirthForm" novalidate>
@@ -465,20 +470,40 @@ footer {
 
         <div class="field">
           <label for="currentRebirth">現在のリバース番号</label>
-          <input id="currentRebirth" type="number" min="0" max="75" step="1" value="0">
+          <input
+            id="currentRebirth"
+            type="number"
+            min="0"
+            max="74"
+            step="1"
+            value="0"
+          >
           <p class="hint">まだリバースしていない場合は0</p>
         </div>
 
         <div class="field">
           <label for="targetRebirth">目標のリバース番号</label>
-          <input id="targetRebirth" type="number" min="1" max="75" step="1" value="10">
+          <input
+            id="targetRebirth"
+            type="number"
+            min="1"
+            max="75"
+            step="1"
+            value="10"
+          >
           <p class="hint">表にある#1〜#75から指定</p>
         </div>
 
         <div class="field">
           <label for="currentJump">現在のジャンプ数</label>
-          <input id="currentJump" type="number" min="0" step="1" value="0">
-          <p class="hint">リバース直後なら0。今のジャンプ数が分かる場合は入力</p>
+          <input
+            id="currentJump"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+          >
+          <p class="hint">現在のジャンプ数を入力</p>
         </div>
 
       </div>
@@ -492,10 +517,11 @@ footer {
     <div id="rebirthResult" class="result" aria-live="polite"></div>
 
     <div class="notice">
-      計算に使うCostとJumpは、提供された表の#1〜#75の数値です。
-      必要なリバース費用の合計を表示しますが、
-      ジャンプ自体にかかる費用は表にないため合計には含めません。
-      ジャンプ数は各リバース後に0へ戻るものとして計算します。
+      表のCostは「ジャンプ0から、そのジャンプ数に到達するまでの累計費用」
+      として扱います。すでに目標ジャンプ数を満たしている場合、
+      その段階の追加費用は0です。
+      リバース後はジャンプが0へ戻るため、次の段階から費用を計算します。
+      表にない途中のジャンプ数は、10ジャンプ刻みのCostから概算します。
     </div>
   </div>
 </section>
@@ -503,7 +529,7 @@ footer {
 </main>
 
 <footer>
-  GOUP Calculator · リバース費用は提供された表の数値を使用
+  GOUP Calculator
 </footer>
 
 <script>
@@ -525,19 +551,15 @@ function showPage(id) {
 }
 
 document.querySelectorAll("nav button").forEach(button => {
-  button.addEventListener("click", () => {
-    showPage(button.dataset.page);
-  });
+  button.addEventListener("click", () => showPage(button.dataset.page));
 });
 
 document.querySelectorAll("[data-goto]").forEach(button => {
-  button.addEventListener("click", () => {
-    showPage(button.dataset.goto);
-  });
+  button.addEventListener("click", () => showPage(button.dataset.goto));
 });
 
 
-/* 貯金時間計算用の単位（元の計算方式を維持） */
+/* 貯金時間計算用の単位 */
 const UNIT_POWER = {
   "1": 0,
   Sx: 1,
@@ -638,7 +660,8 @@ function formatJapanArrivalDateTime(arrivalDate, now) {
 const savingForm = document.getElementById("savingForm");
 const savingResult = document.getElementById("savingResult");
 
-function setError(result, message, detail = "入力内容を確認して、もう一度計算してください。") {
+function setError(result, message, detail =
+  "入力内容を確認して、もう一度計算してください。") {
   result.className = "result show error";
   result.replaceChildren();
 
@@ -749,6 +772,7 @@ savingForm.addEventListener("submit", event => {
   addText(savingResult, "div", "big", formatDuration(seconds));
 
   addText(savingResult, "div", "", "到達予定日時");
+
   addText(
     savingResult,
     "div",
@@ -790,11 +814,9 @@ savingForm.addEventListener("reset", () => {
 });
 
 
-/* ===========================
-   リバースデータ
-   CostとJumpは提供された表の数値
-=========================== */
-
+/* リバース表
+   Costは、指定ジャンプまでの累計費用として扱う。
+*/
 const REBIRTH_DATA = [
   [1,10,"260","x1.5",""],
   [2,20,"1.87K","x2",""],
@@ -880,7 +902,7 @@ const REBIRTH_DATA = [
 }));
 
 
-/* Costの単位変換。接尾辞は1000倍ずつ */
+/* Cost単位を数値に変換 */
 const GAME_SUFFIX_POWER = {
   "": 0,
   K: 1,
@@ -914,16 +936,10 @@ const GAME_SUFFIXES = [
 ];
 
 function formatGameAmount(value) {
-  if (!Number.isFinite(value)) {
-    return "計算できません";
-  }
-
-  if (value === 0) {
-    return "0";
-  }
+  if (!Number.isFinite(value)) return "計算できません";
+  if (value === 0) return "0";
 
   const abs = Math.abs(value);
-
   let power = Math.floor(Math.log10(abs) / 3);
   power = Math.max(0, Math.min(power, GAME_SUFFIXES.length - 1));
 
@@ -936,10 +952,51 @@ function formatGameAmount(value) {
 }
 
 
-/* ===========================
-   リバース費用計算
-=========================== */
+/* 累計費用をジャンプ数から求める。
+   10刻みの間にある値は線形補間するため概算。 */
+function cumulativeJumpCost(jump) {
+  if (!Number.isFinite(jump) || jump <= 0) {
+    return { value: 0, estimated: false };
+  }
 
+  const known = REBIRTH_DATA.map(row => ({
+    jump: row.jump,
+    cost: parseGameAmount(row.cost)
+  }));
+
+  const exact = known.find(item => item.jump === jump);
+
+  if (exact) {
+    return {
+      value: exact.cost,
+      estimated: false
+    };
+  }
+
+  const lower =
+    [...known].reverse().find(item => item.jump < jump) ||
+    { jump: 0, cost: 0 };
+
+  const upper = known.find(item => item.jump > jump);
+
+  if (!upper) {
+    return {
+      value: lower.cost,
+      estimated: true
+    };
+  }
+
+  const fraction =
+    (jump - lower.jump) / (upper.jump - lower.jump);
+
+  return {
+    value: lower.cost + (upper.cost - lower.cost) * fraction,
+    estimated: true
+  };
+}
+
+
+/* リバース計算 */
 const rebirthForm = document.getElementById("rebirthForm");
 const rebirthResult = document.getElementById("rebirthResult");
 
@@ -965,7 +1022,7 @@ rebirthForm.addEventListener("submit", event => {
     jumpText === "" ||
     !Number.isInteger(current) ||
     current < 0 ||
-    current > 75 ||
+    current > 74 ||
     !Number.isInteger(target) ||
     target < 1 ||
     target > 75 ||
@@ -981,7 +1038,6 @@ rebirthForm.addEventListener("submit", event => {
     return;
   }
 
-  /* 現在の次のリバースから目標までを抽出 */
   const stages = REBIRTH_DATA.filter(row =>
     row.rebirth > current && row.rebirth <= target
   );
@@ -997,28 +1053,67 @@ rebirthForm.addEventListener("submit", event => {
 
   let totalCost = 0;
   let totalJumpAdvances = 0;
+  let hasEstimate = false;
 
   const breakdown = [];
 
   stages.forEach((stage, index) => {
-    const costValue = parseGameAmount(stage.cost);
-    totalCost += costValue;
-
     /*
-      最初のリバースだけ、現在のジャンプ数を考慮する。
-      リバースするとジャンプが0になるため、
-      2回目以降は各目標ジャンプ数ぶん必要。
+      最初の段階は現在のジャンプ数を使う。
+      リバースするとジャンプが0に戻るので、
+      2段階目以降は0から必要数を計算する。
     */
     const startingJump = index === 0 ? currentJump : 0;
-    const neededJumps = Math.max(0, stage.jump - startingJump);
 
+    const neededJumps = Math.max(
+      0,
+      stage.jump - startingJump
+    );
+
+    let neededCost = 0;
+    let estimated = false;
+
+    /*
+      すでに目標ジャンプ数を満たしていれば、
+      その段階の追加費用は0。
+    */
+    if (neededJumps > 0) {
+      const targetCumulative = parseGameAmount(stage.cost);
+
+      if (index === 0) {
+        /*
+          現在のジャンプ数から目標ジャンプまでの
+          追加費用を計算する。
+        */
+        const currentCumulative = cumulativeJumpCost(
+          Math.min(currentJump, stage.jump)
+        );
+
+        neededCost = Math.max(
+          0,
+          targetCumulative - currentCumulative.value
+        );
+
+        estimated = currentCumulative.estimated;
+      } else {
+        /*
+          前のリバースでジャンプが0に戻っているため、
+          目標ジャンプまでの累計費用が必要。
+        */
+        neededCost = targetCumulative;
+      }
+    }
+
+    totalCost += neededCost;
     totalJumpAdvances += neededJumps;
+    hasEstimate = hasEstimate || estimated;
 
     breakdown.push({
       stage,
-      costValue,
+      neededCost,
       neededJumps,
-      startingJump
+      startingJump,
+      estimated
     });
   });
 
@@ -1048,7 +1143,7 @@ rebirthForm.addEventListener("submit", event => {
     rebirthResult,
     "div",
     "big",
-    "必要なCost合計：" + formatGameAmount(totalCost)
+    "追加で必要なジャンプ費用：" + formatGameAmount(totalCost)
   );
 
   addText(
@@ -1058,7 +1153,6 @@ rebirthForm.addEventListener("submit", event => {
     `リバース回数：${stages.length}回`
   );
 
-  /* 結果の要約 */
   const grid = document.createElement("div");
   grid.className = "summary-grid";
 
@@ -1070,16 +1164,16 @@ rebirthForm.addEventListener("submit", event => {
       totalJumpAdvances.toLocaleString("ja-JP") + "回"
     ],
     [
-      "最後のリバースに必要なジャンプ",
-      lastStage.jump.toLocaleString("ja-JP")
+      "最初の目標ジャンプ",
+      stages[0].jump.toLocaleString("ja-JP")
     ],
     [
       "目標リバース後のCash倍率",
       lastStage.cash
     ],
     [
-      "目標リバースのCost",
-      lastStage.cost
+      "目標リバースのジャンプ条件",
+      lastStage.jump.toLocaleString("ja-JP") + "ジャンプ"
     ]
   ];
 
@@ -1095,7 +1189,6 @@ rebirthForm.addEventListener("submit", event => {
 
   rebirthResult.appendChild(grid);
 
-  /* リバースごとの内訳 */
   const details = document.createElement("details");
   details.className = "breakdown";
 
@@ -1106,18 +1199,17 @@ rebirthForm.addEventListener("submit", event => {
 
   const list = document.createElement("ol");
 
-  breakdown.forEach(({ stage, neededJumps }) => {
+  breakdown.forEach(({ stage, neededCost, neededJumps, estimated }) => {
     const item = document.createElement("li");
-
-    const note = stage.note
-      ? `（${stage.note}）`
-      : "";
+    const note = stage.note ? `（${stage.note}）` : "";
+    const estimateLabel = estimated ? "（Cost推定）" : "";
 
     item.textContent =
       `#${stage.rebirth}${note}：` +
       `Jump ${stage.jump}、` +
-      `Cost ${stage.cost}、` +
-      `必要な追加ジャンプ ${neededJumps.toLocaleString("ja-JP")}回`;
+      `追加費用 ${formatGameAmount(neededCost)}${estimateLabel}、` +
+      `必要ジャンプ ${neededJumps.toLocaleString("ja-JP")}回、` +
+      `Cash ${stage.cash}`;
 
     list.appendChild(item);
   });
@@ -1129,7 +1221,9 @@ rebirthForm.addEventListener("submit", event => {
     rebirthResult,
     "p",
     "hint",
-    "注意：Cost合計は各リバースの表記費用を合算しています。ジャンプを増やすために別途必要な費用は、ジャンプ費用データがないため含まれていません。"
+    hasEstimate
+      ? "現在のジャンプ数が表の10刻みと一致しないため、最初の区間の費用は表の前後の値を線形補間した概算です。すでに目標ジャンプ数に達している段階の追加費用は0です。"
+      : "Costは各Jumpまでの累計費用として計算しています。現在のジャンプが最初の目標ジャンプ以上なら、その段階の追加費用は0です。リバース後はジャンプ0へ戻るため、次の段階から再計算します。"
   );
 });
 
