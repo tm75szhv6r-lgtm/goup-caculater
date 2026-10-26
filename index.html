@@ -25,12 +25,11 @@ header{padding:64px 16px 18px;text-align:center}
 .sidebar-overlay.open{opacity:1;visibility:visible}
 body.menu-open{overflow:hidden}
 header p,.description,.hint{color:var(--muted)}
-nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:0 12px 22px}
 button{cursor:pointer;font:inherit;font-weight:700}
-button:disabled{cursor:not-allowed;opacity:.45;transform:none}
 .btn{border:1px solid var(--border);border-radius:12px;padding:10px 15px;background:#202437;color:var(--text);transition:background .2s,transform .2s}
-.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn:hover{transform:translateY(-1px)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 main{width:min(880px,calc(100% - 28px));margin:0 auto 42px}
 .page{display:none}
 .page.active{display:block}
@@ -69,18 +68,16 @@ input:disabled,select:disabled{opacity:.6}
 .breakdown summary{cursor:pointer;font-weight:700}
 .breakdown ol{padding-left:1.5rem}
 .breakdown li{margin:5px 0}
-.money{color:var(--datetime);font-weight:800}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28px}
 @media(max-width:560px){
   .grid,.summary-grid{grid-template-columns:1fr}
   .card{border-radius:16px}
-  .result .result-datetime{font-size:1.7rem}
   .sidebar-toggle{top:10px;left:10px}
 }
 </style>
 </head>
-
 <body>
+
 <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="メニューを開く" aria-controls="appSidebar" aria-expanded="false">☰</button>
 <button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="メニューを閉じる" tabindex="-1"></button>
 
@@ -107,7 +104,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
     <p class="description">放置で増えるお金、目標金額までの時間、目標リバースに必要なお金・ジャンプ数を計算できます。</p>
     <div class="tiles">
       <div class="tile"><strong>💰 貯金時間計算</strong><span>増加速度・所持金・目標金額から、必要時間と到達予定日時を計算します。</span></div>
-      <div class="tile"><strong>⏳ 放置収入・時間記録</strong><span>ボタンで時間を記録して、推定増加額と記録終了時の所持金を計算します。</span></div>
+      <div class="tile"><strong>⏳ 放置収入・時間記録</strong><span>ボタンで時間を記録して、推定増加額と記録終了時の計算上の所持金を表示します。</span></div>
       <div class="tile"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とジャンプ数を計算します。</span></div>
     </div>
     <div class="actions">
@@ -121,7 +118,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
 <section id="saving" class="page">
   <div class="card">
     <h1>💰 貯金時間計算</h1>
-    <p class="description">目標金額を入力してください。増加速度は任意で入力できます。未入力の場合は必要な金額だけを計算し、所要時間は表示しません。所持金を空欄にすると、0から計算します。</p>
+    <p class="description">目標金額を入力してください。増加速度は任意です。未入力の場合は必要金額だけ計算します。所持金が空欄なら0として計算します。</p>
     <form id="savingForm" novalidate>
       <div class="grid">
         <div class="field">
@@ -190,7 +187,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
 <section id="idle" class="page">
   <div class="card">
     <h1>⏳ 放置収入・時間記録</h1>
-    <p class="description">収入速度と記録開始時の所持金を入力して「記録開始」を押してください。時間が経ったら「記録終了して計算」を押すと、経過時間・増加額・計算上の所持金を表示します。記録はこのブラウザに保存されるため、ページを再読み込みしても計測を続けられます。</p>
+    <p class="description">収入速度と記録開始時の所持金を入力して「記録開始」を押してください。時間が経ったら「記録終了して計算」を押すと、経過時間・増加額・計算上の所持金を表示します。記録はこのブラウザに保存されるため、再読み込みしても計測を続けられます。</p>
 
     <form id="idleForm" novalidate>
       <div class="grid">
@@ -237,7 +234,6 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
           </select>
         </div>
       </div>
-
       <div class="actions">
         <button id="idleStartButton" class="btn primary" type="button">▶ 記録開始</button>
         <button id="idleStopButton" class="btn" type="button" disabled>■ 記録終了して計算</button>
@@ -251,7 +247,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
     </div>
     <div id="idleResult" class="result" aria-live="polite"></div>
 
-    <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。ゲーム内の収入倍率が変わった場合や、ゲームを開いていても収入が発生していない時間がある場合は、実際の金額と差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
+    <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。実際のゲーム内所持金を自動で読み取る仕組みではありません。ゲームを開いていても収入が発生していない時間や、収入倍率が変わった場合は実際の金額と差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
   </div>
 </section>
 
@@ -340,7 +336,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
 <script>
 "use strict";
 
-/* 開閉式サイドバーとページ切り替え */
+/* サイドバーとページ切り替え */
 const pages = [...document.querySelectorAll('.page')];
 const sidebar = document.getElementById('appSidebar');
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -384,12 +380,15 @@ sidebarToggle.addEventListener('click', () => {
 });
 sidebarClose.addEventListener('click', () => closeSidebar());
 sidebarOverlay.addEventListener('click', () => closeSidebar());
+
 sidebar.querySelectorAll('.sidebar-link').forEach(button => {
   button.addEventListener('click', () => showPage(button.dataset.page));
 });
+
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
 });
+
 document.querySelectorAll('[data-goto]').forEach(button => {
   button.addEventListener('click', () => showPage(button.dataset.goto));
 });
@@ -405,6 +404,7 @@ function limitRebirthNumberInput(input, fallbackValue) {
       input.value = '';
       return;
     }
+
     if (number < 1) input.value = '1';
     else if (number > 75) input.value = '75';
     else if (!Number.isInteger(number)) input.value = String(Math.floor(number));
@@ -417,17 +417,20 @@ function limitRebirthNumberInput(input, fallbackValue) {
     normalizeValue();
   });
 }
+
 limitRebirthNumberInput(document.getElementById('currentRebirth'), 1);
 limitRebirthNumberInput(document.getElementById('targetRebirth'), 10);
 
 /* 貯金時間計算用の単位 */
 const UNIT_POWER = {'1':0, Sx:1, Sp:2, Oc:3, Qi:4, No:5};
+
 function toBase(value, unit) {
   return value * Math.pow(1000, UNIT_POWER[unit] ?? 0);
 }
 
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) return '計算できません';
+
   let remaining = Math.ceil(seconds);
   const days = Math.floor(remaining / 86400);
   remaining %= 86400;
@@ -436,10 +439,12 @@ function formatDuration(seconds) {
   const minutes = Math.floor(remaining / 60);
   const secs = remaining % 60;
   const parts = [];
+
   if (days) parts.push(days + '日');
   if (hours) parts.push(hours + '時間');
   if (minutes) parts.push(minutes + '分');
   if (secs || parts.length === 0) parts.push(secs + '秒');
+
   return parts.join(' ');
 }
 
@@ -478,9 +483,10 @@ function formatJapanArrivalDateTime(arrivalDate, now) {
     : a.month + '月' + a.day + '日' + time;
 }
 
-/* 毎日0:00から指定時間だけ起動し、それ以外の時間は進行しない前提 */
+/* 毎日0:00から指定された時間だけ起動する場合の到達日時 */
 function addDailyActiveTime(startDate, activeSeconds, dailyHours) {
   if (activeSeconds <= 0) return new Date(startDate.getTime());
+
   if (dailyHours >= 24) {
     return new Date(startDate.getTime() + Math.ceil(activeSeconds) * 1000);
   }
@@ -513,6 +519,7 @@ function addDailyActiveTime(startDate, activeSeconds, dailyHours) {
       cursor = new Date(midnight.getTime() + 86400000);
     }
   }
+
   return cursor;
 }
 
@@ -522,11 +529,14 @@ const savingResult = document.getElementById('savingResult');
 function setError(result, message, detail = '入力内容を確認して、もう一度計算してください。') {
   result.className = 'result show error';
   result.replaceChildren();
+
   const title = document.createElement('div');
   title.className = 'big';
   title.textContent = message;
+
   const p = document.createElement('p');
   p.textContent = detail;
+
   result.append(title, p);
 }
 
@@ -545,12 +555,14 @@ savingForm.addEventListener('submit', event => {
   const rateText = document.getElementById('rate').value.trim();
   const heldText = document.getElementById('held').value.trim();
   const goalText = document.getElementById('goal').value.trim();
+
   const rate = rateText === '' ? null : Number(rateText);
   const rateUnit = document.getElementById('rateUnit').value;
   const held = heldText === '' ? 0 : Number(heldText);
   const heldUnit = document.getElementById('heldUnit').value;
   const goal = Number(goalText);
   const goalUnit = document.getElementById('goalUnit').value;
+
   const dailyHoursText = document.getElementById('dailyHours').value.trim();
   const dailyHours = dailyHoursText === '' ? 24 : Number(dailyHoursText);
 
@@ -587,8 +599,7 @@ savingForm.addEventListener('submit', event => {
     return;
   }
 
-  const remainingInGoalUnit =
-    remaining / Math.pow(1000, UNIT_POWER[goalUnit] ?? 0);
+  const remainingInGoalUnit = remaining / Math.pow(1000, UNIT_POWER[goalUnit] ?? 0);
   const formattedRemaining = remainingInGoalUnit.toLocaleString('ja-JP', {
     maximumFractionDigits:6
   });
@@ -603,6 +614,7 @@ savingForm.addEventListener('submit', event => {
   }
 
   const seconds = remaining / toBase(rate, rateUnit);
+
   if (!Number.isFinite(seconds) || seconds < 0) {
     setError(savingResult, '計算できません');
     return;
@@ -626,6 +638,7 @@ savingForm.addEventListener('submit', event => {
   addText(savingResult, 'div', '', '到達予定日時');
   addText(savingResult, 'div', 'result-datetime', formatJapanArrivalDateTime(arrivalDate, now));
   addText(savingResult, 'div', 'current-time', '現在時刻：' + formatJapanClockTime(now));
+
   addText(
     savingResult,
     'p',
@@ -646,30 +659,104 @@ savingForm.addEventListener('reset', () => setTimeout(() => {
   savingResult.replaceChildren();
 }, 0));
 
-/* リバースデータ */
+/* リバースデータ：ユーザー提供の表 */
 const REBIRTH_DATA = [
-  [1,10,'260','x1.5',''],[2,20,'1.87K','x2',''],[3,30,'11.8K','x2.5',''],[4,40,'73.4K','x3',''],[5,50,'455K','x3.5',''],
-  [6,60,'2.82M','x4',''],[7,70,'17.4M','x4.5',''],[8,80,'108M','x5',''],[9,90,'669M','x5.5',''],[10,100,'4.14B','x6',''],
-  [11,110,'25.6B','x6.5',''],[12,120,'159B','x7',''],[13,130,'983B','x7.5',''],[14,140,'6.09T','x8','Speed 1'],[15,150,'37.7T','x8.5',''],
-  [16,160,'233T','x9',''],[17,170,'1.44Qa','x9.5','Speed 2'],[18,180,'8.95Qa','x10',''],[19,190,'55.4Qa','x10.5','Speed 3'],[20,200,'343Qa','x11',''],
-  [21,210,'2.12Qi','x11.5',''],[22,220,'13.1Qi','x12','Speed 4'],[23,230,'81.4Qi','x12.5',''],[24,240,'504Qi','x13',''],[25,250,'3.12Sx','x13.5',''],
-  [26,260,'14.1Sx','x14',''],[27,270,'42.4Sx','x14.5',''],[28,280,'113Sx','x15',''],[29,290,'274Sx','x15.5',''],[30,300,'578Sx','x16',''],
-  [31,310,'1.08Sp','x16.5',''],[32,320,'1.89Sp','x17',''],[33,330,'3.22Sp','x17.5',''],[34,340,'5.34Sp','x18',''],[35,350,'8.68Sp','x18.5',''],
-  [36,360,'13.8Sp','x19',''],[37,370,'21.4Sp','x19.5',''],[38,380,'32.2Sp','x20',''],[39,390,'46.8Sp','x20.5',''],[40,400,'65.4Sp','x21',''],
-  [41,410,'88.2Sp','x21.5',''],[42,420,'116Sp','x22',''],[43,430,'150Sp','x22.5',''],[44,440,'191Sp','x23',''],[45,450,'241Sp','x23.5',''],
-  [46,460,'301Sp','x24',''],[47,470,'374Sp','x24.5',''],[48,480,'461Sp','x25',''],[49,490,'564Sp','x25.5',''],[50,500,'686Sp','x26',''],
-  [51,510,'828Sp','x26.5',''],[52,520,'993Sp','x27',''],[53,530,'1.18Oc','x27.5',''],[54,540,'1.40Oc','x28',''],[55,550,'1.63Oc','x28.5',''],
-  [56,560,'1.91Oc','x29',''],[57,570,'2.25Oc','x29.5',''],[58,580,'2.66Oc','x30',''],[59,590,'3.17Oc','x30.5',''],[60,600,'3.78Oc','x31',''],
-  [61,610,'4.52Oc','x31.5',''],[62,620,'5.43Oc','x32',''],[63,630,'6.53Oc','x32.5',''],[64,640,'7.86Oc','x33',''],[65,650,'9.46Oc','x33.5',''],
-  [66,660,'11.4Oc','x34',''],[67,670,'13.7Oc','x34.5',''],[68,680,'16.5Oc','x35',''],[69,690,'19.9Oc','x35.5',''],[70,700,'23.8Oc','x36',''],
-  [71,710,'28.5Oc','x36.5',''],[72,720,'34.1Oc','x37',''],[73,730,'40.6Oc','x37.5',''],[74,740,'48.3Oc','x38',''],[75,750,'57.2Oc','x38.5','']
+  [1,10,'260','x1.5',''],
+  [2,20,'1.87K','x2',''],
+  [3,30,'11.8K','x2.5',''],
+  [4,40,'73.4K','x3',''],
+  [5,50,'455K','x3.5',''],
+  [6,60,'2.82M','x4',''],
+  [7,70,'17.4M','x4.5',''],
+  [8,80,'108M','x5',''],
+  [9,90,'669M','x5.5',''],
+  [10,100,'4.14B','x6',''],
+  [11,110,'25.6B','x6.5',''],
+  [12,120,'159B','x7',''],
+  [13,130,'983B','x7.5',''],
+  [14,140,'6.09T','x8','Speed 1'],
+  [15,150,'37.7T','x8.5',''],
+  [16,160,'233T','x9',''],
+  [17,170,'1.44Qa','x9.5','Speed 2'],
+  [18,180,'8.95Qa','x10',''],
+  [19,190,'55.4Qa','x10.5','Speed 3'],
+  [20,200,'343Qa','x11',''],
+  [21,210,'2.12Qi','x11.5',''],
+  [22,220,'13.1Qi','x12','Speed 4'],
+  [23,230,'81.4Qi','x12.5',''],
+  [24,240,'504Qi','x13',''],
+  [25,250,'3.12Sx','x13.5',''],
+  [26,260,'14.1Sx','x14',''],
+  [27,270,'42.4Sx','x14.5',''],
+  [28,280,'113Sx','x15',''],
+  [29,290,'274Sx','x15.5',''],
+  [30,300,'578Sx','x16',''],
+  [31,310,'1.08Sp','x16.5',''],
+  [32,320,'1.89Sp','x17',''],
+  [33,330,'3.22Sp','x17.5',''],
+  [34,340,'5.34Sp','x18',''],
+  [35,350,'8.68Sp','x18.5',''],
+  [36,360,'13.8Sp','x19',''],
+  [37,370,'21.4Sp','x19.5',''],
+  [38,380,'32.2Sp','x20',''],
+  [39,390,'46.8Sp','x20.5',''],
+  [40,400,'65.4Sp','x21',''],
+  [41,410,'88.2Sp','x21.5',''],
+  [42,420,'116Sp','x22',''],
+  [43,430,'150Sp','x22.5',''],
+  [44,440,'191Sp','x23',''],
+  [45,450,'241Sp','x23.5',''],
+  [46,460,'301Sp','x24',''],
+  [47,470,'374Sp','x24.5',''],
+  [48,480,'461Sp','x25',''],
+  [49,490,'564Sp','x25.5',''],
+  [50,500,'686Sp','x26',''],
+  [51,510,'828Sp','x26.5',''],
+  [52,520,'993Sp','x27',''],
+  [53,530,'1.18Oc','x27.5',''],
+  [54,540,'1.40Oc','x28',''],
+  [55,550,'1.63Oc','x28.5',''],
+  [56,560,'1.91Oc','x29',''],
+  [57,570,'2.25Oc','x29.5',''],
+  [58,580,'2.66Oc','x30',''],
+  [59,590,'3.17Oc','x30.5',''],
+  [60,600,'3.78Oc','x31',''],
+  [61,610,'4.52Oc','x31.5',''],
+  [62,620,'5.43Oc','x32',''],
+  [63,630,'6.53Oc','x32.5',''],
+  [64,640,'7.86Oc','x33',''],
+  [65,650,'9.46Oc','x33.5',''],
+  [66,660,'11.4Oc','x34',''],
+  [67,670,'13.7Oc','x34.5',''],
+  [68,680,'16.5Oc','x35',''],
+  [69,690,'19.9Oc','x35.5',''],
+  [70,700,'23.8Oc','x36',''],
+  [71,710,'28.5Oc','x36.5',''],
+  [72,720,'34.1Oc','x37',''],
+  [73,730,'40.6Oc','x37.5',''],
+  [74,740,'48.3Oc','x38',''],
+  [75,750,'57.2Oc','x38.5','']
 ].map(([rebirth,jump,cost,cash,note]) => ({rebirth,jump,cost,cash,note}));
 
-const GAME_SUFFIX_POWER = {'1':0,'':0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9};
+/* Cost単位を数値に変換 */
+const GAME_SUFFIX_POWER = {
+  '1':0,
+  '':0,
+  K:1,
+  M:2,
+  B:3,
+  T:4,
+  Qa:5,
+  Qi:6,
+  Sx:7,
+  Sp:8,
+  Oc:9
+};
 
 function parseGameAmount(text) {
   const match = String(text).trim().match(/^([0-9]+(?:\.[0-9]+)?)\s*(Qa|Qi|Sx|Sp|Oc|K|M|B|T)?$/);
   if (!match) throw new Error('不明なCost形式: ' + text);
+
   const value = Number(match[1]);
   const suffix = match[2] || '';
   return value * Math.pow(1000, GAME_SUFFIX_POWER[suffix]);
@@ -680,16 +767,22 @@ const GAME_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc'];
 function formatGameAmount(value) {
   if (!Number.isFinite(value)) return '計算できません';
   if (value === 0) return '0';
+
   const abs = Math.abs(value);
   let power = Math.floor(Math.log10(abs) / 3);
   power = Math.max(0, Math.min(power, GAME_SUFFIXES.length - 1));
+
   const scaled = value / Math.pow(1000, power);
   const rounded = Number(scaled.toPrecision(4));
+
   return rounded.toLocaleString('en-US', {maximumFractionDigits:3}) + GAME_SUFFIXES[power];
 }
 
+/* 表のCostは、各Jumpまでに必要な累計費用として扱う */
 function cumulativeJumpCost(jump) {
-  if (!Number.isFinite(jump) || jump <= 0) return {value:0, estimated:false};
+  if (!Number.isFinite(jump) || jump <= 0) {
+    return {value:0, estimated:false};
+  }
 
   const known = REBIRTH_DATA.map(row => ({
     jump:row.jump,
@@ -701,10 +794,17 @@ function cumulativeJumpCost(jump) {
 
   const lower = [...known].reverse().find(item => item.jump < jump) || {jump:0,cost:0};
   const upper = known.find(item => item.jump > jump);
-  if (!upper) return {value:lower.cost, estimated:true};
+
+  if (!upper) {
+    return {value:lower.cost, estimated:true};
+  }
 
   const fraction = (jump - lower.jump) / (upper.jump - lower.jump);
-  return {value:lower.cost + (upper.cost - lower.cost) * fraction, estimated:true};
+
+  return {
+    value:lower.cost + (upper.cost - lower.cost) * fraction,
+    estimated:true
+  };
 }
 
 const rebirthForm = document.getElementById('rebirthForm');
@@ -716,6 +816,7 @@ rebirthForm.addEventListener('submit', event => {
   const currentText = document.getElementById('currentRebirth').value.trim();
   const targetText = document.getElementById('targetRebirth').value.trim();
   const jumpText = document.getElementById('currentJump').value.trim();
+
   const current = Number(currentText);
   const target = Number(targetText);
   const currentJump = Number(jumpText);
@@ -736,6 +837,7 @@ rebirthForm.addEventListener('submit', event => {
   }
 
   const stages = REBIRTH_DATA.filter(row => row.rebirth > current && row.rebirth <= target);
+
   if (stages.length !== target - current) {
     setError(rebirthResult, 'データが見つかりません', '現在と目標のリバース番号を確認してください。');
     return;
@@ -749,11 +851,13 @@ rebirthForm.addEventListener('submit', event => {
   stages.forEach((stage, index) => {
     const startingJump = index === 0 ? currentJump : 0;
     const neededJumps = Math.max(0, stage.jump - startingJump);
+
     let neededCost = 0;
     let estimated = false;
 
     if (neededJumps > 0) {
       const targetCumulative = parseGameAmount(stage.cost);
+
       if (index === 0) {
         const currentCumulative = cumulativeJumpCost(Math.min(currentJump, stage.jump));
         neededCost = Math.max(0, targetCumulative - currentCumulative.value);
@@ -766,6 +870,7 @@ rebirthForm.addEventListener('submit', event => {
     totalCost += neededCost;
     totalJumpAdvances += neededJumps;
     hasEstimate = hasEstimate || estimated;
+
     breakdown.push({stage,neededCost,neededJumps,startingJump,estimated});
   });
 
@@ -776,6 +881,7 @@ rebirthForm.addEventListener('submit', event => {
 
   rebirthResult.className = 'result show';
   rebirthResult.replaceChildren();
+
   addText(rebirthResult, 'div', '', `リバース #${current} → #${target}`);
   addText(rebirthResult, 'div', 'big', '追加で必要なジャンプ費用：' + formatGameAmount(totalCost));
 
@@ -795,9 +901,14 @@ rebirthForm.addEventListener('submit', event => {
   const heldUnit = document.getElementById('rebirthHeldCashUnit').value;
 
   if (
-    rateText === '' || !Number.isFinite(Number(rateText)) || Number(rateText) <= 0 ||
-    !Number.isFinite(heldCash) || heldCash < 0 ||
-    !Number.isFinite(dailyHours) || dailyHours <= 0 || dailyHours > 24
+    rateText === '' ||
+    !Number.isFinite(Number(rateText)) ||
+    Number(rateText) <= 0 ||
+    !Number.isFinite(heldCash) ||
+    heldCash < 0 ||
+    !Number.isFinite(dailyHours) ||
+    dailyHours <= 0 ||
+    dailyHours > 24
   ) {
     addText(forecast, 'p', 'forecast-line', '必要な時間：増加速度を入力すると計算できます。');
     addText(forecast, 'p', 'hint', '増加速度は任意です。入力すると必要時間と到達予定日時を計算します。空欄の場合はリバース費用だけを計算します。現在の所持金は空欄の場合0として扱います。');
@@ -811,10 +922,18 @@ rebirthForm.addEventListener('submit', event => {
       addText(forecast, 'p', 'forecast-line', '必要な時間：計算できません。増加速度と所持金を確認してください。');
     } else {
       const arrivalDate = addDailyActiveTime(now, requiredSeconds, dailyHours);
-      addText(forecast, 'p', 'forecast-line', '必要な起動時間：' + formatDuration(requiredSeconds) + (dailyHours < 24 ? '（実際の起動時間）' : ''));
+
+      addText(
+        forecast,
+        'p',
+        'forecast-line',
+        '必要な起動時間：' + formatDuration(requiredSeconds) + (dailyHours < 24 ? '（実際の起動時間）' : '')
+      );
+
       if (dailyHours < 24) {
         addText(forecast, 'p', 'forecast-line', `1日の起動時間：${dailyHours}時間（毎日0:00〜${dailyHours}時間後まで起動）`);
       }
+
       addText(forecast, 'div', 'forecast-label', '到達予定日時');
       addText(forecast, 'div', 'forecast-date', formatJapanArrivalDateTime(arrivalDate, now));
 
@@ -835,6 +954,7 @@ rebirthForm.addEventListener('submit', event => {
 
   const grid = document.createElement('div');
   grid.className = 'summary-grid';
+
   const summaries = [
     ['追加で必要なジャンプ合計', totalJumpAdvances.toLocaleString('ja-JP') + '回'],
     ['最初の目標ジャンプ', stages[0].jump.toLocaleString('ja-JP')],
@@ -849,22 +969,29 @@ rebirthForm.addEventListener('submit', event => {
     addText(box, 'div', 'value', value);
     grid.appendChild(box);
   }
+
   rebirthResult.appendChild(grid);
 
   const details = document.createElement('details');
   details.className = 'breakdown';
+
   const summary = document.createElement('summary');
   summary.textContent = 'リバースごとの内訳を表示';
   details.appendChild(summary);
+
   const list = document.createElement('ol');
 
   breakdown.forEach(({stage,neededCost,neededJumps,estimated}) => {
     const item = document.createElement('li');
     const note = stage.note ? `（${stage.note}）` : '';
     const estimateLabel = estimated ? '（Cost推定）' : '';
-    item.textContent = `#${stage.rebirth}${note}：Jump ${stage.jump}、追加費用 ${formatGameAmount(neededCost)}${estimateLabel}、必要ジャンプ ${neededJumps.toLocaleString('ja-JP')}回、Cash ${stage.cash}`;
+
+    item.textContent =
+      `#${stage.rebirth}${note}：Jump ${stage.jump}、追加費用 ${formatGameAmount(neededCost)}${estimateLabel}、必要ジャンプ ${neededJumps.toLocaleString('ja-JP')}回、Cash ${stage.cash}`;
+
     list.appendChild(item);
   });
+
   details.appendChild(list);
   rebirthResult.appendChild(details);
 
@@ -884,14 +1011,13 @@ rebirthForm.addEventListener('reset', () => setTimeout(() => {
   document.getElementById('currentJump').value = '0';
   document.getElementById('rebirthCashRate').value = '';
   document.getElementById('rebirthCashRateUnit').value = 'Sx';
-  document.getElementById('rebirthDailyHours').value = '';
   document.getElementById('rebirthHeldCash').value = '';
   document.getElementById('rebirthHeldCashUnit').value = 'Sp';
   rebirthResult.className = 'result';
   rebirthResult.replaceChildren();
 }, 0));
 
-/* ボタン式の放置収入・時間記録 */
+/* 放置収入・時間記録 */
 const IDLE_UNIT_POWER = {'1':0, K:1, M:2, B:3, T:4, Qa:5, Qi:6, Sx:7, Sp:8, Oc:9, No:10};
 const IDLE_UNIT_LABELS = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No'];
 const IDLE_STORAGE_KEY = 'goupCalculatorIdleRecorderV1';
@@ -938,13 +1064,14 @@ const idleStatus = document.getElementById('idleStatus');
 const idleResult = document.getElementById('idleResult');
 
 let idleTicker = null;
-let idleState = loadIdleState();
 
 function loadIdleState() {
   try {
     const raw = localStorage.getItem(IDLE_STORAGE_KEY);
     if (!raw) return {activeRecord:null,lastResult:null};
+
     const parsed = JSON.parse(raw);
+
     return {
       activeRecord: parsed && parsed.activeRecord ? parsed.activeRecord : null,
       lastResult: parsed && parsed.lastResult ? parsed.lastResult : null
@@ -953,6 +1080,8 @@ function loadIdleState() {
     return {activeRecord:null,lastResult:null};
   }
 }
+
+let idleState = loadIdleState();
 
 function saveIdleState() {
   try {
@@ -984,6 +1113,7 @@ function renderIdleActiveRecord() {
 
   idleStatus.className = 'result show';
   idleStatus.replaceChildren();
+
   addText(idleStatus, 'div', 'big', '🔴 記録中');
   addText(idleStatus, 'p', '', '開始時刻：' + formatLocalDateTime(record.startedAt));
   addText(idleStatus, 'div', '', '経過時間');
@@ -1003,6 +1133,7 @@ function renderIdleCompletedResult(result) {
   addText(idleResult, 'div', '', '記録した時間');
   addText(idleResult, 'div', 'big', formatDuration(result.elapsedSeconds));
   addText(idleResult, 'p', 'hint', `開始：${formatLocalDateTime(result.startedAt)} ／ 終了：${formatLocalDateTime(result.endedAt)}`);
+
   addText(idleResult, 'div', '', 'その間に増えた推定金額');
   addText(idleResult, 'div', 'big', formatIdleAmount(result.earned));
 
@@ -1024,6 +1155,7 @@ function renderIdleUI() {
 
   if (idleState.activeRecord) {
     const record = idleState.activeRecord;
+
     idleRateInput.value = String(record.rate);
     idleRateUnitInput.value = record.rateUnit;
     idleHeldInput.value = record.heldValue === null ? '' : String(record.heldValue);
@@ -1031,6 +1163,7 @@ function renderIdleUI() {
 
     setIdleInputsDisabled(true);
     renderIdleActiveRecord();
+
     idleTicker = setInterval(renderIdleActiveRecord, 1000);
     return;
   }
@@ -1055,72 +1188,20 @@ function renderIdleUI() {
     idleStatus.replaceChildren();
     addText(idleStatus, 'div', 'big', '未記録');
     addText(idleStatus, 'p', '', '収入速度と開始時の所持金を入力して「記録開始」を押してください。');
+
     idleResult.className = 'result';
     idleResult.replaceChildren();
   }
 }
 
-idleStopButton.addEventListener('click', () => {
-  const record = idleState.activeRecord;
-
-  // 記録中でなければ処理しない
-  if (!record) return;
-
-  const endedAt = Date.now();
-
-  // 開始から終了までの経過時間（秒）
-  const elapsedSeconds = Math.max(
-    0,
-    (endedAt - record.startedAt) / 1000
-  );
-
-  // 記録開始時の収入速度から増加額を計算
-  const earned =
-    idleToBase(record.rate, record.rateUnit) * elapsedSeconds;
-
-  // 開始時の所持金を計算用の共通単位に変換
-  const heldBase = record.heldValue === null
-    ? null
-    : idleToBase(record.heldValue, record.heldUnit);
-
-  // 計算結果が大きすぎる場合
-  if (
-    !Number.isFinite(earned) ||
-    (heldBase !== null && !Number.isFinite(heldBase + earned))
-  ) {
-    setError(
-      idleStatus,
-      '計算結果が大きすぎます',
-      '収入速度を確認してください。'
-    );
-    return;
-  }
-
-  // 計算結果を保存
-  idleState = {
-    activeRecord: null,
-    lastResult: {
-      startedAt: record.startedAt,
-      endedAt: endedAt,
-      elapsedSeconds: elapsedSeconds,
-      rate: record.rate,
-      rateUnit: record.rateUnit,
-      heldValue: record.heldValue,
-      heldUnit: record.heldUnit,
-      heldBase: heldBase,
-      earned: earned
-    }
-  };
-
-  // ブラウザに保存して表示を更新
-  saveIdleState();
-  renderIdleUI();
-});
+/* 記録開始ボタン */
+idleStartButton.addEventListener('click', () => {
   if (idleState.activeRecord) return;
 
   const rateText = idleRateInput.value.trim();
   const rate = Number(rateText);
   const rateUnit = idleRateUnitInput.value;
+
   const heldText = idleHeldInput.value.trim();
   const heldValue = heldText === '' ? null : Number(heldText);
   const heldUnit = idleHeldUnitInput.value;
@@ -1136,6 +1217,7 @@ idleStopButton.addEventListener('click', () => {
   }
 
   const startedAt = Date.now();
+
   idleState = {
     activeRecord: {startedAt,rate,rateUnit,heldValue,heldUnit},
     lastResult: null
@@ -1145,32 +1227,40 @@ idleStopButton.addEventListener('click', () => {
   renderIdleUI();
 });
 
+/* 記録終了ボタン */
 idleStopButton.addEventListener('click', () => {
   const record = idleState.activeRecord;
-  if (!record) return;
+
+  if (!record) {
+    setError(idleStatus, '記録が開始されていません', '先に「記録開始」を押してください。');
+    return;
+  }
 
   const endedAt = Date.now();
   const elapsedSeconds = Math.max(0, (endedAt - record.startedAt) / 1000);
   const earned = idleToBase(record.rate, record.rateUnit) * elapsedSeconds;
-  const heldBase = record.heldValue === null ? null : idleToBase(record.heldValue, record.heldUnit);
+
+  const heldBase = record.heldValue === null
+    ? null
+    : idleToBase(record.heldValue, record.heldUnit);
 
   if (!Number.isFinite(earned) || (heldBase !== null && !Number.isFinite(heldBase + earned))) {
-    setError(idleStatus, '計算結果が大きすぎます', '収入速度を確認してください。記録は終了していないため、もう一度計算できます。');
+    setError(idleStatus, '計算結果が大きすぎます', '収入速度や所持金を確認してください。');
     return;
   }
 
   idleState = {
     activeRecord: null,
     lastResult: {
-      startedAt,
-      endedAt,
-      elapsedSeconds,
+      startedAt: record.startedAt,
+      endedAt: endedAt,
+      elapsedSeconds: elapsedSeconds,
       rate: record.rate,
       rateUnit: record.rateUnit,
       heldValue: record.heldValue,
       heldUnit: record.heldUnit,
-      heldBase,
-      earned
+      heldBase: heldBase,
+      earned: earned
     }
   };
 
@@ -1178,6 +1268,7 @@ idleStopButton.addEventListener('click', () => {
   renderIdleUI();
 });
 
+/* 記録リセットボタン */
 idleResetButton.addEventListener('click', () => {
   const message = idleState.activeRecord
     ? '計測中の記録を破棄してリセットしますか？'
@@ -1195,13 +1286,14 @@ idleResetButton.addEventListener('click', () => {
   try {
     localStorage.removeItem(IDLE_STORAGE_KEY);
   } catch (error) {
-    /* 保存機能が使えない場合も、画面はリセットする */
+    // 保存機能が使えない場合でも画面はリセットする
   }
 
   idleRateInput.disabled = false;
   idleRateUnitInput.disabled = false;
   idleHeldInput.disabled = false;
   idleHeldUnitInput.disabled = false;
+
   idleRateInput.value = '';
   idleRateUnitInput.value = 'Sx';
   idleHeldInput.value = '';
@@ -1210,7 +1302,7 @@ idleResetButton.addEventListener('click', () => {
   renderIdleUI();
 });
 
-/* ページを再読み込みしても記録中の状態・直近の結果を復元 */
+/* 再読み込み時、記録中の状態や最後の結果を復元 */
 renderIdleUI();
 </script>
 </body>
