@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#10121b">
+
 <title>GOUP Calculator</title>
 
 <style>
@@ -15,6 +16,7 @@
   --muted: #a7aec4;
   --accent: #8b7cff;
   --accent2: #5ce1c0;
+  --datetime: #c1d7a2;
   --border: #30364d;
   --danger: #ff8585;
 }
@@ -25,10 +27,19 @@
 
 body {
   margin: 0;
-  background: radial-gradient(ellipse at top, #242444, var(--bg) 55%);
+  background: radial-gradient(
+    ellipse at top,
+    #242444,
+    var(--bg) 55%
+  );
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 header {
@@ -72,6 +83,14 @@ nav button,
   padding: 10px 15px;
   background: #202437;
   color: var(--text);
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+nav button:hover,
+.btn:hover {
+  transform: translateY(-1px);
 }
 
 nav button.active,
@@ -95,7 +114,7 @@ main {
 }
 
 .card {
-  background: rgba(25, 28, 41, .96);
+  background: rgba(25, 28, 41, 0.96);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: clamp(18px, 4vw, 28px);
@@ -126,7 +145,7 @@ h2 {
 
 label {
   font-weight: 700;
-  font-size: .93rem;
+  font-size: 0.93rem;
 }
 
 input,
@@ -144,10 +163,11 @@ select {
 input:focus,
 select:focus {
   outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .hint {
-  font-size: .82rem;
+  font-size: 0.82rem;
   margin: 0;
 }
 
@@ -173,9 +193,18 @@ select:focus {
 }
 
 .result .big {
-  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-size: 1.7rem;
   font-weight: 850;
   color: var(--accent2);
+  line-height: 1.5;
+}
+
+.result .result-datetime {
+  font-size: 1.7rem;
+  color: #c1d7a2;
+  font-weight: 850;
+  line-height: 1.5;
+  margin-top: 8px;
 }
 
 .result.error .big {
@@ -185,7 +214,7 @@ select:focus {
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
   margin-top: 18px;
 }
@@ -204,7 +233,7 @@ select:focus {
 
 .tile span {
   color: var(--muted);
-  font-size: .9rem;
+  font-size: 0.9rem;
 }
 
 .notice {
@@ -213,20 +242,19 @@ select:focus {
   background: #5ce1c00d;
   border-radius: 0 10px 10px 0;
   color: var(--muted);
-  font-size: .9rem;
+  font-size: 0.9rem;
   margin-top: 18px;
 }
 
 footer {
   text-align: center;
   color: var(--muted);
-  font-size: .8rem;
+  font-size: 0.8rem;
   padding: 10px 18px 28px;
 }
 
 @media (max-width: 560px) {
-  .grid,
-  .tiles {
+  .grid {
     grid-template-columns: 1fr;
   }
 
@@ -237,6 +265,11 @@ footer {
   .card {
     border-radius: 16px;
   }
+
+  .result .result-datetime {
+    font-size: 1.7rem;
+    overflow-wrap: anywhere;
+  }
 }
 </style>
 </head>
@@ -245,13 +278,12 @@ footer {
 
 <header>
   <div class="logo">GOUP <span>Calculator</span></div>
-  <p>ゲーム内の貯金時間・ジャンプ費用を計算</p>
+  <p>ゲーム内のお金が貯まる時間を計算</p>
 </header>
 
 <nav aria-label="メニュー">
   <button class="active" data-page="home">ホーム</button>
   <button data-page="saving">貯金時間計算</button>
-  <button data-page="jump">ジャンプ費用計算</button>
 </nav>
 
 <main>
@@ -262,29 +294,23 @@ footer {
       <h1>GOUP Calculatorへようこそ！</h1>
 
       <p class="description">
-        ゲーム内のお金を目標まで貯める時間や、
-        ジャンプ費用を確認するための計算ツールです。
+        ゲーム内のお金を目標金額まで貯めるために、
+        必要な時間と到達予定日時を計算できます。
       </p>
 
       <div class="tiles">
         <div class="tile">
           <strong>💰 貯金時間計算</strong>
-          <span>増加速度と目標金額から必要時間を計算</span>
-        </div>
-
-        <div class="tile">
-          <strong>🦘 ジャンプ費用計算</strong>
-          <span>ジャンプ111までの範囲に対応</span>
+          <span>
+            増加速度・所持金・目標金額から、
+            必要時間と到達予定日時を計算します。
+          </span>
         </div>
       </div>
 
       <div class="actions">
         <button class="btn primary" data-goto="saving">
           貯金時間を計算
-        </button>
-
-        <button class="btn" data-goto="jump">
-          ジャンプ費用を計算
         </button>
       </div>
     </div>
@@ -297,7 +323,7 @@ footer {
 
       <p class="description">
         増加速度・現在の所持金・目標金額を入力してください。
-        所持金を空欄にすると0から計算します。
+        所持金を空欄にすると、0から計算します。
       </p>
 
       <form id="savingForm">
@@ -305,19 +331,24 @@ footer {
 
           <div class="field">
             <label for="rate">増加速度（毎秒）</label>
+
             <input
               id="rate"
               type="number"
               min="0"
               step="any"
-              placeholder="例：192"
+              placeholder="例：1"
               required
             >
-            <p class="hint">例：192 Sx/sなら「192」</p>
+
+            <p class="hint">
+              例：1 Sx/sなら「1」
+            </p>
           </div>
 
           <div class="field">
             <label for="rateUnit">増加速度の単位</label>
+
             <select id="rateUnit">
               <option value="Sx">Sx/s</option>
               <option value="Sp">Sp/s</option>
@@ -330,20 +361,26 @@ footer {
 
           <div class="field">
             <label for="held">現在の所持金</label>
+
             <input
               id="held"
               type="number"
               min="0"
               step="any"
-              placeholder="例：0"
+              placeholder="例：1"
             >
+
+            <p class="hint">
+              空欄の場合は0として計算します。
+            </p>
           </div>
 
           <div class="field">
             <label for="heldUnit">所持金の単位</label>
+
             <select id="heldUnit">
+              <option value="Sp" selected>Sp</option>
               <option value="Sx">Sx</option>
-              <option value="Sp">Sp</option>
               <option value="Oc">Oc</option>
               <option value="Qi">Qi</option>
               <option value="No">No</option>
@@ -353,6 +390,7 @@ footer {
 
           <div class="field">
             <label for="goal">目標金額</label>
+
             <input
               id="goal"
               type="number"
@@ -361,12 +399,17 @@ footer {
               placeholder="例：10"
               required
             >
+
+            <p class="hint">
+              例：10 Ocを目標にするなら「10」
+            </p>
           </div>
 
           <div class="field">
             <label for="goalUnit">目標金額の単位</label>
+
             <select id="goalUnit">
-              <option value="Oc">Oc</option>
+              <option value="Oc" selected>Oc</option>
               <option value="Sx">Sx</option>
               <option value="Sp">Sp</option>
               <option value="Qi">Qi</option>
@@ -378,106 +421,35 @@ footer {
         </div>
 
         <div class="actions">
-          <button class="btn primary" type="submit">計算する</button>
-          <button class="btn" type="reset">リセット</button>
+          <button class="btn primary" type="submit">
+            計算する
+          </button>
+
+          <button class="btn" type="reset">
+            リセット
+          </button>
         </div>
       </form>
 
-      <div id="savingResult" class="result" aria-live="polite"></div>
-    </div>
-  </section>
-
-  <!-- ジャンプ費用計算 -->
-  <section id="jump" class="page">
-    <div class="card">
-      <h1>🦘 ジャンプ費用計算</h1>
-
-      <p class="description">
-        開始ジャンプ・目標ジャンプ・次のジャンプの費用を入力してください。
-        ジャンプ111を超える計算には対応していません。
-      </p>
-
-      <form id="jumpForm">
-        <div class="grid">
-
-          <div class="field">
-            <label for="startJump">開始ジャンプ</label>
-            <input
-              id="startJump"
-              type="number"
-              min="1"
-              max="111"
-              step="1"
-              value="1"
-              required
-            >
-            <p class="hint">例：1</p>
-          </div>
-
-          <div class="field">
-            <label for="targetJump">目標ジャンプ</label>
-            <input
-              id="targetJump"
-              type="number"
-              min="2"
-              max="111"
-              step="1"
-              value="10"
-              required
-            >
-            <p class="hint">例：10</p>
-          </div>
-
-          <div class="field">
-            <label for="nextCost">次のジャンプの費用</label>
-            <input
-              id="nextCost"
-              type="number"
-              min="0"
-              step="any"
-              placeholder="例：1"
-              required
-            >
-          </div>
-
-          <div class="field">
-            <label for="costUnit">費用の単位</label>
-            <select id="costUnit">
-              <option value="Sx">Sx</option>
-              <option value="Sp">Sp</option>
-              <option value="Oc">Oc</option>
-              <option value="Qi">Qi</option>
-              <option value="No">No</option>
-              <option value="通常">通常の数値</option>
-            </select>
-          </div>
-
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" type="submit">計算する</button>
-          <button class="btn" type="reset">リセット</button>
-        </div>
-      </form>
-
-      <div id="jumpResult" class="result" aria-live="polite"></div>
-
-      <div class="notice">
-        注意：このコードにはジャンプ1〜111の全費用データが登録されていません。
-        そのため、複数ジャンプ分の正確な合計は計算せず、
-        未確認の費用を推測して表示することもありません。
-      </div>
+      <div
+        id="savingResult"
+        class="result"
+        aria-live="polite"
+      ></div>
     </div>
   </section>
 
 </main>
 
 <footer>
-  GOUP Calculator · 不明な費用は推測しません。
+  GOUP Calculator
 </footer>
 
 <script>
-/* ページ切り替え */
+/* =========================
+   ページ切り替え
+========================= */
+
 const pages = [...document.querySelectorAll(".page")];
 
 function showPage(id) {
@@ -486,10 +458,16 @@ function showPage(id) {
   });
 
   document.querySelectorAll("nav button").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === id);
+    button.classList.toggle(
+      "active",
+      button.dataset.page === id
+    );
   });
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 document.querySelectorAll("nav button").forEach(button => {
@@ -504,9 +482,12 @@ document.querySelectorAll("[data-goto]").forEach(button => {
   });
 });
 
-/* 単位変換
-   ここでは各単位を1000倍ずつの段階として扱います。
-*/
+
+/* =========================
+   単位変換
+   既存コードの単位換算ルールを維持
+========================= */
+
 const UNIT_POWER = {
   "1": 0,
   "Sx": 1,
@@ -519,6 +500,11 @@ const UNIT_POWER = {
 function toBase(value, unit) {
   return value * Math.pow(1000, UNIT_POWER[unit] ?? 0);
 }
+
+
+/* =========================
+   所要時間の表示
+========================= */
 
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) {
@@ -538,34 +524,94 @@ function formatDuration(seconds) {
 
   const parts = [];
 
-  if (days) parts.push(days + "日");
-  if (hours) parts.push(hours + "時間");
-  if (minutes) parts.push(minutes + "分");
+  if (days > 0) {
+    parts.push(days + "日");
+  }
 
-  if (secs || parts.length === 0) {
+  if (hours > 0) {
+    parts.push(hours + "時間");
+  }
+
+  if (minutes > 0) {
+    parts.push(minutes + "分");
+  }
+
+  if (secs > 0 || parts.length === 0) {
     parts.push(secs + "秒");
   }
 
   return parts.join(" ");
 }
 
-/* 貯金時間計算 */
-document.getElementById("savingForm").addEventListener("submit", event => {
+
+/* =========================
+   日本時間の到達予定日時
+========================= */
+
+function formatJapanDateTime(date) {
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(date);
+
+  const values = {};
+
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      values[part.type] = part.value;
+    }
+  }
+
+  return (
+    Number(values.month) + "月" +
+    Number(values.day) + "日" +
+    Number(values.hour) + "時" +
+    Number(values.minute) + "分"
+  );
+}
+
+
+/* =========================
+   貯金時間計算
+========================= */
+
+const savingForm = document.getElementById("savingForm");
+const savingResult = document.getElementById("savingResult");
+
+savingForm.addEventListener("submit", event => {
   event.preventDefault();
 
-  const rate = Number(document.getElementById("rate").value);
-  const rateUnit = document.getElementById("rateUnit").value;
+  const rate = Number(
+    document.getElementById("rate").value
+  );
 
-  const held = Number(document.getElementById("held").value || 0);
-  const heldUnit = document.getElementById("heldUnit").value;
+  const rateUnit =
+    document.getElementById("rateUnit").value;
 
-  const goal = Number(document.getElementById("goal").value);
-  const goalUnit = document.getElementById("goalUnit").value;
+  const heldInput =
+    document.getElementById("held").value.trim();
 
-  const result = document.getElementById("savingResult");
+  const held = heldInput === ""
+    ? 0
+    : Number(heldInput);
 
-  result.className = "result show";
+  const heldUnit =
+    document.getElementById("heldUnit").value;
 
+  const goal = Number(
+    document.getElementById("goal").value
+  );
+
+  const goalUnit =
+    document.getElementById("goalUnit").value;
+
+  savingResult.className = "result show";
+
+  /* 入力チェック */
   if (
     !Number.isFinite(rate) ||
     rate <= 0 ||
@@ -574,128 +620,136 @@ document.getElementById("savingForm").addEventListener("submit", event => {
     !Number.isFinite(goal) ||
     goal < 0
   ) {
-    result.classList.add("error");
-    result.innerHTML = `
+    savingResult.classList.add("error");
+
+    savingResult.innerHTML = `
       <div class="big">入力を確認してください</div>
-      <p>増加速度は0より大きく、金額は0以上で入力してください。</p>
+      <p>
+        増加速度は0より大きく、
+        所持金と目標金額は0以上で入力してください。
+      </p>
     `;
+
     return;
   }
 
-  const remaining = toBase(goal, goalUnit) - toBase(held, heldUnit);
+  /* 現在の所持金と目標金額を共通単位に変換 */
+  const heldBase = toBase(held, heldUnit);
+  const goalBase = toBase(goal, goalUnit);
 
+  const remaining = goalBase - heldBase;
+
+  /* すでに目標達成している場合 */
   if (remaining <= 0) {
-    result.innerHTML = `
+    savingResult.innerHTML = `
       <div class="big">目標達成済み！</div>
-      <p>現在の所持金が目標金額以上です。</p>
+      <p>
+        現在の所持金が目標金額以上です。
+      </p>
     `;
+
     return;
   }
 
+  /* 増加速度を共通単位に変換 */
   const baseRate = toBase(rate, rateUnit);
+
+  /* 必要な秒数 */
   const seconds = remaining / baseRate;
 
-  if (!Number.isFinite(seconds)) {
-    result.classList.add("error");
-    result.innerHTML = `
-      <div class="big">計算できません</div>
-      <p>入力した数値を確認してください。</p>
-    `;
-    return;
-  }
-
-  const remainingInGoalUnit =
-    remaining / Math.pow(1000, UNIT_POWER[goalUnit]);
-
-  result.innerHTML = `
-    <div>目標までに必要な時間</div>
-    <div class="big">${formatDuration(seconds)}</div>
-    <p>
-      あと ${remainingInGoalUnit.toLocaleString("ja-JP", {
-        maximumFractionDigits: 6
-      })} ${goalUnit} 必要です。
-    </p>
-  `;
-});
-
-/* ジャンプ費用計算 */
-document.getElementById("jumpForm").addEventListener("submit", event => {
-  event.preventDefault();
-
-  const start = Number(document.getElementById("startJump").value);
-  const target = Number(document.getElementById("targetJump").value);
-  const cost = Number(document.getElementById("nextCost").value);
-  const unit = document.getElementById("costUnit").value;
-
-  const result = document.getElementById("jumpResult");
-
-  result.className = "result show";
-
   if (
-    !Number.isInteger(start) ||
-    !Number.isInteger(target) ||
-    start < 1 ||
-    target > 111 ||
-    target <= start ||
-    !Number.isFinite(cost) ||
-    cost < 0
+    !Number.isFinite(seconds) ||
+    seconds < 0
   ) {
-    result.classList.add("error");
-    result.innerHTML = `
-      <div class="big">入力を確認してください</div>
-      <p>開始は1以上、目標は開始より大きく111以下にしてください。</p>
+    savingResult.classList.add("error");
+
+    savingResult.innerHTML = `
+      <div class="big">計算できません</div>
+      <p>
+        入力した数値が大きすぎる可能性があります。
+        数値を確認してください。
+      </p>
     `;
+
     return;
   }
 
   /*
-    次のジャンプの費用1件だけでは、
-    複数ジャンプ分の合計は求められません。
-    推測で合計を表示しないようにします。
+    現在時刻から必要秒数後の日時を計算。
+    表示は日本時間（Asia/Tokyo）に統一する。
   */
-  if (target === start + 1) {
-    result.innerHTML = `
-      <div>入力した次のジャンプの費用</div>
-      <div class="big">
-        ${cost.toLocaleString("ja-JP")} ${unit}
-      </div>
-      <p>${start} → ${target} の1回分です。</p>
+  const now = Date.now();
+  const arrivalTimestamp = now + Math.ceil(seconds) * 1000;
+
+  if (!Number.isFinite(arrivalTimestamp)) {
+    savingResult.classList.add("error");
+
+    savingResult.innerHTML = `
+      <div class="big">日時を計算できません</div>
+      <p>入力した数値を確認してください。</p>
     `;
+
     return;
   }
 
-  result.classList.add("error");
-  result.innerHTML = `
-    <div class="big">正確な合計を計算できません</div>
+  const arrivalDate = new Date(arrivalTimestamp);
+
+  /* 目標単位で残り金額を表示 */
+  const remainingInGoalUnit =
+    remaining / Math.pow(
+      1000,
+      UNIT_POWER[goalUnit] ?? 0
+    );
+
+  const formattedRemaining =
+    remainingInGoalUnit.toLocaleString("ja-JP", {
+      maximumFractionDigits: 6
+    });
+
+  const formattedDuration = formatDuration(seconds);
+  const formattedDateTime = formatJapanDateTime(arrivalDate);
+
+  /* 結果表示 */
+  savingResult.innerHTML = `
+    <div>目標までに必要な時間</div>
+
+    <div class="big">
+      ${formattedDuration}
+    </div>
+
+    <div>到達予定日時</div>
+
+    <div class="result-datetime">
+      ${formattedDateTime}
+    </div>
+
     <p>
-      ${start} → ${target} には複数回のジャンプが含まれます。
-      各ジャンプの実際の費用データが登録されていないため、
-      入力した費用だけから合計を推測することはしません。
+      あと ${formattedRemaining} ${goalUnit} 必要です。
     </p>
-    <p>
-      入力された次のジャンプの費用：
-      ${cost.toLocaleString("ja-JP")} ${unit}
+
+    <p class="hint">
+      日本時間（JST）で表示しています。
     </p>
   `;
 });
 
-/* リセット */
-document.getElementById("jumpForm").addEventListener("reset", () => {
-  setTimeout(() => {
-    document.getElementById("startJump").value = 1;
-    document.getElementById("targetJump").value = 10;
 
-    const result = document.getElementById("jumpResult");
-    result.className = "result";
-    result.innerHTML = "";
-  }, 0);
-});
+/* =========================
+   リセット処理
+========================= */
 
-document.getElementById("savingForm").addEventListener("reset", () => {
+savingForm.addEventListener("reset", () => {
   setTimeout(() => {
-    const result = document.getElementById("savingResult");
-    result.className = "result";
-    result.innerHTML = "";
+    /*
+      リセット後も所持金の単位はSp、
+      目標金額の単位はOcにする。
+    */
+    document.getElementById("heldUnit").value = "Sp";
+    document.getElementById("goalUnit").value = "Oc";
+    document.getElementById("rateUnit").value = "Sx";
+
+    savingResult.className = "result";
+    savingResult.innerHTML = "";
   }, 0);
 });
 </script>
