@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#10121b">
-
 <title>GOUP Calculator</title>
 
 <style>
 :root {
   color-scheme: dark;
   --bg: #10121b;
-  --panel: #191c29;
   --text: #f4f5fb;
   --muted: #a7aec4;
   --accent: #8b7cff;
@@ -27,17 +25,9 @@
 
 body {
   margin: 0;
-  background: radial-gradient(
-    ellipse at top,
-    #242444,
-    var(--bg) 55%
-  );
+  background: radial-gradient(ellipse at top, #242444, var(--bg) 55%);
   color: var(--text);
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.6;
   min-height: 100vh;
 }
@@ -83,9 +73,7 @@ nav button,
   padding: 10px 15px;
   background: #202437;
   color: var(--text);
-  transition:
-    background 0.2s,
-    transform 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 
 nav button:hover,
@@ -125,10 +113,6 @@ main {
 h1 {
   font-size: 1.55rem;
   line-height: 1.3;
-}
-
-h2 {
-  font-size: 1.2rem;
 }
 
 .grid {
@@ -207,6 +191,14 @@ select:focus {
   margin-top: 8px;
 }
 
+.result .current-time {
+  font-size: 1.1rem;
+  color: var(--muted);
+  font-weight: 700;
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
 .result.error .big {
   color: var(--danger);
   font-size: 1.1rem;
@@ -236,16 +228,6 @@ select:focus {
   font-size: 0.9rem;
 }
 
-.notice {
-  border-left: 3px solid var(--accent2);
-  padding: 10px 13px;
-  background: #5ce1c00d;
-  border-radius: 0 10px 10px 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  margin-top: 18px;
-}
-
 footer {
   text-align: center;
   color: var(--muted);
@@ -268,7 +250,6 @@ footer {
 
   .result .result-datetime {
     font-size: 1.7rem;
-    overflow-wrap: anywhere;
   }
 }
 </style>
@@ -282,174 +263,143 @@ footer {
 </header>
 
 <nav aria-label="メニュー">
-  <button class="active" data-page="home">ホーム</button>
-  <button data-page="saving">貯金時間計算</button>
+  <button class="active" data-page="home" type="button">ホーム</button>
+  <button data-page="saving" type="button">貯金時間計算</button>
 </nav>
 
 <main>
 
-  <!-- ホーム -->
-  <section id="home" class="page active">
-    <div class="card">
-      <h1>GOUP Calculatorへようこそ！</h1>
+<section id="home" class="page active">
+  <div class="card">
+    <h1>GOUP Calculatorへようこそ！</h1>
 
-      <p class="description">
-        ゲーム内のお金を目標金額まで貯めるために、
-        必要な時間と到達予定日時を計算できます。
-      </p>
+    <p class="description">
+      ゲーム内のお金を目標金額まで貯めるために、
+      必要な時間と到達予定日時を計算できます。
+    </p>
 
-      <div class="tiles">
-        <div class="tile">
-          <strong>💰 貯金時間計算</strong>
-          <span>
-            増加速度・所持金・目標金額から、
-            必要時間と到達予定日時を計算します。
-          </span>
+    <div class="tiles">
+      <div class="tile">
+        <strong>💰 貯金時間計算</strong>
+        <span>
+          増加速度・所持金・目標金額から、
+          必要時間と到達予定日時を計算します。
+        </span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" data-goto="saving" type="button">
+        貯金時間を計算
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="saving" class="page">
+  <div class="card">
+    <h1>💰 貯金時間計算</h1>
+
+    <p class="description">
+      増加速度・現在の所持金・目標金額を入力してください。
+      所持金を空欄にすると、0から計算します。
+    </p>
+
+    <form id="savingForm" novalidate>
+      <div class="grid">
+
+        <div class="field">
+          <label for="rate">増加速度（毎秒）</label>
+          <input
+            id="rate"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="例：1"
+          >
+          <p class="hint">例：1 Sx/sなら「1」</p>
         </div>
+
+        <div class="field">
+          <label for="rateUnit">増加速度の単位</label>
+          <select id="rateUnit">
+            <option value="Sx">Sx/s</option>
+            <option value="Sp">Sp/s</option>
+            <option value="Oc">Oc/s</option>
+            <option value="Qi">Qi/s</option>
+            <option value="No">No/s</option>
+            <option value="1">通常の数値/s</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="held">現在の所持金</label>
+          <input
+            id="held"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="例：1"
+          >
+          <p class="hint">空欄の場合は0として計算します。</p>
+        </div>
+
+        <div class="field">
+          <label for="heldUnit">所持金の単位</label>
+          <select id="heldUnit">
+            <option value="Sp" selected>Sp</option>
+            <option value="Sx">Sx</option>
+            <option value="Oc">Oc</option>
+            <option value="Qi">Qi</option>
+            <option value="No">No</option>
+            <option value="1">通常の数値</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="goal">目標金額</label>
+          <input
+            id="goal"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="例：10"
+          >
+          <p class="hint">例：10 Ocを目標にするなら「10」</p>
+        </div>
+
+        <div class="field">
+          <label for="goalUnit">目標金額の単位</label>
+          <select id="goalUnit">
+            <option value="Oc" selected>Oc</option>
+            <option value="Sx">Sx</option>
+            <option value="Sp">Sp</option>
+            <option value="Qi">Qi</option>
+            <option value="No">No</option>
+            <option value="1">通常の数値</option>
+          </select>
+        </div>
+
       </div>
 
       <div class="actions">
-        <button class="btn primary" data-goto="saving">
-          貯金時間を計算
-        </button>
+        <button class="btn primary" type="submit">計算する</button>
+        <button class="btn" type="reset">リセット</button>
       </div>
-    </div>
-  </section>
+    </form>
 
-  <!-- 貯金時間計算 -->
-  <section id="saving" class="page">
-    <div class="card">
-      <h1>💰 貯金時間計算</h1>
-
-      <p class="description">
-        増加速度・現在の所持金・目標金額を入力してください。
-        所持金を空欄にすると、0から計算します。
-      </p>
-
-      <form id="savingForm">
-        <div class="grid">
-
-          <div class="field">
-            <label for="rate">増加速度（毎秒）</label>
-
-            <input
-              id="rate"
-              type="number"
-              min="0"
-              step="any"
-              placeholder="例：1"
-              required
-            >
-
-            <p class="hint">
-              例：1 Sx/sなら「1」
-            </p>
-          </div>
-
-          <div class="field">
-            <label for="rateUnit">増加速度の単位</label>
-
-            <select id="rateUnit">
-              <option value="Sx">Sx/s</option>
-              <option value="Sp">Sp/s</option>
-              <option value="Oc">Oc/s</option>
-              <option value="Qi">Qi/s</option>
-              <option value="No">No/s</option>
-              <option value="1">通常の数値/s</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="held">現在の所持金</label>
-
-            <input
-              id="held"
-              type="number"
-              min="0"
-              step="any"
-              placeholder="例：1"
-            >
-
-            <p class="hint">
-              空欄の場合は0として計算します。
-            </p>
-          </div>
-
-          <div class="field">
-            <label for="heldUnit">所持金の単位</label>
-
-            <select id="heldUnit">
-              <option value="Sp" selected>Sp</option>
-              <option value="Sx">Sx</option>
-              <option value="Oc">Oc</option>
-              <option value="Qi">Qi</option>
-              <option value="No">No</option>
-              <option value="1">通常の数値</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="goal">目標金額</label>
-
-            <input
-              id="goal"
-              type="number"
-              min="0"
-              step="any"
-              placeholder="例：10"
-              required
-            >
-
-            <p class="hint">
-              例：10 Ocを目標にするなら「10」
-            </p>
-          </div>
-
-          <div class="field">
-            <label for="goalUnit">目標金額の単位</label>
-
-            <select id="goalUnit">
-              <option value="Oc" selected>Oc</option>
-              <option value="Sx">Sx</option>
-              <option value="Sp">Sp</option>
-              <option value="Qi">Qi</option>
-              <option value="No">No</option>
-              <option value="1">通常の数値</option>
-            </select>
-          </div>
-
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" type="submit">
-            計算する
-          </button>
-
-          <button class="btn" type="reset">
-            リセット
-          </button>
-        </div>
-      </form>
-
-      <div
-        id="savingResult"
-        class="result"
-        aria-live="polite"
-      ></div>
-    </div>
-  </section>
+    <div id="savingResult" class="result" aria-live="polite"></div>
+  </div>
+</section>
 
 </main>
 
-<footer>
-  GOUP Calculator
-</footer>
+<footer>GOUP Calculator</footer>
 
 <script>
-/* =========================
-   ページ切り替え
-========================= */
+"use strict";
 
+/* ページ切り替え */
 const pages = [...document.querySelectorAll(".page")];
 
 function showPage(id) {
@@ -458,16 +408,10 @@ function showPage(id) {
   });
 
   document.querySelectorAll("nav button").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.page === id
-    );
+    button.classList.toggle("active", button.dataset.page === id);
   });
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 document.querySelectorAll("nav button").forEach(button => {
@@ -483,18 +427,14 @@ document.querySelectorAll("[data-goto]").forEach(button => {
 });
 
 
-/* =========================
-   単位変換
-   既存コードの単位換算ルールを維持
-========================= */
-
+/* 単位変換 */
 const UNIT_POWER = {
   "1": 0,
-  "Sx": 1,
-  "Sp": 2,
-  "Oc": 3,
-  "Qi": 4,
-  "No": 5
+  Sx: 1,
+  Sp: 2,
+  Oc: 3,
+  Qi: 4,
+  No: 5
 };
 
 function toBase(value, unit) {
@@ -502,10 +442,7 @@ function toBase(value, unit) {
 }
 
 
-/* =========================
-   所要時間の表示
-========================= */
-
+/* 所要時間 */
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds) || seconds < 0) {
     return "計算できません";
@@ -524,19 +461,11 @@ function formatDuration(seconds) {
 
   const parts = [];
 
-  if (days > 0) {
-    parts.push(days + "日");
-  }
+  if (days) parts.push(days + "日");
+  if (hours) parts.push(hours + "時間");
+  if (minutes) parts.push(minutes + "分");
 
-  if (hours > 0) {
-    parts.push(hours + "時間");
-  }
-
-  if (minutes > 0) {
-    parts.push(minutes + "分");
-  }
-
-  if (secs > 0 || parts.length === 0) {
+  if (secs || parts.length === 0) {
     parts.push(secs + "秒");
   }
 
@@ -544,13 +473,11 @@ function formatDuration(seconds) {
 }
 
 
-/* =========================
-   日本時間の到達予定日時
-========================= */
-
-function formatJapanDateTime(date) {
+/* 日本時間の日時を取得 */
+function getJapanDateParts(date) {
   const parts = new Intl.DateTimeFormat("ja-JP", {
     timeZone: "Asia/Tokyo",
+    year: "numeric",
     month: "numeric",
     day: "numeric",
     hour: "2-digit",
@@ -562,57 +489,94 @@ function formatJapanDateTime(date) {
 
   for (const part of parts) {
     if (part.type !== "literal") {
-      values[part.type] = part.value;
+      values[part.type] = Number(part.value);
     }
   }
 
+  return values;
+}
+
+
+/* 現在時刻の表示 */
+function formatJapanClockTime(date) {
+  const parts = getJapanDateParts(date);
+
   return (
-    Number(values.month) + "月" +
-    Number(values.day) + "日" +
-    Number(values.hour) + "時" +
-    Number(values.minute) + "分"
+    String(parts.hour).padStart(2, "0") +
+    "時" +
+    String(parts.minute).padStart(2, "0") +
+    "分"
   );
 }
 
 
-/* =========================
-   貯金時間計算
-========================= */
+/* 到達予定日時
+   今日なら時刻だけ、別の日なら月日も表示 */
+function formatJapanArrivalDateTime(arrivalDate, now) {
+  const arrival = getJapanDateParts(arrivalDate);
+  const current = getJapanDateParts(now);
 
+  const sameDay =
+    arrival.year === current.year &&
+    arrival.month === current.month &&
+    arrival.day === current.day;
+
+  const time =
+    String(arrival.hour).padStart(2, "0") +
+    "時" +
+    String(arrival.minute).padStart(2, "0") +
+    "分";
+
+  if (sameDay) {
+    return time;
+  }
+
+  return arrival.month + "月" + arrival.day + "日" + time;
+}
+
+
+/* エラー表示 */
 const savingForm = document.getElementById("savingForm");
 const savingResult = document.getElementById("savingResult");
 
+function showError(message) {
+  savingResult.className = "result show error";
+  savingResult.replaceChildren();
+
+  const title = document.createElement("div");
+  title.className = "big";
+  title.textContent = message;
+
+  const detail = document.createElement("p");
+  detail.textContent = "入力内容を確認して、もう一度計算してください。";
+
+  savingResult.append(title, detail);
+}
+
+
+/* 貯金時間計算 */
 savingForm.addEventListener("submit", event => {
   event.preventDefault();
 
-  const rate = Number(
-    document.getElementById("rate").value
-  );
-
-  const rateUnit =
-    document.getElementById("rateUnit").value;
-
-  const heldInput =
-    document.getElementById("held").value.trim();
-
-  const held = heldInput === ""
-    ? 0
-    : Number(heldInput);
-
-  const heldUnit =
-    document.getElementById("heldUnit").value;
-
-  const goal = Number(
-    document.getElementById("goal").value
-  );
-
-  const goalUnit =
-    document.getElementById("goalUnit").value;
-
   savingResult.className = "result show";
 
-  /* 入力チェック */
+  const rateText = document.getElementById("rate").value.trim();
+  const heldText = document.getElementById("held").value.trim();
+  const goalText = document.getElementById("goal").value.trim();
+
+  const rate = Number(rateText);
+  const rateUnit = document.getElementById("rateUnit").value;
+
+  const held = heldText === "" ? 0 : Number(heldText);
+  const heldUnit = document.getElementById("heldUnit").value;
+
+  const goal = Number(goalText);
+  const goalUnit = document.getElementById("goalUnit").value;
+
+  /* 入力チェック。必須項目が空でも結果欄にエラーを表示する */
   if (
+    rateText === "" ||
+    goalText === "" ||
     !Number.isFinite(rate) ||
     rate <= 0 ||
     !Number.isFinite(held) ||
@@ -620,136 +584,104 @@ savingForm.addEventListener("submit", event => {
     !Number.isFinite(goal) ||
     goal < 0
   ) {
-    savingResult.classList.add("error");
-
-    savingResult.innerHTML = `
-      <div class="big">入力を確認してください</div>
-      <p>
-        増加速度は0より大きく、
-        所持金と目標金額は0以上で入力してください。
-      </p>
-    `;
-
+    showError("入力を確認してください");
     return;
   }
 
-  /* 現在の所持金と目標金額を共通単位に変換 */
   const heldBase = toBase(held, heldUnit);
   const goalBase = toBase(goal, goalUnit);
-
   const remaining = goalBase - heldBase;
 
-  /* すでに目標達成している場合 */
-  if (remaining <= 0) {
-    savingResult.innerHTML = `
-      <div class="big">目標達成済み！</div>
-      <p>
-        現在の所持金が目標金額以上です。
-      </p>
-    `;
-
+  if (!Number.isFinite(remaining)) {
+    showError("金額が大きすぎます");
     return;
   }
 
-  /* 増加速度を共通単位に変換 */
-  const baseRate = toBase(rate, rateUnit);
+  /* 目標達成済み */
+  if (remaining <= 0) {
+    savingResult.className = "result show";
+    savingResult.innerHTML =
+      "<div class=\"big\">目標達成済み！</div>" +
+      "<p>現在の所持金が目標金額以上です。</p>";
+    return;
+  }
 
-  /* 必要な秒数 */
+  const baseRate = toBase(rate, rateUnit);
   const seconds = remaining / baseRate;
 
-  if (
-    !Number.isFinite(seconds) ||
-    seconds < 0
-  ) {
-    savingResult.classList.add("error");
-
-    savingResult.innerHTML = `
-      <div class="big">計算できません</div>
-      <p>
-        入力した数値が大きすぎる可能性があります。
-        数値を確認してください。
-      </p>
-    `;
-
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    showError("計算できません");
     return;
   }
 
-  /*
-    現在時刻から必要秒数後の日時を計算。
-    表示は日本時間（Asia/Tokyo）に統一する。
-  */
-  const now = Date.now();
-  const arrivalTimestamp = now + Math.ceil(seconds) * 1000;
-
-  if (!Number.isFinite(arrivalTimestamp)) {
-    savingResult.classList.add("error");
-
-    savingResult.innerHTML = `
-      <div class="big">日時を計算できません</div>
-      <p>入力した数値を確認してください。</p>
-    `;
-
-    return;
-  }
-
+  const now = new Date();
+  const arrivalTimestamp = now.getTime() + Math.ceil(seconds) * 1000;
   const arrivalDate = new Date(arrivalTimestamp);
 
-  /* 目標単位で残り金額を表示 */
+  if (
+    !Number.isFinite(arrivalTimestamp) ||
+    Number.isNaN(arrivalDate.getTime())
+  ) {
+    showError("日時を計算できません");
+    return;
+  }
+
   const remainingInGoalUnit =
-    remaining / Math.pow(
-      1000,
-      UNIT_POWER[goalUnit] ?? 0
-    );
+    remaining / Math.pow(1000, UNIT_POWER[goalUnit] ?? 0);
 
   const formattedRemaining =
     remainingInGoalUnit.toLocaleString("ja-JP", {
       maximumFractionDigits: 6
     });
 
-  const formattedDuration = formatDuration(seconds);
-  const formattedDateTime = formatJapanDateTime(arrivalDate);
+  const duration = formatDuration(seconds);
+  const arrival = formatJapanArrivalDateTime(arrivalDate, now);
+  const currentTime = formatJapanClockTime(now);
 
-  /* 結果表示 */
-  savingResult.innerHTML = `
-    <div>目標までに必要な時間</div>
+  /* HTMLに入力値を直接埋め込まず、安全に結果表示 */
+  savingResult.className = "result show";
+  savingResult.replaceChildren();
 
-    <div class="big">
-      ${formattedDuration}
-    </div>
+  function addText(tag, className, text) {
+    const element = document.createElement(tag);
 
-    <div>到達予定日時</div>
+    if (className) {
+      element.className = className;
+    }
 
-    <div class="result-datetime">
-      ${formattedDateTime}
-    </div>
+    element.textContent = text;
+    savingResult.appendChild(element);
 
-    <p>
-      あと ${formattedRemaining} ${goalUnit} 必要です。
-    </p>
+    return element;
+  }
 
-    <p class="hint">
-      日本時間（JST）で表示しています。
-    </p>
-  `;
+  addText("div", "", "目標までに必要な時間");
+  addText("div", "big", duration);
+
+  addText("div", "", "到達予定日時");
+  addText("div", "result-datetime", arrival);
+
+  addText("div", "current-time", "現在時刻：" + currentTime);
+
+  addText(
+    "p",
+    "",
+    `あと ${formattedRemaining} ${goalUnit} 必要です。`
+  );
+
+  addText("p", "hint", "日本時間（JST）で表示しています。");
 });
 
 
-/* =========================
-   リセット処理
-========================= */
-
+/* リセット */
 savingForm.addEventListener("reset", () => {
   setTimeout(() => {
-    /*
-      リセット後も所持金の単位はSp、
-      目標金額の単位はOcにする。
-    */
+    document.getElementById("rateUnit").value = "Sx";
     document.getElementById("heldUnit").value = "Sp";
     document.getElementById("goalUnit").value = "Oc";
-    document.getElementById("rateUnit").value = "Sx";
 
     savingResult.className = "result";
-    savingResult.innerHTML = "";
+    savingResult.replaceChildren();
   }, 0);
 });
 </script>
