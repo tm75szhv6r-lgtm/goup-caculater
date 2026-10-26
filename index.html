@@ -1060,7 +1060,62 @@ function renderIdleUI() {
   }
 }
 
-idleStartButton.addEventListener('click', () => {
+idleStopButton.addEventListener('click', () => {
+  const record = idleState.activeRecord;
+
+  // 記録中でなければ処理しない
+  if (!record) return;
+
+  const endedAt = Date.now();
+
+  // 開始から終了までの経過時間（秒）
+  const elapsedSeconds = Math.max(
+    0,
+    (endedAt - record.startedAt) / 1000
+  );
+
+  // 記録開始時の収入速度から増加額を計算
+  const earned =
+    idleToBase(record.rate, record.rateUnit) * elapsedSeconds;
+
+  // 開始時の所持金を計算用の共通単位に変換
+  const heldBase = record.heldValue === null
+    ? null
+    : idleToBase(record.heldValue, record.heldUnit);
+
+  // 計算結果が大きすぎる場合
+  if (
+    !Number.isFinite(earned) ||
+    (heldBase !== null && !Number.isFinite(heldBase + earned))
+  ) {
+    setError(
+      idleStatus,
+      '計算結果が大きすぎます',
+      '収入速度を確認してください。'
+    );
+    return;
+  }
+
+  // 計算結果を保存
+  idleState = {
+    activeRecord: null,
+    lastResult: {
+      startedAt: record.startedAt,
+      endedAt: endedAt,
+      elapsedSeconds: elapsedSeconds,
+      rate: record.rate,
+      rateUnit: record.rateUnit,
+      heldValue: record.heldValue,
+      heldUnit: record.heldUnit,
+      heldBase: heldBase,
+      earned: earned
+    }
+  };
+
+  // ブラウザに保存して表示を更新
+  saveIdleState();
+  renderIdleUI();
+});
   if (idleState.activeRecord) return;
 
   const rateText = idleRateInput.value.trim();
