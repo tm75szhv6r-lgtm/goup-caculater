@@ -3,21 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b1020">
+<meta name="theme-color" content="#10121b">
 <title>GOUP Calculator</title>
 
 <style>
 :root {
   color-scheme: dark;
-  --bg: #0b1020;
-  --panel: #151d32;
-  --panel2: #1c2740;
-  --text: #eef2ff;
-  --muted: #9ba9c7;
+  --bg: #10121b;
+  --panel: #191c29;
+  --text: #f4f5fb;
+  --muted: #a7aec4;
   --accent: #8b7cff;
-  --accent2: #43d9b0;
-  --border: #2b3856;
-  --danger: #ff8295;
+  --accent2: #5ce1c0;
+  --border: #30364d;
+  --danger: #ff8585;
 }
 
 * {
@@ -26,1027 +25,680 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: radial-gradient(ellipse at top, #242444, var(--bg) 55%);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.6;
 }
 
-button, input, select {
-  font: inherit;
+header {
+  padding: 28px 16px 18px;
+  text-align: center;
+}
+
+.logo {
+  font-size: clamp(1.8rem, 5vw, 2.7rem);
+  font-weight: 850;
+}
+
+.logo span {
+  color: var(--accent2);
+}
+
+header p,
+.description,
+.hint {
+  color: var(--muted);
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 12px 22px;
 }
 
 button {
   cursor: pointer;
-}
-
-.layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.sidebar {
-  width: 245px;
-  flex-shrink: 0;
-  padding: 24px 16px;
-  background: #10172a;
-  border-right: 1px solid var(--border);
-}
-
-.logo {
-  font-size: 23px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
-  margin: 5px 8px 5px;
-}
-
-.logo span {
-  color: var(--accent);
-}
-
-.tagline {
-  margin: 0 8px 28px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.nav-label {
-  color: var(--muted);
-  font-size: 11px;
+  font: inherit;
   font-weight: 700;
-  margin: 22px 10px 8px;
-  letter-spacing: 1px;
 }
 
-.nav-button {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  padding: 12px;
-  text-align: left;
-  border-radius: 10px;
-  margin: 3px 0;
-  transition: 0.15s;
-}
-
-.nav-button:hover,
-.nav-button.active {
-  color: white;
-  background: #282849;
-}
-
-.nav-button.active {
-  box-shadow: inset 3px 0 var(--accent);
-}
-
-.sidebar-note {
-  margin: 35px 8px 0;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.8;
-}
-
-.main {
-  flex: 1;
-  min-width: 0;
-  padding: 30px;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 28px;
-}
-
-.topbar small {
-  color: var(--muted);
-}
-
-.status {
+nav button,
+.btn {
   border: 1px solid var(--border);
-  background: var(--panel);
-  padding: 8px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  white-space: nowrap;
+  border-radius: 12px;
+  padding: 10px 15px;
+  background: #202437;
+  color: var(--text);
+}
+
+nav button.active,
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+main {
+  width: min(880px, calc(100% - 28px));
+  margin: 0 auto 42px;
 }
 
 .page {
   display: none;
-  max-width: 1050px;
-  margin: auto;
 }
 
 .page.active {
   display: block;
 }
 
+.card {
+  background: rgba(25, 28, 41, .96);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(18px, 4vw, 28px);
+  margin-bottom: 16px;
+  box-shadow: 0 14px 35px #0002;
+}
+
 h1 {
-  margin: 0 0 10px;
-  font-size: clamp(27px, 4vw, 38px);
-  letter-spacing: -1px;
+  font-size: 1.55rem;
+  line-height: 1.3;
 }
 
 h2 {
-  font-size: 19px;
-  margin-top: 0;
-}
-
-h3 {
-  font-size: 15px;
-}
-
-.description {
-  color: var(--muted);
-  line-height: 1.8;
-  margin-bottom: 26px;
-}
-
-.hero {
-  padding: 30px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background:
-    radial-gradient(ellipse at top right, #37306b 0%, transparent 55%),
-    linear-gradient(135deg, #192441, #121a2d);
-  margin-bottom: 24px;
-}
-
-.hero p {
-  color: var(--muted);
-  line-height: 1.8;
+  font-size: 1.2rem;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.card {
-  min-width: 0;
-  padding: 23px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  margin-bottom: 18px;
-}
-
-.card p {
-  color: var(--muted);
-  line-height: 1.7;
-  font-size: 13px;
-}
-
-.card-link {
-  display: inline-block;
-  border: 1px solid var(--border);
-  padding: 9px 13px;
-  border-radius: 9px;
-  color: white;
-  background: var(--panel2);
-  margin-top: 8px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 17px;
+  gap: 14px;
 }
 
 .field {
-  min-width: 0;
-}
-
-.field.full {
-  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #d5def5;
+  font-weight: 700;
+  font-size: .93rem;
 }
 
-input, select {
-  display: block;
+input,
+select {
   width: 100%;
   min-width: 0;
-  padding: 12px;
-  border-radius: 9px;
+  padding: 12px 13px;
   border: 1px solid var(--border);
-  background: #0d1426;
+  border-radius: 11px;
+  background: #101321;
   color: var(--text);
-  outline: none;
+  font: inherit;
 }
 
-input:focus, select:focus {
-  border-color: var(--accent);
+input:focus,
+select:focus {
+  outline: 2px solid var(--accent);
 }
 
 .hint {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 6px;
+  font-size: .82rem;
+  margin: 0;
 }
 
-.primary {
-  width: 100%;
-  border: 0;
-  border-radius: 10px;
-  padding: 13px;
-  color: white;
-  font-weight: 800;
-  background: linear-gradient(100deg, #7968f5, #9b70f7);
-  margin-top: 20px;
-}
-
-.primary:hover {
-  filter: brightness(1.1);
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
 }
 
 .result {
-  background: #0e172b;
-  border: 1px solid #344365;
-  border-radius: 12px;
-  padding: 18px;
-  margin-top: 20px;
+  display: none;
+  margin-top: 18px;
+  padding: 17px;
+  border-radius: 14px;
+  background: #111625;
+  border: 1px solid var(--border);
   overflow-wrap: anywhere;
 }
 
-.result-label {
-  color: var(--muted);
-  font-size: 12px;
-  margin-bottom: 8px;
+.result.show {
+  display: block;
 }
 
-.result-number {
-  font-size: clamp(22px, 4vw, 32px);
-  font-weight: 900;
+.result .big {
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-weight: 850;
   color: var(--accent2);
-  line-height: 1.4;
 }
 
-.result-detail {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.8;
-  margin-top: 8px;
-}
-
-.error {
+.result.error .big {
   color: var(--danger);
-  margin-top: 12px;
-  font-size: 13px;
+  font-size: 1.1rem;
 }
 
-.table-wrap {
-  width: 100%;
-  overflow-x: auto;
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 420px;
+.tile {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #ffffff05;
 }
 
-th, td {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  text-align: left;
-  font-size: 13px;
+.tile strong {
+  display: block;
+  font-size: 1.1rem;
 }
 
-th {
+.tile span {
   color: var(--muted);
-  font-weight: 600;
+  font-size: .9rem;
 }
 
-td:last-child, th:last-child {
-  text-align: right;
-}
-
-.empty {
+.notice {
+  border-left: 3px solid var(--accent2);
+  padding: 10px 13px;
+  background: #5ce1c00d;
+  border-radius: 0 10px 10px 0;
   color: var(--muted);
-  padding: 20px 0;
+  font-size: .9rem;
+  margin-top: 18px;
 }
 
-.footer {
+footer {
   text-align: center;
   color: var(--muted);
-  font-size: 12px;
-  padding: 35px 10px 15px;
+  font-size: .8rem;
+  padding: 10px 18px 28px;
 }
 
-.mobile-nav {
-  display: none;
-}
-
-@media (max-width: 760px) {
-  .layout {
-    display: block;
-  }
-
-  .sidebar {
-    display: none;
-  }
-
-  .main {
-    padding: 19px 14px 90px;
-  }
-
-  .topbar {
-    margin-bottom: 23px;
-  }
-
-  .grid, .form-grid {
+@media (max-width: 560px) {
+  .grid,
+  .tiles {
     grid-template-columns: 1fr;
   }
 
-  .field.full {
-    grid-column: auto;
-  }
-
-  .hero {
-    padding: 22px;
+  nav button {
+    flex: 1 1 40%;
   }
 
   .card {
-    padding: 18px;
-  }
-
-  .mobile-nav {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 4px;
-    position: fixed;
-    z-index: 10;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 8px 5px calc(8px + env(safe-area-inset-bottom));
-    background: #10172af5;
-    border-top: 1px solid var(--border);
-    backdrop-filter: blur(12px);
-  }
-
-  .mobile-nav .nav-button {
-    text-align: center;
-    font-size: 11px;
-    padding: 10px 2px;
-    margin: 0;
-  }
-
-  .mobile-nav .nav-button.active {
-    box-shadow: inset 0 2px var(--accent);
+    border-radius: 16px;
   }
 }
 </style>
 </head>
 
 <body>
-<div class="layout">
 
-  <aside class="sidebar">
-    <div class="logo">GOUP <span>CALC</span></div>
-    <div class="tagline">Your progress, calculated.</div>
+<header>
+  <div class="logo">GOUP <span>Calculator</span></div>
+  <p>ゲーム内の貯金時間・ジャンプ費用を計算</p>
+</header>
 
-    <div class="nav-label">MENU</div>
-    <button class="nav-button active" data-page="home">⌂　ホーム</button>
-    <button class="nav-button" data-page="savings">◷　貯金時間計算</button>
-    <button class="nav-button" data-page="jump">↗　ジャンプ費用計算</button>
-    <button class="nav-button" data-page="table">▤　ジャンプ費用表</button>
+<nav aria-label="メニュー">
+  <button class="active" data-page="home">ホーム</button>
+  <button data-page="saving">貯金時間計算</button>
+  <button data-page="jump">ジャンプ費用計算</button>
+</nav>
 
-    <div class="sidebar-note">
-      GOUP Calculator<br>
-      ゲーム内の数値を簡単計算。<br><br>
-      計算結果はこの端末内で表示されます。
-    </div>
-  </aside>
+<main>
 
-  <main class="main">
-    <div class="topbar">
-      <small>GOUP / CALCULATOR</small>
-      <div class="status">● Calculator Ready</div>
-    </div>
+  <!-- ホーム -->
+  <section id="home" class="page active">
+    <div class="card">
+      <h1>GOUP Calculatorへようこそ！</h1>
 
-    <section class="page active" id="page-home">
-      <div class="hero">
-        <h1>GOUP Calculator</h1>
-        <p>
-          貯金にかかる時間やジャンプ費用を計算しよう。<br>
-          数値を入力するだけで、必要な時間や金額を推定できるよ。
-        </p>
-        <button class="card-link" data-open="savings">貯金時間を計算する →</button>
-      </div>
-
-      <div class="grid">
-        <div class="card">
-          <h2>💰 貯金時間計算</h2>
-          <p>
-            ○○Sx/sで○○Ocまで貯めるには何時間かかる？
-            所持金も考慮して到達時間を計算するよ。
-          </p>
-          <button class="card-link" data-open="savings">計算機を開く →</button>
-        </div>
-
-        <div class="card">
-          <h2>🦘 ジャンプ費用計算</h2>
-          <p>
-            次のジャンプに必要な費用から、目標ジャンプまでの
-            合計費用を推定するよ。
-          </p>
-          <button class="card-link" data-open="jump">計算機を開く →</button>
-        </div>
-
-        <div class="card">
-          <h2>📋 ジャンプ費用表</h2>
-          <p>
-            開始ジャンプから目標ジャンプまでの費用を
-            一覧で確認できるよ。
-          </p>
-          <button class="card-link" data-open="table">費用表を開く →</button>
-        </div>
-
-        <div class="card">
-          <h2>📐 対応単位</h2>
-          <p>
-            Qi = 10¹⁸<br>
-            Sx = 10²¹<br>
-            Sp = 10²⁴<br>
-            Oc = 10²⁷<br>
-            No = 10³⁰
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="page" id="page-savings">
-      <h1>貯金時間計算</h1>
       <p class="description">
-        1秒あたりの増加速度と目標金額を入力して、到達時間を計算するよ。
+        ゲーム内のお金を目標まで貯める時間や、
+        ジャンプ費用を確認するための計算ツールです。
       </p>
 
-      <div class="card">
-        <h2>計算条件</h2>
+      <div class="tiles">
+        <div class="tile">
+          <strong>💰 貯金時間計算</strong>
+          <span>増加速度と目標金額から必要時間を計算</span>
+        </div>
 
-        <div class="form-grid">
+        <div class="tile">
+          <strong>🦘 ジャンプ費用計算</strong>
+          <span>ジャンプ111までの範囲に対応</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" data-goto="saving">
+          貯金時間を計算
+        </button>
+
+        <button class="btn" data-goto="jump">
+          ジャンプ費用を計算
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 貯金時間計算 -->
+  <section id="saving" class="page">
+    <div class="card">
+      <h1>💰 貯金時間計算</h1>
+
+      <p class="description">
+        増加速度・現在の所持金・目標金額を入力してください。
+        所持金を空欄にすると0から計算します。
+      </p>
+
+      <form id="savingForm">
+        <div class="grid">
+
           <div class="field">
-            <label for="rate">増加速度（1秒あたり）</label>
-            <input id="rate" type="number" min="0" step="any" placeholder="例：192">
+            <label for="rate">増加速度（毎秒）</label>
+            <input
+              id="rate"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="例：192"
+              required
+            >
+            <p class="hint">例：192 Sx/sなら「192」</p>
           </div>
 
           <div class="field">
             <label for="rateUnit">増加速度の単位</label>
             <select id="rateUnit">
-              <option value="18">Qi/s</option>
-              <option value="21" selected>Sx/s</option>
-              <option value="24">Sp/s</option>
-              <option value="27">Oc/s</option>
-              <option value="30">No/s</option>
+              <option value="Sx">Sx/s</option>
+              <option value="Sp">Sp/s</option>
+              <option value="Oc">Oc/s</option>
+              <option value="Qi">Qi/s</option>
+              <option value="No">No/s</option>
+              <option value="1">通常の数値/s</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="current">現在の所持金</label>
-            <input id="current" type="number" min="0" step="any" value="0">
+            <label for="held">現在の所持金</label>
+            <input
+              id="held"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="例：0"
+            >
           </div>
 
           <div class="field">
-            <label for="currentUnit">所持金の単位</label>
-            <select id="currentUnit">
-              <option value="18">Qi</option>
-              <option value="21">Sx</option>
-              <option value="24" selected>Sp</option>
-              <option value="27">Oc</option>
-              <option value="30">No</option>
+            <label for="heldUnit">所持金の単位</label>
+            <select id="heldUnit">
+              <option value="Sx">Sx</option>
+              <option value="Sp">Sp</option>
+              <option value="Oc">Oc</option>
+              <option value="Qi">Qi</option>
+              <option value="No">No</option>
+              <option value="1">通常の数値</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="target">目標金額</label>
-            <input id="target" type="number" min="0" step="any" placeholder="例：663.57">
+            <label for="goal">目標金額</label>
+            <input
+              id="goal"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="例：10"
+              required
+            >
           </div>
 
           <div class="field">
-            <label for="targetUnit">目標金額の単位</label>
-            <select id="targetUnit">
-              <option value="18">Qi</option>
-              <option value="21">Sx</option>
-              <option value="24">Sp</option>
-              <option value="27" selected>Oc</option>
-              <option value="30">No</option>
+            <label for="goalUnit">目標金額の単位</label>
+            <select id="goalUnit">
+              <option value="Oc">Oc</option>
+              <option value="Sx">Sx</option>
+              <option value="Sp">Sp</option>
+              <option value="Qi">Qi</option>
+              <option value="No">No</option>
+              <option value="1">通常の数値</option>
             </select>
           </div>
+
         </div>
 
-        <button class="primary" id="calculateSavings">時間を計算する</button>
-        <div id="savingsError" class="error" role="alert"></div>
-
-        <div class="result" id="savingsResult" hidden aria-live="polite">
-          <div class="result-label">目標までの時間</div>
-          <div class="result-number" id="duration">--</div>
-          <div class="result-detail" id="arrival"></div>
+        <div class="actions">
+          <button class="btn primary" type="submit">計算する</button>
+          <button class="btn" type="reset">リセット</button>
         </div>
-      </div>
-    </section>
+      </form>
 
-    <section class="page" id="page-jump">
-      <h1>ジャンプ費用計算</h1>
+      <div id="savingResult" class="result" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- ジャンプ費用計算 -->
+  <section id="jump" class="page">
+    <div class="card">
+      <h1>🦘 ジャンプ費用計算</h1>
+
       <p class="description">
-        次のジャンプにかかる費用を基準に、目標までの合計費用を推定するよ。
+        開始ジャンプ・目標ジャンプ・次のジャンプの費用を入力してください。
+        ジャンプ111を超える計算には対応していません。
       </p>
 
-      <div class="card">
-        <h2>計算条件</h2>
+      <form id="jumpForm">
+        <div class="grid">
 
-        <div class="form-grid">
           <div class="field">
-            <label for="jumpStart">現在のジャンプ</label>
-            <input id="jumpStart" type="number" min="0" step="1" value="706">
+            <label for="startJump">開始ジャンプ</label>
+            <input
+              id="startJump"
+              type="number"
+              min="1"
+              max="111"
+              step="1"
+              value="1"
+              required
+            >
+            <p class="hint">例：1</p>
           </div>
 
           <div class="field">
-            <label for="jumpEnd">目標ジャンプ</label>
-            <input id="jumpEnd" type="number" min="1" step="1" value="900">
+            <label for="targetJump">目標ジャンプ</label>
+            <input
+              id="targetJump"
+              type="number"
+              min="2"
+              max="111"
+              step="1"
+              value="10"
+              required
+            >
+            <p class="hint">例：10</p>
           </div>
 
           <div class="field">
-            <label for="nextCost">次のジャンプに必要な費用</label>
-            <input id="nextCost" type="number" min="0" step="any" placeholder="例：483">
+            <label for="nextCost">次のジャンプの費用</label>
+            <input
+              id="nextCost"
+              type="number"
+              min="0"
+              step="any"
+              placeholder="例：1"
+              required
+            >
           </div>
 
           <div class="field">
             <label for="costUnit">費用の単位</label>
             <select id="costUnit">
-              <option value="18">Qi</option>
-              <option value="21">Sx</option>
-              <option value="24" selected>Sp</option>
-              <option value="27">Oc</option>
-              <option value="30">No</option>
+              <option value="Sx">Sx</option>
+              <option value="Sp">Sp</option>
+              <option value="Oc">Oc</option>
+              <option value="Qi">Qi</option>
+              <option value="No">No</option>
+              <option value="通常">通常の数値</option>
             </select>
           </div>
 
-          <div class="field full">
-            <label for="growth">1ジャンプごとの費用増加率（%）</label>
-            <input id="growth" type="number" min="0" max="100000" step="any" value="1.6">
-            <div class="hint">
-              費用が毎回1.6%増えるなら「1.6」。正確な倍率が不明な場合は推定値になるよ。
-            </div>
-          </div>
         </div>
 
-        <button class="primary" id="calculateJump">合計費用を計算する</button>
-        <div id="jumpError" class="error" role="alert"></div>
-
-        <div class="result" id="jumpResult" hidden aria-live="polite">
-          <div class="result-label">目標までの推定合計費用</div>
-          <div class="result-number" id="jumpTotal">--</div>
-          <div class="result-detail" id="jumpDetail"></div>
+        <div class="actions">
+          <button class="btn primary" type="submit">計算する</button>
+          <button class="btn" type="reset">リセット</button>
         </div>
+      </form>
+
+      <div id="jumpResult" class="result" aria-live="polite"></div>
+
+      <div class="notice">
+        注意：このコードにはジャンプ1〜111の全費用データが登録されていません。
+        そのため、複数ジャンプ分の正確な合計は計算せず、
+        未確認の費用を推測して表示することもありません。
       </div>
-    </section>
-
-    <section class="page" id="page-table">
-      <h1>ジャンプ費用表</h1>
-      <p class="description">
-        ジャンプごとの費用を一覧で表示するよ。計算結果は推定値だよ。
-      </p>
-
-      <div class="card">
-        <div class="form-grid">
-          <div class="field">
-            <label for="tableStart">開始ジャンプ</label>
-            <input id="tableStart" type="number" min="0" step="1" value="706">
-          </div>
-
-          <div class="field">
-            <label for="tableEnd">終了ジャンプ</label>
-            <input id="tableEnd" type="number" min="1" step="1" value="720">
-          </div>
-
-          <div class="field">
-            <label for="tableCost">最初のジャンプの費用</label>
-            <input id="tableCost" type="number" min="0" step="any" placeholder="例：483">
-          </div>
-
-          <div class="field">
-            <label for="tableUnit">費用の単位</label>
-            <select id="tableUnit">
-              <option value="18">Qi</option>
-              <option value="21">Sx</option>
-              <option value="24" selected>Sp</option>
-              <option value="27">Oc</option>
-              <option value="30">No</option>
-            </select>
-          </div>
-
-          <div class="field full">
-            <label for="tableGrowth">1ジャンプごとの増加率（%）</label>
-            <input id="tableGrowth" type="number" min="0" max="100000" step="any" value="1.6">
-          </div>
-        </div>
-
-        <button class="primary" id="generateTable">費用表を作成する</button>
-        <div id="tableError" class="error" role="alert"></div>
-      </div>
-
-      <div class="card" id="tableCard" hidden>
-        <h2>計算結果</h2>
-        <div class="result">
-          <div class="result-label">合計費用</div>
-          <div class="result-number" id="tableTotal">--</div>
-          <div class="result-detail" id="tableCount"></div>
-        </div>
-
-        <div class="table-wrap" style="margin-top:20px">
-          <table>
-            <thead>
-              <tr>
-                <th>ジャンプ</th>
-                <th>費用</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer">
-      GOUP Calculator · 計算結果は推定値の場合があります。
     </div>
-  </main>
-</div>
+  </section>
 
-<nav class="mobile-nav" aria-label="メニュー">
-  <button class="nav-button active" data-page="home">⌂<br>ホーム</button>
-  <button class="nav-button" data-page="savings">◷<br>貯金時間</button>
-  <button class="nav-button" data-page="jump">↗<br>ジャンプ計算</button>
-  <button class="nav-button" data-page="table">▤<br>費用表</button>
-</nav>
+</main>
+
+<footer>
+  GOUP Calculator · 不明な費用は推測しません。
+</footer>
 
 <script>
-"use strict";
+/* ページ切り替え */
+const pages = [...document.querySelectorAll(".page")];
 
-const UNIT_NAMES = {
-  18: "Qi",
-  21: "Sx",
-  24: "Sp",
-  27: "Oc",
-  30: "No"
-};
-
-function getNumber(id) {
-  return Number(document.getElementById(id).value);
-}
-
-function getValue(id) {
-  return document.getElementById(id).value.trim();
-}
-
-function validNumber(value) {
-  return Number.isFinite(value);
-}
-
-function formatNumber(value, maximumDigits = 6) {
-  if (!Number.isFinite(value)) return "計算範囲外";
-
-  return value.toLocaleString("en-US", {
-    maximumFractionDigits: maximumDigits
-  });
-}
-
-/*
-  金額を「10の何乗か」で統一して計算する。
-  通常の数値に変換せず、指数表現を使うことで大きな金額に対応。
-*/
-function normalizeAmount(value, unitExponent) {
-  if (!Number.isFinite(value) || value < 0) return null;
-  if (value === 0) return { m: 0, e: 0 };
-
-  let m = value;
-  let e = unitExponent;
-
-  while (m >= 10) {
-    m /= 10;
-    e++;
-  }
-
-  while (m < 1) {
-    m *= 10;
-    e--;
-  }
-
-  return { m, e };
-}
-
-function compareAmounts(a, b) {
-  if (a.m === 0 && b.m === 0) return 0;
-  if (a.m === 0) return -1;
-  if (b.m === 0) return 1;
-
-  if (a.e !== b.e) return a.e > b.e ? 1 : -1;
-  if (a.m === b.m) return 0;
-  return a.m > b.m ? 1 : -1;
-}
-
-function subtractAmounts(a, b) {
-  if (compareAmounts(a, b) < 0) return null;
-  if (compareAmounts(a, b) === 0) return { m: 0, e: 0 };
-  if (b.m === 0) return { m: a.m, e: a.e };
-
-  const difference = a.e - b.e;
-
-  if (difference > 16) {
-    return { m: a.m, e: a.e };
-  }
-
-  return normalizeAmount(
-    a.m * Math.pow(10, difference) - b.m,
-    a.e
-  );
-}
-
-function amountToSeconds(amount, rate) {
-  if (amount.m === 0) return 0;
-
-  const logSeconds =
-    Math.log10(amount.m) +
-    amount.e -
-    Math.log10(rate.m) -
-    rate.e;
-
-  if (logSeconds > 300) return Infinity;
-  if (logSeconds < -10) return 0;
-
-  return Math.pow(10, logSeconds);
-}
-
-function formatDuration(seconds) {
-  if (seconds === 0) return "0秒";
-  if (!Number.isFinite(seconds)) return "非常に長い時間";
-
-  if (seconds < 1) {
-    return "約 " + formatNumber(seconds, 3) + " 秒";
-  }
-
-  const total = Math.ceil(seconds);
-  const days = Math.floor(total / 86400);
-  const hours = Math.floor((total % 86400) / 3600);
-  const minutes = Math.floor((total % 3600) / 60);
-  const secs = total % 60;
-
-  let parts = [];
-
-  if (days > 0) parts.push(days + "日");
-  if (hours > 0) parts.push(hours + "時間");
-  if (minutes > 0) parts.push(minutes + "分");
-
-  if (secs > 0 && days === 0) {
-    parts.push(secs + "秒");
-  }
-
-  return parts.join("") || "1秒未満";
-}
-
-function formatArrival(seconds) {
-  if (!Number.isFinite(seconds) || seconds > 8.64e12) {
-    return "到達予定時刻は計算できません。";
-  }
-
-  const arrival = new Date(Date.now() + seconds * 1000);
-
-  return "日本時間の到達予定： " +
-    arrival.toLocaleString("ja-JP", {
-      timeZone: "Asia/Tokyo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false
-    });
-}
-
-function showPage(name) {
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.toggle("active", page.id === "page-" + name);
+function showPage(id) {
+  pages.forEach(page => {
+    page.classList.toggle("active", page.id === id);
   });
 
-  document.querySelectorAll("[data-page]").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === name);
+  document.querySelectorAll("nav button").forEach(button => {
+    button.classList.toggle("active", button.dataset.page === id);
   });
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-document.querySelectorAll("[data-page]").forEach(button => {
-  button.addEventListener("click", () => showPage(button.dataset.page));
+document.querySelectorAll("nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    showPage(button.dataset.page);
+  });
 });
 
-document.querySelectorAll("[data-open]").forEach(button => {
-  button.addEventListener("click", () => showPage(button.dataset.open));
+document.querySelectorAll("[data-goto]").forEach(button => {
+  button.addEventListener("click", () => {
+    showPage(button.dataset.goto);
+  });
 });
+
+/* 単位変換
+   ここでは各単位を1000倍ずつの段階として扱います。
+*/
+const UNIT_POWER = {
+  "1": 0,
+  "Sx": 1,
+  "Sp": 2,
+  "Oc": 3,
+  "Qi": 4,
+  "No": 5
+};
+
+function toBase(value, unit) {
+  return value * Math.pow(1000, UNIT_POWER[unit] ?? 0);
+}
+
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    return "計算できません";
+  }
+
+  let remaining = Math.ceil(seconds);
+
+  const days = Math.floor(remaining / 86400);
+  remaining %= 86400;
+
+  const hours = Math.floor(remaining / 3600);
+  remaining %= 3600;
+
+  const minutes = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+
+  const parts = [];
+
+  if (days) parts.push(days + "日");
+  if (hours) parts.push(hours + "時間");
+  if (minutes) parts.push(minutes + "分");
+
+  if (secs || parts.length === 0) {
+    parts.push(secs + "秒");
+  }
+
+  return parts.join(" ");
+}
 
 /* 貯金時間計算 */
-document.getElementById("calculateSavings").addEventListener("click", () => {
-  const error = document.getElementById("savingsError");
-  const result = document.getElementById("savingsResult");
-  error.textContent = "";
-  result.hidden = true;
+document.getElementById("savingForm").addEventListener("submit", event => {
+  event.preventDefault();
 
-  const rateValue = getNumber("rate");
-  const rateUnit = Number(getValue("rateUnit"));
-  const currentValue = getNumber("current");
-  const currentUnit = Number(getValue("currentUnit"));
-  const targetValue = getNumber("target");
-  const targetUnit = Number(getValue("targetUnit"));
+  const rate = Number(document.getElementById("rate").value);
+  const rateUnit = document.getElementById("rateUnit").value;
+
+  const held = Number(document.getElementById("held").value || 0);
+  const heldUnit = document.getElementById("heldUnit").value;
+
+  const goal = Number(document.getElementById("goal").value);
+  const goalUnit = document.getElementById("goalUnit").value;
+
+  const result = document.getElementById("savingResult");
+
+  result.className = "result show";
 
   if (
-    getValue("rate") === "" ||
-    getValue("target") === "" ||
-    !validNumber(rateValue) ||
-    !validNumber(currentValue) ||
-    !validNumber(targetValue) ||
-    rateValue <= 0 ||
-    currentValue < 0 ||
-    targetValue < 0
+    !Number.isFinite(rate) ||
+    rate <= 0 ||
+    !Number.isFinite(held) ||
+    held < 0 ||
+    !Number.isFinite(goal) ||
+    goal < 0
   ) {
-    error.textContent = "増加速度には0より大きい数値、金額には0以上の数値を入力してね。";
+    result.classList.add("error");
+    result.innerHTML = `
+      <div class="big">入力を確認してください</div>
+      <p>増加速度は0より大きく、金額は0以上で入力してください。</p>
+    `;
     return;
   }
 
-  const rate = normalizeAmount(rateValue, rateUnit);
-  const current = normalizeAmount(currentValue, currentUnit);
-  const target = normalizeAmount(targetValue, targetUnit);
+  const remaining = toBase(goal, goalUnit) - toBase(held, heldUnit);
 
-  if (compareAmounts(current, target) >= 0) {
-    document.getElementById("duration").textContent = "0秒";
-    document.getElementById("arrival").textContent =
-      "すでに目標金額に到達しているよ！";
-    result.hidden = false;
+  if (remaining <= 0) {
+    result.innerHTML = `
+      <div class="big">目標達成済み！</div>
+      <p>現在の所持金が目標金額以上です。</p>
+    `;
     return;
   }
 
-  const remaining = subtractAmounts(target, current);
-  const seconds = amountToSeconds(remaining, rate);
+  const baseRate = toBase(rate, rateUnit);
+  const seconds = remaining / baseRate;
 
-  document.getElementById("duration").textContent = formatDuration(seconds);
-  document.getElementById("arrival").textContent = formatArrival(seconds);
-  result.hidden = false;
+  if (!Number.isFinite(seconds)) {
+    result.classList.add("error");
+    result.innerHTML = `
+      <div class="big">計算できません</div>
+      <p>入力した数値を確認してください。</p>
+    `;
+    return;
+  }
+
+  const remainingInGoalUnit =
+    remaining / Math.pow(1000, UNIT_POWER[goalUnit]);
+
+  result.innerHTML = `
+    <div>目標までに必要な時間</div>
+    <div class="big">${formatDuration(seconds)}</div>
+    <p>
+      あと ${remainingInGoalUnit.toLocaleString("ja-JP", {
+        maximumFractionDigits: 6
+      })} ${goalUnit} 必要です。
+    </p>
+  `;
 });
-
-/*
-  次のジャンプの費用を開始点とし、
-  各ジャンプで同じ割合だけ費用が増えると仮定する。
-*/
-function estimateJumpCosts(startCost, growthPercent, count) {
-  const ratio = 1 + growthPercent / 100;
-  const costs = [];
-  let cost = startCost;
-
-  for (let i = 0; i < count; i++) {
-    costs.push(cost);
-    cost *= ratio;
-
-    if (!Number.isFinite(cost) && i < count - 1) {
-      return { costs, overflow: true };
-    }
-  }
-
-  return { costs, overflow: false };
-}
-
-function formatCost(value, exponent) {
-  if (!Number.isFinite(value)) return "計算範囲外";
-  return formatNumber(value) + " " + UNIT_NAMES[exponent];
-}
 
 /* ジャンプ費用計算 */
-document.getElementById("calculateJump").addEventListener("click", () => {
-  const error = document.getElementById("jumpError");
+document.getElementById("jumpForm").addEventListener("submit", event => {
+  event.preventDefault();
+
+  const start = Number(document.getElementById("startJump").value);
+  const target = Number(document.getElementById("targetJump").value);
+  const cost = Number(document.getElementById("nextCost").value);
+  const unit = document.getElementById("costUnit").value;
+
   const result = document.getElementById("jumpResult");
-  error.textContent = "";
-  result.hidden = true;
 
-  const start = getNumber("jumpStart");
-  const end = getNumber("jumpEnd");
-  const cost = getNumber("nextCost");
-  const unit = Number(getValue("costUnit"));
-  const growth = getNumber("growth");
+  result.className = "result show";
 
   if (
-    getValue("nextCost") === "" ||
-    !validNumber(start) ||
-    !validNumber(end) ||
-    !validNumber(cost) ||
-    !validNumber(growth) ||
-    start < 0 ||
-    end <= start ||
-    cost < 0 ||
-    growth < 0 ||
-    growth > 100000 ||
     !Number.isInteger(start) ||
-    !Number.isInteger(end)
+    !Number.isInteger(target) ||
+    start < 1 ||
+    target > 111 ||
+    target <= start ||
+    !Number.isFinite(cost) ||
+    cost < 0
   ) {
-    error.textContent =
-      "ジャンプ数・費用・増加率を確認してね。目標ジャンプは現在より大きくしてね。";
+    result.classList.add("error");
+    result.innerHTML = `
+      <div class="big">入力を確認してください</div>
+      <p>開始は1以上、目標は開始より大きく111以下にしてください。</p>
+    `;
     return;
   }
 
-  const count = end - start;
-  const estimate = estimateJumpCosts(cost, growth, count);
-  const total = estimate.costs.reduce((sum, value) => sum + value, 0);
+  /*
+    次のジャンプの費用1件だけでは、
+    複数ジャンプ分の合計は求められません。
+    推測で合計を表示しないようにします。
+  */
+  if (target === start + 1) {
+    result.innerHTML = `
+      <div>入力した次のジャンプの費用</div>
+      <div class="big">
+        ${cost.toLocaleString("ja-JP")} ${unit}
+      </div>
+      <p>${start} → ${target} の1回分です。</p>
+    `;
+    return;
+  }
 
-  document.getElementById("jumpTotal").textContent =
-    formatCost(total, unit);
-
-  document.getElementById("jumpDetail").textContent =
-    start + " → " + end + "： " + count + "回分の推定費用。" +
-    " 1回ごとに " + growth + "% 増えると仮定。" +
-    " 次のジャンプの費用を「" + formatCost(cost, unit) +
-    "」として計算したよ。";
-
-  result.hidden = false;
+  result.classList.add("error");
+  result.innerHTML = `
+    <div class="big">正確な合計を計算できません</div>
+    <p>
+      ${start} → ${target} には複数回のジャンプが含まれます。
+      各ジャンプの実際の費用データが登録されていないため、
+      入力した費用だけから合計を推測することはしません。
+    </p>
+    <p>
+      入力された次のジャンプの費用：
+      ${cost.toLocaleString("ja-JP")} ${unit}
+    </p>
+  `;
 });
 
-/* ジャンプ費用表 */
-document.getElementById("generateTable").addEventListener("click", () => {
-  const error = document.getElementById("tableError");
-  const card = document.getElementById("tableCard");
-  error.textContent = "";
-  card.hidden = true;
+/* リセット */
+document.getElementById("jumpForm").addEventListener("reset", () => {
+  setTimeout(() => {
+    document.getElementById("startJump").value = 1;
+    document.getElementById("targetJump").value = 10;
 
-  const start = getNumber("tableStart");
-  const end = getNumber("tableEnd");
-  const cost = getNumber("tableCost");
-  const unit = Number(getValue("tableUnit"));
-  const growth = getNumber("tableGrowth");
-
-  if (
-    getValue("tableCost") === "" ||
-    !validNumber(start) ||
-    !validNumber(end) ||
-    !validNumber(cost) ||
-    !validNumber(growth) ||
-    start < 0 ||
-    end <= start ||
-    cost < 0 ||
-    growth < 0 ||
-    growth > 100000 ||
-    !Number.isInteger(start) ||
-    !Number.isInteger(end)
-  ) {
-    error.textContent =
-      "開始・終了ジャンプ、費用、増加率を確認してね。";
-    return;
-  }
-
-  const count = end - start;
-
-  if (count > 1000) {
-    error.textContent = "一度に表示できるのは最大1000回分だよ。";
-    return;
-  }
-
-  const estimate = estimateJumpCosts(cost, growth, count);
-  const tbody = document.getElementById("tableBody");
-  tbody.replaceChildren();
-
-  let total = 0;
-
-  estimate.costs.forEach((value, index) => {
-    total += value;
-
-    const row = document.createElement("tr");
-    const jumpCell = document.createElement("td");
-    const costCell = document.createElement("td");
-
-    jumpCell.textContent = (start + index) + " → " + (start + index + 1);
-    costCell.textContent = formatCost(value, unit);
-
-    row.append(jumpCell, costCell);
-    tbody.appendChild(row);
-  });
-
-  document.getElementById("tableTotal").textContent =
-    formatCost(total, unit);
-
-  document.getElementById("tableCount").textContent =
-    count + "回分 · 1回ごとに " + growth + "% 増えると仮定";
-
-  card.hidden = false;
+    const result = document.getElementById("jumpResult");
+    result.className = "result";
+    result.innerHTML = "";
+  }, 0);
 });
 
+document.getElementById("savingForm").addEventListener("reset", () => {
+  setTimeout(() => {
+    const result = document.getElementById("savingResult");
+    result.className = "result";
+    result.innerHTML = "";
+  }, 0);
+});
 </script>
+
 </body>
 </html>
