@@ -97,7 +97,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
     <div class="grid">
       <div class="field"><label for="rate">増加速度（毎秒・任意）</label><input id="rate" type="number" min="0" step="any" placeholder="例：1"><p class="hint">例：1 Sx/sなら「1」</p></div>
       <div class="field"><label for="dailyHours">1日の起動時間（任意・時間）</label><input id="dailyHours" type="number" min="0.1" max="24" step="0.1" placeholder="例：10"><p class="hint">空欄なら24時間起動。例：8なら毎日0:00〜8:00に起動し、翌日も0:00から再開します。</p></div>
-        <div class="field"><label for="rateUnit">増加速度の単位</label><select id="rateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="rateUnit">増加速度の単位</label><select id="rateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
       <div class="field"><label for="held">現在の所持金</label><input id="held" type="number" min="0" step="any" placeholder="例：1"><p class="hint">空欄の場合は0として計算します。</p></div>
       <div class="field"><label for="heldUnit">所持金の単位</label><select id="heldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp" selected>Sp</option><option value="Sx">Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
       <div class="field"><label for="goal">目標金額</label><input id="goal" type="number" min="0" step="any" placeholder="例：10"><p class="hint">例：10 Ocを目標にするなら「10」</p></div>
@@ -224,7 +224,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
       <div class="field"><label for="currentJump">現在のジャンプ数</label><input id="currentJump" type="number" min="0" step="1" value="0"><p class="hint">リバース直後なら0。今のジャンプ数が分かる場合は入力</p></div>
       <div class="field"><label for="rebirthCashRate">お金の増加速度（毎秒・任意）</label><input id="rebirthCashRate" type="number" min="0" step="any" placeholder="例：1"><p class="hint">時間予測に使用（任意）。例：1 Sx/s</p></div>
       <div class="field"><label for="rebirthDailyHours">1日の起動時間（任意・時間）</label><input id="rebirthDailyHours" type="number" min="0.1" max="24" step="0.1" placeholder="例：10"><p class="hint">空欄なら24時間起動。例：8なら毎日0:00〜8:00に起動し、翌日も0:00から再開します。</p></div>
-        <div class="field"><label for="rebirthCashRateUnit">増加速度の単位</label><select id="rebirthCashRateUnit"><option value="Sx" selected>Sx/s</option><option value="Sp">Sp/s</option><option value="Oc">Oc/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="rebirthCashRateUnit">増加速度の単位</label><select id="rebirthCashRateUnit"><option value="Sx" selected>Sx/s</option><option value="Sp">Sp/s</option><option value="Oc">Oc/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
       <div class="field"><label for="rebirthHeldCash">現在の所持金</label><input id="rebirthHeldCash" type="number" min="0" step="any" placeholder="空欄なら0"><p class="hint">目標までに必要な費用から差し引きます。</p></div>
       <div class="field"><label for="rebirthHeldCashUnit">所持金の単位</label><select id="rebirthHeldCashUnit"><option value="Sp" selected>Sp</option><option value="Sx">Sx</option><option value="Oc">Oc</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
     </div>
@@ -354,10 +354,18 @@ function formatJapanClockTime(date) {
   const p = getJapanDateParts(date);
   return String(p.hour).padStart(2, '0') + '時' + String(p.minute).padStart(2, '0') + '分';
 }
+
+/* 同じ年月日なら時刻だけ、別の日なら年・月・日も表示 */
 function formatJapanArrivalDateTime(arrivalDate, now) {
-  const a = getJapanDateParts(arrivalDate), c = getJapanDateParts(now);
+  const a = getJapanDateParts(arrivalDate);
+  const c = getJapanDateParts(now);
   const time = String(a.hour).padStart(2, '0') + '時' + String(a.minute).padStart(2, '0') + '分';
-  return a.year === c.year && a.month === c.month && a.day === c.day ? time : a.month + '月' + a.day + '日' + time;
+
+  if (a.year === c.year && a.month === c.month && a.day === c.day) {
+    return time;
+  }
+
+  return `${a.year}年${a.month}月${a.day}日 ${time}`;
 }
 
 // 毎日0:00からdailyHours時間だけ起動し、それ以外の時間は進行しない前提で到達日時を計算
@@ -629,6 +637,7 @@ function cumulativeJumpCost(jump) {
   const fraction = (jump - lower.jump) / (upper.jump - lower.jump);
   return { value: lower.cost + (upper.cost - lower.cost) * fraction, estimated: true };
 }
+
 /* ジャンプ計算機：スライダーと数値入力を同期 */
 const jumpCurrentSlider = document.getElementById('jumpCurrentSlider');
 const jumpCurrentNumber = document.getElementById('jumpCurrentNumber');
@@ -1001,6 +1010,11 @@ function formatLocalDateTime(timestamp) {
   }).format(new Date(timestamp));
 }
 
+// 到達予定日時は、今日なら時刻だけ、別の日なら年月日と時刻を表示する
+function formatLocalArrivalDateTime(timestamp) {
+  return formatJapanArrivalDateTime(new Date(timestamp), new Date());
+}
+
 const idleForm = document.getElementById('idleForm');
 const idleRateInput = document.getElementById('idleRate');
 const idleRateUnitInput = document.getElementById('idleRateUnit');
@@ -1080,7 +1094,7 @@ function renderIdleActiveRecord() {
       const reachSeconds = amountNeededAtStart <= 0 ? 0 : amountNeededAtStart / rateBase;
       const reachedAt = record.startedAt + reachSeconds * 1000;
       addText(idleStatus, 'div', 'big', '🎉 目標達成！');
-      addText(idleStatus, 'p', '', '推定到達時刻：' + formatLocalDateTime(reachedAt));
+      addText(idleStatus, 'p', '', '推定到達時刻：' + formatLocalArrivalDateTime(reachedAt));
     } else {
       const remaining = record.goalBase - currentCashBase;
       const secondsLeft = remaining / rateBase;
@@ -1089,7 +1103,7 @@ function renderIdleActiveRecord() {
       addText(idleStatus, 'div', 'big', formatIdleAmount(remaining));
       addText(idleStatus, 'div', '', '到達までの予想時間');
       addText(idleStatus, 'div', 'big', formatDuration(secondsLeft));
-      addText(idleStatus, 'div', 'result-datetime', '到達予定：' + formatLocalDateTime(arrivalAt));
+      addText(idleStatus, 'div', 'result-datetime', '到達予定：' + formatLocalArrivalDateTime(arrivalAt));
     }
   } else {
     addText(idleStatus, 'p', 'hint', 'この記録は旧バージョンで開始されたため、目標金額の予測は利用できません。記録終了後に、新しい記録を開始してください。');
@@ -1126,12 +1140,12 @@ function renderIdleCompletedResult(result) {
 
     if (startCashBase >= result.goalBase) {
       addText(idleResult, 'div', 'big', '🎉 記録開始時点で目標達成済み');
-      addText(idleResult, 'p', '', '目標到達時刻：' + formatLocalDateTime(result.startedAt));
+      addText(idleResult, 'p', '', '目標到達時刻：' + formatLocalArrivalDateTime(result.startedAt));
     } else if (endCashBase >= result.goalBase) {
       const secondsToGoal = (result.goalBase - startCashBase) / result.rateBase;
       const goalReachedAt = result.startedAt + secondsToGoal * 1000;
       addText(idleResult, 'div', 'big', '🎉 記録中に目標達成！');
-      addText(idleResult, 'p', '', '推定到達時刻：' + formatLocalDateTime(goalReachedAt));
+      addText(idleResult, 'p', '', '推定到達時刻：' + formatLocalArrivalDateTime(goalReachedAt));
       addText(idleResult, 'p', 'hint', '記録開始時の所持金と一定の収入速度から、目標到達時刻を推定しています。');
     } else {
       const remaining = result.goalBase - endCashBase;
@@ -1141,7 +1155,7 @@ function renderIdleCompletedResult(result) {
       addText(idleResult, 'div', 'big', formatIdleAmount(remaining));
       addText(idleResult, 'div', '', '目標到達までの予想時間（記録終了時点から）');
       addText(idleResult, 'div', 'big', formatDuration(secondsLeft));
-      addText(idleResult, 'div', 'result-datetime', '到達予定：' + formatLocalDateTime(arrivalAt));
+      addText(idleResult, 'div', 'result-datetime', '到達予定：' + formatLocalArrivalDateTime(arrivalAt));
     }
   }
 
