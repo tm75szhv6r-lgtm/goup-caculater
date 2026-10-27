@@ -32,7 +32,7 @@ h1{font-size:1.55rem;line-height:1.3}h2{font-size:1.2rem}
 input,select{width:100%;min-width:0;padding:12px 13px;border:1px solid var(--border);border-radius:11px;background:#101321;color:var(--text);font:inherit}input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
 .hint{font-size:.82rem;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
 .result{display:none;margin-top:18px;padding:17px;border-radius:14px;background:#111625;border:1px solid var(--border);overflow-wrap:anywhere}.result.show{display:block}.result .big{font-size:1.7rem;font-weight:850;color:var(--accent2);line-height:1.5}.result .result-datetime{font-size:1.7rem;color:#c1d7a2;font-weight:850;line-height:1.5;margin-top:8px}.result .current-time{font-size:1.1rem;color:var(--muted);font-weight:700;margin-top:6px;line-height:1.5}.result.error .big{color:var(--danger);font-size:1.1rem}
-.tiles{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}.tile{padding:16px;border:1px solid var(--border);border-radius:15px;background:#ffffff05}.tile strong{display:block;font-size:1.1rem}.tile span{color:var(--muted);font-size:.9rem}
+.tiles{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}.tile{display:block;width:100%;padding:16px;border:1px solid var(--border);border-radius:15px;background:#ffffff05;color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}.tile:hover{background:#ffffff0d;border-color:#8b7cff99;transform:translateY(-1px)}.tile:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.tile strong{display:block;font-size:1.1rem;font-weight:800}.tile span{display:block;color:var(--muted);font-size:.9rem}
 .notice{border-left:3px solid var(--accent2);padding:10px 13px;background:#5ce1c00d;border-radius:0 10px 10px 0;color:var(--muted);font-size:.9rem;margin-top:18px}
 .summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.summary-item{border:1px solid var(--border);border-radius:12px;padding:13px;background:#ffffff04}.summary-item .label{color:var(--muted);font-size:.85rem}.summary-item .value{font-weight:800;font-size:1.08rem;overflow-wrap:anywhere}.time-forecast{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:14px;background:#ffffff04}.time-forecast h2{margin:0 0 8px;font-size:1.05rem}.time-forecast .forecast-line{margin:5px 0}.time-forecast .forecast-date{font-size:1.7rem;color:#c1d7a2;font-weight:850;overflow-wrap:anywhere}.time-forecast .forecast-label{color:var(--muted);font-size:.9rem}.breakdown{margin-top:14px;padding:13px;border-radius:12px;background:#ffffff04;border:1px solid var(--border)}.breakdown summary{cursor:pointer;font-weight:700}.breakdown ol{padding-left:1.5rem}.breakdown li{margin:5px 0}.money{color:var(--datetime);font-weight:800}
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28px}
@@ -81,14 +81,13 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
   <h1>GOUP Calculatorへようこそ！</h1>
   <p class="description">放置で増えるお金、指定日時までの所持金予測、目標金額までの時間、目標リバースに必要なお金・ジャンプ数を計算できます。</p>
   <div class="tiles">
-    <div class="tile"><strong>💰 貯金時間計算</strong><span>増加速度・所持金・目標金額から、必要時間と到達予定日時を計算します。</span></div>
-    <div class="tile"><strong>⏳ 放置収入計算</strong><span>現在の収入（毎秒いくら増えるか）と放置時間から、増えるお金と放置後の所持金を計算します。</span></div>
-    <div class="tile"><strong>🌙 放置後の所持金予測</strong><span>指定日時までに、24時間ずっと稼ぐ場合と1日の起動時間を指定する場合を計算します。</span></div>
-    <div class="tile"><strong>🦘 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></div>
-    <div class="tile"><strong>🔊 レアリティの音</strong><span>Divine・Ascended・Forbiddenの音をプレイヤーで再生できます。</span></div>
-    <div class="tile"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とリバースでリセットされるジャンプ数を計算します。</span></div>
+    <button class="tile" data-goto="saving" type="button"><strong>💰 貯金時間計算</strong><span>増加速度・所持金・目標金額から、必要時間と到達予定日時を計算します。</span></button>
+    <button class="tile" data-goto="idle" type="button"><strong>⏳ 放置収入計算</strong><span>現在の収入（毎秒いくら増えるか）と放置時間から、増えるお金と放置後の所持金を計算します。</span></button>
+    <button class="tile" data-goto="forecast" type="button"><strong>🌙 放置後の所持金予測</strong><span>指定日時までに、24時間ずっと稼ぐ場合と1日の起動時間を指定する場合を計算します。</span></button>
+    <button class="tile" data-goto="jumpcalc" type="button"><strong>🦘 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></button>
+    <button class="tile" data-goto="raritysounds" type="button"><strong>🔊 レアリティの音</strong><span>Divine・Ascended・Forbiddenの音をプレイヤーで再生できます。</span></button>
+    <button class="tile" data-goto="rebirth" type="button"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とリバースでリセットされるジャンプ数を計算します。</span></button>
   </div>
-  <div class="actions"><button class="btn primary" data-goto="saving" type="button">貯金時間を計算</button><button class="btn" data-goto="idle" type="button">放置収入を計算</button><button class="btn" data-goto="forecast" type="button">放置後の所持金を予測</button><button class="btn" data-goto="jumpcalc" type="button">ジャンプ計算機</button><button class="btn" data-goto="raritysounds" type="button">レアリティの音を聞く</button><button class="btn" data-goto="rebirth" type="button">リバースを計算</button></div>
 </div></section>
 
 <section id="saving" class="page"><div class="card">
