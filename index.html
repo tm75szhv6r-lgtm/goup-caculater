@@ -45,6 +45,16 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
 .jump-result-item .value{font-size:1.25rem;font-weight:850;overflow-wrap:anywhere;color:var(--accent2)}
 .jump-result-item.primary-value{border-color:#5ce1c066;background:#5ce1c00b}
 .jump-result-item.primary-value .value{font-size:1.55rem}
+.rarity-audio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.rarity-audio-card{border:1px solid var(--border);border-radius:16px;background:linear-gradient(150deg,#ffffff0a,#ffffff02);padding:18px;min-width:0}
+.rarity-audio-card h2{margin:8px 0;font-size:1.2rem}
+.rarity-audio-card p{color:var(--muted);font-size:.9rem;min-height:2.8em}
+.rarity-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;padding:5px 10px;font-size:.78rem;font-weight:800;letter-spacing:.04em}
+.rarity-badge.divine{color:#c8baff;border-color:#8b7cff66;background:#8b7cff14}
+.rarity-badge.ascended{color:#ffdca0;border-color:#ffc56a66;background:#ffc56a12}
+.rarity-badge.forbidden{color:#ff9cba;border-color:#ff659866;background:#ff659812}
+.rarity-audio-card audio{display:block;width:100%;margin-top:14px}
+@media(max-width:700px){.rarity-audio-grid{grid-template-columns:1fr}.rarity-audio-card p{min-height:0}}
 @media(max-width:560px){.jump-input-row{grid-template-columns:minmax(0,1fr) 94px}.jump-result-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.grid,.summary-grid{grid-template-columns:1fr}.card{border-radius:16px}.result .result-datetime{font-size:1.7rem}.sidebar-toggle{top:10px;left:10px}}
 </style>
@@ -61,7 +71,8 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
   <button class="sidebar-link" data-page="saving" type="button">💰 貯金時間計算</button>
   <button class="sidebar-link" data-page="idle" type="button">⏳ 放置収入計算</button>
   <button class="sidebar-link" data-page="forecast" type="button">🌙 放置後の所持金予測</button>
-  <button class="sidebar-link" data-page="jumpcalc" type="button">👟 ジャンプ計算機</button>
+  <button class="sidebar-link" data-page="jumpcalc" type="button">🦘 ジャンプ計算機</button>
+  <button class="sidebar-link" data-page="raritysounds" type="button">🔊 レアリティの音</button>
   <button class="sidebar-link" data-page="rebirth" type="button">🔄 リバース計算</button>
 </aside>
 <header><div class="logo">GOUP <span>Calculator</span></div><p>ゲーム内のお金・リバース計画を計算</p></header>
@@ -73,10 +84,11 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
     <div class="tile"><strong>💰 貯金時間計算</strong><span>増加速度・所持金・目標金額から、必要時間と到達予定日時を計算します。</span></div>
     <div class="tile"><strong>⏳ 放置収入計算</strong><span>現在の収入（毎秒いくら増えるか）と放置時間から、増えるお金と放置後の所持金を計算します。</span></div>
     <div class="tile"><strong>🌙 放置後の所持金予測</strong><span>指定日時までに、24時間ずっと稼ぐ場合と1日の起動時間を指定する場合を計算します。</span></div>
-    <div class="tile"><strong>👟 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></div>
+    <div class="tile"><strong>🦘 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></div>
+    <div class="tile"><strong>🔊 レアリティの音</strong><span>Divine・Ascended・Forbiddenの音をプレイヤーで再生できます。</span></div>
     <div class="tile"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とリバースでリセットされるジャンプ数を計算します。</span></div>
   </div>
-  <div class="actions"><button class="btn primary" data-goto="saving" type="button">貯金時間を計算</button><button class="btn" data-goto="idle" type="button">放置収入を計算</button><button class="btn" data-goto="forecast" type="button">放置後の所持金を予測</button><button class="btn" data-goto="jumpcalc" type="button">ジャンプ計算機</button><button class="btn" data-goto="rebirth" type="button">リバースを計算</button></div>
+  <div class="actions"><button class="btn primary" data-goto="saving" type="button">貯金時間を計算</button><button class="btn" data-goto="idle" type="button">放置収入を計算</button><button class="btn" data-goto="forecast" type="button">放置後の所持金を予測</button><button class="btn" data-goto="jumpcalc" type="button">ジャンプ計算機</button><button class="btn" data-goto="raritysounds" type="button">レアリティの音を聞く</button><button class="btn" data-goto="rebirth" type="button">リバースを計算</button></div>
 </div></section>
 
 <section id="saving" class="page"><div class="card">
@@ -126,7 +138,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
   <form id="forecastForm" novalidate>
     <div class="grid">
       <div class="field"><label for="forecastEnd">いつまで予測する？</label><input id="forecastEnd" type="datetime-local" required><p class="hint">日本時間で日時を選んでください。</p></div>
-      <div class="field"><label for="forecastRate">収入（毎秒）</label><input id="forecastRate" type="number" min="0" step="any" placeholder="例：1" required></div>
+      <div class="field"><label for="forecastRate">収入（毎秒）</label><input id="forecastRate" type="number" min="0" step="any" placeholder="例：192" required></div>
       <div class="field"><label for="forecastRateUnit">収入の単位</label><select id="forecastRateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
       <div class="field"><label for="forecastHeld">今の所持金（任意）</label><input id="forecastHeld" type="number" min="0" step="any" placeholder="空欄なら0"></div>
       <div class="field"><label for="forecastHeldUnit">所持金の単位</label><select id="forecastHeldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
@@ -140,7 +152,7 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
 </div></section>
 
 <section id="jumpcalc" class="page"><div class="card">
-  <h1>👟 ジャンプ計算機</h1>
+  <h1>🦘 ジャンプ計算機</h1>
   <p class="description">ジャンプ数をスライダーまたは数値入力で選択できます。動画で確認したジャンプ0〜750の累計Costデータを使い、現在のジャンプから目標ジャンプまでに必要な追加Costを計算します。</p>
   <div class="grid">
     <div class="field">
@@ -167,6 +179,41 @@ footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28
     <div class="big">必要な追加Cost：計算中…</div>
   </div>
   <div class="notice">Costは各ジャンプまでの累計表示値です。「必要な追加Cost」は目標ジャンプの累計Costから現在のジャンプの累計Costを引いて計算します。動画上のCost表示は丸められているため、ゲーム内部の丸め前の値とは差が出る場合があります。</div>
+</div></section>
+
+<section id="raritysounds" class="page"><div class="card">
+  <h1>🔊 レアリティの音</h1>
+  <p class="description">各レアリティの音をここで再生できます。再生ボタンを押すと音が流れます。音声ファイルはMP3形式です。</p>
+  <div class="rarity-audio-grid">
+    <article class="rarity-audio-card">
+      <span class="rarity-badge divine">✦ DIVINE</span>
+      <h2>Divine</h2>
+      <p>Divine レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Divineの音">
+        <source src="audio/divine.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+    <article class="rarity-audio-card">
+      <span class="rarity-badge ascended">✧ ASCENDED</span>
+      <h2>Ascended</h2>
+      <p>Ascended レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Ascendedの音">
+        <source src="audio/ascended.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+    <article class="rarity-audio-card">
+      <span class="rarity-badge forbidden">⟡ FORBIDDEN</span>
+      <h2>Forbidden</h2>
+      <p>Forbidden レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Forbiddenの音">
+        <source src="audio/forbidden.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+  </div>
+  <div class="notice">このページは音を聞くためのページです。音量は端末の音量設定から調整できます。GitHub Pagesに公開するときは、index.htmlとaudioフォルダーを同じ場所にアップロードしてください。</div>
 </div></section>
 
 <section id="rebirth" class="page"><div class="card">
