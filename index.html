@@ -498,7 +498,6 @@ function prepareGoalAlerts() {
       // サウンドに対応していない環境では、ブラウザ通知だけを試みる。
     }
   }
-
   if ('Notification' in window && Notification.permission === 'default') {
     try {
       Notification.requestPermission().catch(() => {});
@@ -1248,6 +1247,7 @@ function getRecordMultiplierPeriods(record) {
   if (!Array.isArray(record.multiplierPeriods)) record.multiplierPeriods = [];
   return record.multiplierPeriods
     .filter(period => Number.isFinite(Number(period.startedAt)) && Number.isFinite(Number(period.endsAt)) && Number.isFinite(Number(period.multiplier)) && Number(period.multiplier) >= 1 && Number(period.endsAt) > Number(period.startedAt))
+
     .slice()
     .sort((a, b) => Number(a.startedAt) - Number(b.startedAt));
 }
@@ -1498,6 +1498,7 @@ function renderIdleUI() {
     idleHeldInput.value = record.heldValue === null ? '' : String(record.heldValue);
     idleHeldUnitInput.value = record.heldUnit;
     idleGoalInput.value = record.goalValue === null || record.goalValue === undefined ? '' : String(record.goalValue);
+
     idleGoalUnitInput.value = record.goalUnit || 'Sx';
 
     setIdleInputsDisabled(true);
