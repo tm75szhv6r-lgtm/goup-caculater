@@ -1,7 +1,1907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#10121b">
+<title>GOUP Calculator</title>
+<style>
+:root{color-scheme:dark;--bg:#10121b;--text:#f4f5fb;--muted:#a7aec4;--accent:#8b7cff;--accent2:#5ce1c0;--datetime:#c1d7a2;--border:#30364d;--danger:#ff8585}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#242444,var(--bg) 55%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6;min-height:100vh}
+header{padding:64px 16px 18px;text-align:center}.logo{font-size:clamp(1.8rem,5vw,2.7rem);font-weight:850}.logo span{color:var(--accent2)}
+.sidebar-toggle{position:fixed;top:14px;left:14px;z-index:1200;width:46px;height:46px;border:1px solid var(--border);border-radius:13px;background:#202437;color:var(--text);display:grid;place-items:center;font-size:1.45rem;box-shadow:0 8px 24px #0004}
+.sidebar{position:fixed;top:0;bottom:0;left:0;z-index:1300;width:min(300px,86vw);padding:20px;background:#151827;border-right:1px solid var(--border);box-shadow:18px 0 45px #0004;transform:translateX(-105%);visibility:hidden;transition:transform .22s ease,visibility .22s ease;display:flex;flex-direction:column;gap:10px}
+.sidebar.open{transform:translateX(0);visibility:visible}
+.sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 18px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sidebar-title{font-size:1.15rem;font-weight:850}
+.sidebar-close{width:40px;height:40px;border:1px solid var(--border);border-radius:10px;background:#202437;color:var(--text);font-size:1.3rem}
+.sidebar-link{width:100%;text-align:left;padding:13px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);font:inherit;font-weight:750}
+.sidebar-link:hover{background:#ffffff0b}
+.sidebar-link.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.sidebar-overlay{position:fixed;inset:0;z-index:1250;border:0;border-radius:0;padding:0;background:#050710b8;opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease}
+.sidebar-overlay.open{opacity:1;visibility:visible}
+body.menu-open{overflow:hidden}
+header p,.description,.hint{color:var(--muted)}
+nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:0 12px 22px}
+button{cursor:pointer;font:inherit;font-weight:700}.btn{border:1px solid var(--border);border-radius:12px;padding:10px 15px;background:#202437;color:var(--text);transition:background .2s,transform .2s}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+main{width:min(880px,calc(100% - 28px));margin:0 auto 42px}.page{display:none}.page.active{display:block}
+.card{background:rgba(25,28,41,.96);border:1px solid var(--border);border-radius:20px;padding:clamp(18px,4vw,28px);margin-bottom:16px;box-shadow:0 14px 35px #0002}
+h1{font-size:1.55rem;line-height:1.3}h2{font-size:1.2rem}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:6px}label{font-weight:700;font-size:.93rem}
+input,select{width:100%;min-width:0;padding:12px 13px;border:1px solid var(--border);border-radius:11px;background:#101321;color:var(--text);font:inherit}input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.hint{font-size:.82rem;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.result{display:none;margin-top:18px;padding:17px;border-radius:14px;background:#111625;border:1px solid var(--border);overflow-wrap:anywhere}.result.show{display:block}.result .big{font-size:1.7rem;font-weight:850;color:var(--accent2);line-height:1.5}.result .result-datetime{font-size:1.7rem;color:#c1d7a2;font-weight:850;line-height:1.5;margin-top:8px}.result .current-time{font-size:1.1rem;color:var(--muted);font-weight:700;margin-top:6px;line-height:1.5}.result.error .big{color:var(--danger);font-size:1.1rem}
+.tiles{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}.tile{display:block;width:100%;padding:16px;border:1px solid var(--border);border-radius:15px;background:#ffffff05;color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}.tile:hover{background:#ffffff0d;border-color:#8b7cff99;transform:translateY(-1px)}.tile:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.tile strong{display:block;font-size:1.1rem;font-weight:800}.tile span{display:block;color:var(--muted);font-size:.9rem}
+.notice{border-left:3px solid var(--accent2);padding:10px 13px;background:#5ce1c00d;border-radius:0 10px 10px 0;color:var(--muted);font-size:.9rem;margin-top:18px}
+.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.summary-item{border:1px solid var(--border);border-radius:12px;padding:13px;background:#ffffff04}.summary-item .label{color:var(--muted);font-size:.85rem}.summary-item .value{font-weight:800;font-size:1.08rem;overflow-wrap:anywhere}.time-forecast{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:14px;background:#ffffff04}.time-forecast h2{margin:0 0 8px;font-size:1.05rem}.time-forecast .forecast-line{margin:5px 0}.time-forecast .forecast-date{font-size:1.7rem;color:#c1d7a2;font-weight:850;overflow-wrap:anywhere}.time-forecast .forecast-label{color:var(--muted);font-size:.9rem}.breakdown{margin-top:14px;padding:13px;border-radius:12px;background:#ffffff04;border:1px solid var(--border)}.breakdown summary{cursor:pointer;font-weight:700}.breakdown ol{padding-left:1.5rem}.breakdown li{margin:5px 0}.money{color:var(--datetime);font-weight:800}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28px}
+.jump-input-row{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:12px;align-items:center;margin-top:6px}
+.jump-input-row input[type="range"]{width:100%;padding:0;border:0;background:transparent;accent-color:var(--accent2);cursor:pointer}
+.jump-input-row input[type="number"]{text-align:center;font-weight:800}
+.jump-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.jump-result-item{border:1px solid var(--border);border-radius:13px;padding:14px;background:#ffffff05;min-width:0}
+.jump-result-item .label{display:block;color:var(--muted);font-size:.85rem;margin-bottom:5px}
+.jump-result-item .value{font-size:1.25rem;font-weight:850;overflow-wrap:anywhere;color:var(--accent2)}
+.jump-result-item.primary-value{border-color:#5ce1c066;background:#5ce1c00b}
+.jump-result-item.primary-value .value{font-size:1.55rem}
+.rarity-audio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.rarity-audio-card{border:1px solid var(--border);border-radius:16px;background:linear-gradient(150deg,#ffffff0a,#ffffff02);padding:18px;min-width:0}
+.rarity-audio-card h2{margin:8px 0;font-size:1.2rem}
+.rarity-audio-card p{color:var(--muted);font-size:.9rem;min-height:2.8em}
+.rarity-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;padding:5px 10px;font-size:.78rem;font-weight:800;letter-spacing:.04em}
+.rarity-badge.divine{color:#c8baff;border-color:#8b7cff66;background:#8b7cff14}
+.rarity-badge.ascended{color:#ffdca0;border-color:#ffc56a66;background:#ffc56a12}
+.rarity-badge.forbidden{color:#ff9cba;border-color:#ff659866;background:#ff659812}
+.rarity-audio-card audio{display:block;width:100%;margin-top:14px}
+
+/* 放置収入計算：左に収入記録、右に倍率スケジュール */
+main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
+.idle-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,350px);gap:16px;align-items:start}
+.idle-main-card,.idle-multiplier-card{min-width:0;margin-bottom:16px}
+.idle-main-card h1{margin-top:0}
+.idle-multiplier-card{padding:18px;position:relative}
+.idle-multiplier-card h2{margin:0 0 8px}
+.idle-multiplier-card .description{font-size:.9rem;margin:0 0 12px}
+.multiplier-start-field{margin:12px 0 14px}
+.multiplier-start-field label{font-size:.84rem}
+.multiplier-start-field input{padding:9px;font-size:.9rem}
+.multiplier-rows{display:grid;gap:8px;margin-top:14px}
+.multiplier-row{display:grid;grid-template-columns:auto auto minmax(75px,1fr);gap:8px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:12px;background:#ffffff05;min-width:0}
+.multiplier-row.is-active{border-color:var(--accent2);background:#5ce1c010;box-shadow:0 0 0 1px #5ce1c022}.multiplier-row.is-finished{border-color:#65708a66}
+.multiplier-activate{padding:7px 9px;font-size:.82rem;white-space:nowrap;border-radius:10px}
+.multiplier-activate.is-running{background:var(--accent);border-color:var(--accent);color:white}
+.multiplier-badge{display:inline-flex;justify-content:center;align-items:center;min-width:56px;padding:5px 8px;border-radius:9px;background:var(--accent2);color:#10201d;font-weight:850;white-space:nowrap}
+.multiplier-row input{padding:7px 8px;font-size:.88rem;min-width:0}
+.multiplier-activation-status{margin:12px 0 14px;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:#111625;font-size:.9rem}
+.multiplier-activation-status .activation-title{font-weight:850;color:var(--accent2);font-size:1rem}.multiplier-activation-status .big{font-size:1.35rem;font-weight:900;color:var(--accent2);line-height:1.45}
+.multiplier-activation-status .activation-time{color:var(--muted);font-size:.82rem}
+.multiplier-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.multiplier-actions .btn{width:100%;padding:9px 10px;font-size:.88rem}
+.multiplier-legend{font-size:.8rem;color:var(--muted);margin:10px 0 0}
+.update-interval-field{margin:16px 0;padding:13px;border:1px solid var(--border);border-radius:13px;background:#ffffff04}
+.update-interval-control{display:grid;grid-template-columns:minmax(100px,180px) minmax(0,1fr);gap:12px;align-items:center}
+.update-interval-display{font-weight:800;color:var(--accent2);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:420px){.update-interval-control{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1000px){.idle-layout{grid-template-columns:minmax(0,1fr) minmax(270px,310px)}}
+@media(max-width:760px){main:has(#idle.active){width:min(880px,calc(100% - 20px))}.idle-layout{grid-template-columns:minmax(0,1fr)}.idle-multiplier-card{order:2}.idle-main-card{order:1}.multiplier-rows{grid-template-columns:repeat(2,minmax(0,1fr))}.multiplier-row{grid-template-columns:auto auto;grid-template-rows:auto auto}.multiplier-activate{grid-column:1}.multiplier-badge{grid-column:2}.multiplier-row input{grid-column:1/-1}}
+@media(max-width:420px){.multiplier-rows{grid-template-columns:1fr}.multiplier-row{grid-template-columns:auto auto minmax(75px,1fr);grid-template-rows:auto}.multiplier-activate,.multiplier-badge,.multiplier-row input{grid-column:auto}}
+@media(max-width:700px){.rarity-audio-grid{grid-template-columns:1fr}.rarity-audio-card p{min-height:0}}
+@media(max-width:560px){.jump-input-row{grid-template-columns:minmax(0,1fr) 94px}.jump-result-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.grid,.summary-grid{grid-template-columns:1fr}.card{border-radius:16px}.result .result-datetime{font-size:1.7rem}.sidebar-toggle{top:10px;left:10px}}
+</style>
+</head>
+<body>
+<button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="メニューを開く" aria-controls="appSidebar" aria-expanded="false">☰</button>
+<button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="メニューを閉じる" tabindex="-1"></button>
+<aside id="appSidebar" class="sidebar" aria-label="メインメニュー" aria-hidden="true" inert>
+  <div class="sidebar-head">
+    <div class="sidebar-title">GOUP メニュー</div>
+    <button id="sidebarClose" class="sidebar-close" type="button" aria-label="メニューを閉じる">×</button>
+  </div>
+  <button class="sidebar-link active" data-page="home" type="button">🏠 ホーム</button>
+  <button class="sidebar-link" data-page="saving" type="button">💰 貯金時間計算</button>
+  <button class="sidebar-link" data-page="idle" type="button">⏳ 放置収入計算</button>
+  <button class="sidebar-link" data-page="forecast" type="button">🌙 放置後の所持金予測</button>
+  <button class="sidebar-link" data-page="jumpcalc" type="button">🦘 ジャンプ計算機</button>
+  <button class="sidebar-link" data-page="rebirth" type="button">🔄 リバース計算</button>
+  <button class="sidebar-link" data-page="raritysounds" type="button">🔊 レアリティの音</button>
+</aside>
+<header><div class="logo">GOUP <span>Calculator</span></div><p>ゲーム内のお金・リバース計画を計算</p></header>
+<main>
+<section id="home" class="page active"><div class="card">
+  <h1>GOUP Calculatorへようこそ！</h1>
+  <p class="description">放置で増えるお金、指定日時までの所持金予測、目標金額までの時間、目標リバースに必要なお金・ジャンプ数を計算できます。</p>
+  <div class="tiles">
+    <button class="tile" data-goto="saving" type="button"><strong>💰 貯金時間計算</strong><span>増加速度・所持金・目標金額から、必要時間と到達予定日時を計算します。</span></button>
+    <button class="tile" data-goto="idle" type="button"><strong>⏳ 放置収入計算</strong><span>現在の収入（毎秒いくら増えるか）と放置時間から、増えるお金と放置後の所持金を計算します。</span></button>
+    <button class="tile" data-goto="forecast" type="button"><strong>🌙 放置後の所持金予測</strong><span>指定日時までに、24時間ずっと稼ぐ場合と1日の起動時間を指定する場合を計算します。</span></button>
+    <button class="tile" data-goto="jumpcalc" type="button"><strong>🦘 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></button>
+    <button class="tile" data-goto="raritysounds" type="button"><strong>🔊 レアリティの音</strong><span>Divine・Ascended・Forbiddenの音をプレイヤーで再生できます。</span></button>
+    <button class="tile" data-goto="rebirth" type="button"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とリバースでリセットされるジャンプ数を計算します。</span></button>
+  </div>
+</div></section>
+
+<section id="saving" class="page"><div class="card">
+  <h1>💰 貯金時間計算</h1>
+  <p class="description">目標金額を入力してください。増加速度は任意で入力できます。未入力の場合は必要な金額だけを計算し、所要時間は表示しません。所持金を空欄にすると、0から計算します。</p>
+  <form id="savingForm" novalidate>
+    <div class="grid">
+      <div class="field"><label for="rate">増加速度（毎秒・任意）</label><input id="rate" type="number" min="0" step="any" placeholder="例：1"><p class="hint">例：1 Sx/sなら「1」。倍率イベント予測では、この値を1倍時の基準にします。</p></div>
+      <div class="field"><label for="dailyHours">1日の起動時間（任意・時間）</label><input id="dailyHours" type="number" min="0.1" max="24" step="0.1" placeholder="例：10"><p class="hint">空欄なら24時間起動。例：8なら毎日0:00〜8:00に起動し、翌日も0:00から再開します。</p></div>
+        <div class="field"><label for="rateUnit">増加速度の単位</label><select id="rateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="held">現在の所持金</label><input id="held" type="number" min="0" step="any" placeholder="例：1"><p class="hint">空欄の場合は0として計算します。</p></div>
+      <div class="field"><label for="heldUnit">所持金の単位</label><select id="heldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp" selected>Sp</option><option value="Sx">Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+      <div class="field"><label for="goal">目標金額</label><input id="goal" type="number" min="0" step="any" placeholder="例：10"><p class="hint">例：10 Ocを目標にするなら「10」</p></div>
+      <div class="field"><label for="goalUnit">目標金額の単位</label><select id="goalUnit"><option value="Oc" selected>Oc</option><option value="No">No</option><option value="Sp">Sp</option><option value="Sx">Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">計算する</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="savingResult" class="result" aria-live="polite"></div>
+</div></section>
+
+<section id="idle" class="page">
+  <div class="idle-layout">
+    <div class="card idle-main-card">
+      <h1>⏳ 放置収入・時間記録</h1>
+      <p class="description">収入速度・開始時の所持金・目標金額を入力して「記録開始」を押してください。倍率を発動すると、その時間は倍率を適用して記録の増加額・所持金・目標到達予定を計算します。「記録終了して計算」を押すと記録結果を表示します。記録はこのブラウザに保存されます。</p>
+      <div class="field update-interval-field">
+        <label for="updateIntervalSeconds">計算の更新間隔（秒・0.01秒刻み）</label>
+        <div class="update-interval-control">
+          <input id="updateIntervalSeconds" type="number" min="0.01" max="60" step="0.01" value="0.05" inputmode="decimal">
+          <span id="updateIntervalDisplay" class="update-interval-display" aria-live="polite">0.05秒（50ms）</span>
+        </div>
+        <p class="hint">0.01秒＝10ミリ秒です。放置収入のライブ表示と倍率カウントダウンに適用されます。ブラウザの負荷やバックグラウンド動作により、実際の更新間隔は設定値より長くなる場合があります。</p>
+      </div>
+      <form id="idleForm" novalidate>
+        <div class="grid">
+          <div class="field"><label for="idleRate">収入速度（毎秒・1倍時の基準）</label><input id="idleRate" type="number" min="0" step="any" placeholder="例：1" required><p class="hint">例：1 Sx/sなら「1」。倍率イベントの収入予測では1倍時の基準として使います。</p></div>
+          <div class="field"><label for="idleRateUnit">収入の単位</label><select id="idleRateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+          <div class="field"><label for="idleHeld">記録開始時の所持金（任意）</label><input id="idleHeld" type="number" min="0" step="any" placeholder="例：20"><p class="hint">入力すると記録終了後の合計も計算します。</p></div>
+          <div class="field"><label for="idleHeldUnit">所持金の単位</label><select id="idleHeldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+          <div class="field"><label for="idleGoal">目標金額</label><input id="idleGoal" type="number" min="0" step="any" placeholder="例：100" required><p class="hint">到達したい所持金を入力</p></div>
+          <div class="field"><label for="idleGoalUnit">目標金額の単位</label><select id="idleGoalUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+        </div>
+        <div class="actions">
+          <button id="idleStartButton" class="btn primary" type="button">▶ 記録開始</button>
+          <button id="idleStopButton" class="btn" type="button" disabled>■ 記録終了して計算</button>
+          <button id="idleResetButton" class="btn" type="button">記録をリセット</button>
+        </div>
+      </form>
+      <div id="idleStatus" class="result show" aria-live="polite"><div class="big">未記録</div><p>収入速度などを入力して「記録開始」を押してください。</p></div>
+      <div id="idleResult" class="result" aria-live="polite"></div>
+      <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。目標到達時間も同じ収入が続く前提で計算します。ゲーム内の収入倍率が変わった場合や、実際に収入が発生していない時間がある場合は差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
+    </div>
+
+    <aside class="card idle-multiplier-card" aria-label="倍率時間計算">
+      <h2>⚡ 倍率時間・発動管理</h2>
+      <p class="description">各倍率が続く時間を入力して、実際に倍率が発動したときは「発動」を押してください。記録中なら、その時点から記録の収入に倍率が適用されます。残り時間と終了予定時刻も表示します。</p>
+      <div class="field multiplier-start-field">
+        <label for="multiplierStartAt">予定を計算する開始時刻</label>
+        <input id="multiplierStartAt" type="datetime-local">
+      </div>
+      <div id="multiplierActivationStatus" class="multiplier-activation-status" aria-live="polite">
+        <div class="activation-title">まだ倍率は発動していません</div>
+        <div class="activation-time">継続時間を入力して「発動」を押してください。</div>
+      </div>
+      <div id="multiplierRows" class="multiplier-rows" aria-label="1倍から12倍までの継続時間"></div>
+      <div class="multiplier-actions">
+        <button id="calculateMultiplierTime" class="btn primary" type="button">時間・収入を計算</button>
+        <button id="resetMultiplierTime" class="btn" type="button">倍率時間をクリア</button>
+      </div>
+      <p class="multiplier-legend">入力時間は分単位。発動ボタンは、その倍率が実際に始まったタイミングで押してね。記録中はこのページを開いておくと残り時間が更新されます。</p>
+      <div id="multiplierResult" class="result" aria-live="polite"></div>
+    </aside>
+  </div>
+</section>
+
+<section id="forecast" class="page"><div class="card">
+  <h1>🌙 放置後の所持金予測</h1>
+  <p class="description">今から指定した日時までに増える金額を予測します。①は24時間ずっと収入が発生、②は毎日の起動時間を指定して計算します。</p>
+  <form id="forecastForm" novalidate>
+    <div class="grid">
+      <div class="field"><label for="forecastEnd">いつまで予測する？</label><input id="forecastEnd" type="datetime-local" required><p class="hint">日本時間で日時を選んでください。</p></div>
+      <div class="field"><label for="forecastRate">収入（毎秒）</label><input id="forecastRate" type="number" min="0" step="any" placeholder="例：192" required></div>
+      <div class="field"><label for="forecastRateUnit">収入の単位</label><select id="forecastRateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="forecastHeld">今の所持金（任意）</label><input id="forecastHeld" type="number" min="0" step="any" placeholder="空欄なら0"></div>
+      <div class="field"><label for="forecastHeldUnit">所持金の単位</label><select id="forecastHeldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+      <div class="field"><label for="forecastMode">増え方の設定</label><select id="forecastMode"><option value="continuous" selected>① 24時間ずっと稼ぐ</option><option value="daily">② 1日の起動時間を指定</option></select></div>
+      <div id="forecastDailyHoursField" class="field" hidden><label for="forecastDailyHours">1日の起動時間（時間）</label><input id="forecastDailyHours" type="number" min="0.1" max="24" step="0.1" value="8"><p class="hint">毎日0:00〜指定時間だけ稼ぐ想定です。例：8なら0:00〜8:00。</p></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">指定日時までの金額を計算</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="forecastResult" class="result" aria-live="polite"></div>
+  <div class="notice">②は毎日0:00から指定した時間だけ収入が発生する想定です。実際の起動時間やゲーム内倍率が違う場合は誤差が出ます。ゲーム画面の所持金を自動で読み取る機能ではありません。</div>
+</div></section>
+
+
+
+<section id="jumpcalc" class="page"><div class="card">
+  <h1>🦘 ジャンプ計算機</h1>
+  <p class="description">ジャンプ数をスライダーまたは数値入力で選択できます。動画で確認したジャンプ0〜750の累計Costデータを使い、現在のジャンプから目標ジャンプまでに必要な追加Costを計算します。</p>
+  <div class="grid">
+    <div class="field">
+      <label for="jumpCurrentNumber">現在のジャンプ数（0〜750）</label>
+      <div class="jump-input-row">
+        <input id="jumpCurrentSlider" type="range" min="0" max="750" step="1" value="0" aria-label="現在のジャンプ数スライダー">
+        <input id="jumpCurrentNumber" type="number" min="0" max="750" step="1" value="0" inputmode="numeric" aria-label="現在のジャンプ数を数字で入力">
+      </div>
+      <p class="hint">今いるジャンプ数を設定。リセット直後なら0。</p>
+    </div>
+    <div class="field">
+      <label for="jumpTargetNumber">目標のジャンプ数（0〜750）</label>
+      <div class="jump-input-row">
+        <input id="jumpTargetSlider" type="range" min="0" max="750" step="1" value="100" aria-label="目標ジャンプ数スライダー">
+        <input id="jumpTargetNumber" type="number" min="0" max="750" step="1" value="100" inputmode="numeric" aria-label="目標ジャンプ数を数字で入力">
+      </div>
+      <p class="hint">スライダーを動かすか、右の欄に数値を直接入力してね。</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="jumpResetButton" class="btn" type="button">0 → 100 にリセット</button>
+  </div>
+  <div id="jumpCalcResult" class="result show" aria-live="polite">
+    <div class="big">必要な追加Cost：計算中…</div>
+  </div>
+  <div class="notice">Costは各ジャンプまでの累計表示値です。「必要な追加Cost」は目標ジャンプの累計Costから現在のジャンプの累計Costを引いて計算します。動画上のCost表示は丸められているため、ゲーム内部の丸め前の値とは差が出る場合があります。</div>
+</div></section>
+
+<section id="raritysounds" class="page"><div class="card">
+  <h1>🔊 レアリティの音</h1>
+  <p class="description">各レアリティの音をここで再生できます。再生ボタンを押すと音が流れます。</p>
+  <div class="rarity-audio-grid">
+    <article class="rarity-audio-card">
+      <span class="rarity-badge divine">✦ DIVINE</span>
+      <h2>Divine</h2>
+      <p>Divine レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Divineの音">
+        <source src="audio/divine.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+    <article class="rarity-audio-card">
+      <span class="rarity-badge ascended">✧ ASCENDED</span>
+      <h2>Ascended</h2>
+      <p>Ascended レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Ascendedの音">
+        <source src="audio/ascended.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+    <article class="rarity-audio-card">
+      <span class="rarity-badge forbidden">⟡ FORBIDDEN</span>
+      <h2>Forbidden</h2>
+      <p>Forbidden レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Forbiddenの音">
+        <source src="audio/forbidden.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+  </div>
+</div></section>
+
+<section id="rebirth" class="page"><div class="card">
+  <h1>🔄 リバース費用計算</h1>
+  <p class="description">現在のリバースと目標リバースを入力すると、各リバースに必要なジャンプ数と、そのジャンプに必要な追加金額を計算します。すでに目標ジャンプ数を満たしている段階の追加金額は0です。リバース後はジャンプが0に戻ります。</p>
+  <form id="rebirthForm" novalidate>
+    <div class="grid">
+      <div class="field"><label for="currentRebirth">現在のリバース番号</label><input id="currentRebirth" type="number" min="1" max="75" step="1" value="1"><p class="hint">1〜75の範囲で現在のリバース番号を入力</p></div>
+      <div class="field"><label for="targetRebirth">目標のリバース番号</label><input id="targetRebirth" type="number" min="1" max="75" step="1" value="10"><p class="hint">表にある#1〜#75から指定</p></div>
+      <div class="field"><label for="currentJump">現在のジャンプ数</label><input id="currentJump" type="number" min="0" step="1" value="0"><p class="hint">リバース直後なら0。今のジャンプ数が分かる場合は入力</p></div>
+      <div class="field"><label for="rebirthCashRate">お金の増加速度（毎秒・任意）</label><input id="rebirthCashRate" type="number" min="0" step="any" placeholder="例：1"><p class="hint">時間予測に使用（任意）。例：1 Sx/s</p></div>
+      <div class="field"><label for="rebirthDailyHours">1日の起動時間（任意・時間）</label><input id="rebirthDailyHours" type="number" min="0.1" max="24" step="0.1" placeholder="例：10"><p class="hint">空欄なら24時間起動。例：8なら毎日0:00〜8:00に起動し、翌日も0:00から再開します。</p></div>
+        <div class="field"><label for="rebirthCashRateUnit">増加速度の単位</label><select id="rebirthCashRateUnit"><option value="Sx" selected>Sx/s</option><option value="Sp">Sp/s</option><option value="Oc">Oc/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="rebirthHeldCash">現在の所持金</label><input id="rebirthHeldCash" type="number" min="0" step="any" placeholder="空欄なら0"><p class="hint">目標までに必要な費用から差し引きます。</p></div>
+      <div class="field"><label for="rebirthHeldCashUnit">所持金の単位</label><select id="rebirthHeldCashUnit"><option value="Sp" selected>Sp</option><option value="Sx">Sx</option><option value="Oc">Oc</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">必要な費用を計算</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="rebirthResult" class="result" aria-live="polite"></div>
+  <div class="notice">表のCostは「ジャンプ0からそのJumpに到達するまでの累計費用」として扱います。現在のジャンプが最初の目標ジャンプ以上なら、その段階に必要な追加金額は0です。リバース後はジャンプが0に戻るため、次の段階からは各目標Jumpまでの累計費用が必要です。表にない途中のジャンプ数は、10ジャンプ刻みのCostから線形補間で概算します。</div>
+</div></section>
+</main>
+<footer>GOUP Calculator · リバース費用は提供された表の数値を使用</footer>
+
 <script>
+"use strict";
+
+/* 開閉式サイドバーとページ切り替え */
+const pages = [...document.querySelectorAll('.page')];
+const sidebar = document.getElementById('appSidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarClose = document.getElementById('sidebarClose');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+function openSidebar() {
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('open');
+  sidebar.setAttribute('aria-hidden', 'false');
+  sidebar.removeAttribute('inert');
+  sidebarToggle.setAttribute('aria-expanded', 'true');
+  sidebarToggle.setAttribute('aria-label', 'メニューを閉じる');
+  document.body.classList.add('menu-open');
+  sidebarClose.focus();
+}
+
+function closeSidebar(returnFocus = true) {
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('open');
+  sidebar.setAttribute('aria-hidden', 'true');
+  sidebar.setAttribute('inert', '');
+  sidebarToggle.setAttribute('aria-expanded', 'false');
+  sidebarToggle.setAttribute('aria-label', 'メニューを開く');
+  document.body.classList.remove('menu-open');
+  if (returnFocus) sidebarToggle.focus();
+}
+
+function showPage(id) {
+  pages.forEach(page => page.classList.toggle('active', page.id === id));
+  document.querySelectorAll('.sidebar-link').forEach(button => {
+    button.classList.toggle('active', button.dataset.page === id);
+  });
+  closeSidebar(false);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+sidebarToggle.addEventListener('click', () => {
+  if (sidebar.classList.contains('open')) closeSidebar();
+  else openSidebar();
+});
+sidebarClose.addEventListener('click', () => closeSidebar());
+sidebarOverlay.addEventListener('click', () => closeSidebar());
+sidebar.querySelectorAll('.sidebar-link').forEach(button => {
+  button.addEventListener('click', () => showPage(button.dataset.page));
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && sidebar.classList.contains('open')) closeSidebar();
+});
+document.querySelectorAll('[data-goto]').forEach(button => {
+  button.addEventListener('click', () => showPage(button.dataset.goto));
+});
+
+
+/* リバース番号の入力値を、入力中から1〜75に制限する */
+function limitRebirthNumberInput(input, fallbackValue) {
+  function normalizeValue() {
+    const raw = input.value.trim();
+
+    // 入力編集中に全選択して消せるよう、空欄は一時的に許可する。
+    if (raw === "") return;
+
+    const number = Number(raw);
+    if (!Number.isFinite(number)) {
+      input.value = "";
+      return;
+    }
+
+    if (number < 1) {
+      input.value = "1";
+    } else if (number > 75) {
+      input.value = "75";
+    } else if (!Number.isInteger(number)) {
+      input.value = String(Math.floor(number));
+    }
+  }
+
+  input.addEventListener("input", normalizeValue);
+  input.addEventListener("change", normalizeValue);
+  input.addEventListener("blur", () => {
+    if (input.value.trim() === "") input.value = String(fallbackValue);
+    normalizeValue();
+  });
+}
+
+limitRebirthNumberInput(document.getElementById("currentRebirth"), 1);
+limitRebirthNumberInput(document.getElementById("targetRebirth"), 10);
+
+/* 貯金時間計算用の単位（元の計算方式を維持） */
+const UNIT_POWER = { '1': 0, K: 1, M: 2, B: 3, T: 4, Qa: 5, Qi: 6, Sx: 7, Sp: 8, Oc: 9, No: 10 };
+function toBase(value, unit) { return value * Math.pow(1000, UNIT_POWER[unit] ?? 0); }
+function formatDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '計算できません';
+  let remaining = Math.ceil(seconds);
+  const days = Math.floor(remaining / 86400); remaining %= 86400;
+  const hours = Math.floor(remaining / 3600); remaining %= 3600;
+  const minutes = Math.floor(remaining / 60); const secs = remaining % 60;
+  const parts = [];
+  if (days) parts.push(days + '日');
+  if (hours) parts.push(hours + '時間');
+  if (minutes) parts.push(minutes + '分');
+  if (secs || parts.length === 0) parts.push(secs + '秒');
+  return parts.join(' ');
+}
+function formatPreciseDuration(seconds) {
+  if (!Number.isFinite(seconds) || seconds < 0) return '計算できません';
+  let remaining = Math.max(0, seconds);
+  const days = Math.floor(remaining / 86400); remaining -= days * 86400;
+  const hours = Math.floor(remaining / 3600); remaining -= hours * 3600;
+  const minutes = Math.floor(remaining / 60); remaining -= minutes * 60;
+  const parts = [];
+  if (days) parts.push(days + '日');
+  if (hours) parts.push(hours + '時間');
+  if (minutes) parts.push(minutes + '分');
+  const secondsText = remaining.toFixed(2).padStart(5, '0') + '秒';
+  if (remaining > 0 || parts.length === 0) parts.push(secondsText);
+  return parts.join('');
+}
+function getJapanDateParts(date) {
+  const parts = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(date);
+  const values = {};
+  for (const part of parts) if (part.type !== 'literal') values[part.type] = Number(part.value);
+  return values;
+}
+function formatJapanClockTime(date) {
+  const p = getJapanDateParts(date);
+  return String(p.hour).padStart(2, '0') + '時' + String(p.minute).padStart(2, '0') + '分';
+}
+function formatJapanArrivalDateTime(arrivalDate, now) {
+  const a = getJapanDateParts(arrivalDate);
+  const c = getJapanDateParts(now);
+  const time = String(a.hour).padStart(2, '0') + '時' + String(a.minute).padStart(2, '0') + '分';
+
+  // 現在と到達予定の年月日がすべて同じなら、日付を省略して時刻だけ表示
+  if (a.year === c.year && a.month === c.month && a.day === c.day) {
+    return time;
+  }
+
+  // 日付が違う場合は年・月・日も表示
+  return `${a.year}年${a.month}月${a.day}日 ${time}`;
+}
+
+// 毎日0:00からdailyHours時間だけ起動し、それ以外の時間は進行しない前提で到達日時を計算
+function addDailyActiveTime(startDate, activeSeconds, dailyHours) {
+  if (activeSeconds <= 0) return new Date(startDate.getTime());
+  if (dailyHours >= 24) return new Date(startDate.getTime() + Math.ceil(activeSeconds) * 1000);
+  let cursor = new Date(startDate.getTime());
+  let remaining = activeSeconds;
+  const activeWindowSeconds = dailyHours * 3600;
+  while (remaining > 0) {
+    const midnight = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), 0, 0, 0, 0);
+    const windowEnd = new Date(midnight.getTime() + activeWindowSeconds * 1000);
+    if (cursor >= windowEnd) { cursor = new Date(midnight.getTime() + 86400000); continue; }
+    const availableToday = (windowEnd.getTime() - cursor.getTime()) / 1000;
+    if (remaining <= availableToday) { cursor = new Date(cursor.getTime() + Math.ceil(remaining) * 1000); remaining = 0; }
+    else { remaining -= availableToday; cursor = new Date(midnight.getTime() + 86400000); }
+  }
+  return cursor;
+}
+const savingForm = document.getElementById('savingForm');
+const savingResult = document.getElementById('savingResult');
+function setError(result, message, detail = '入力内容を確認して、もう一度計算してください。') {
+  result.className = 'result show error'; result.replaceChildren();
+  const title = document.createElement('div'); title.className = 'big'; title.textContent = message;
+  const p = document.createElement('p'); p.textContent = detail;
+  result.append(title, p);
+}
+function addText(parent, tag, className, text) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  element.textContent = text; parent.appendChild(element); return element;
+}
+
+
+/* 目標金額に達したときのサウンド・ブラウザ通知 */
+let goalAudioContext = null;
+let savingGoalAlertTimer = null;
+let savingGoalAlertTimestamp = null;
+let savingGoalAlertMessage = '';
+
+function prepareGoalAlerts() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (AudioContextClass) {
+    try {
+      if (!goalAudioContext) goalAudioContext = new AudioContextClass();
+      if (goalAudioContext.state === 'suspended') {
+        goalAudioContext.resume().catch(() => {});
+      }
+    } catch (error) {
+      // サウンドに対応していない環境では、ブラウザ通知だけを試みる。
+    }
+  }
+  if ('Notification' in window && Notification.permission === 'default') {
+    try {
+      Notification.requestPermission().catch(() => {});
+    } catch (error) {
+      // 通知が利用できない環境でも、計算機能はそのまま使える。
+    }
+  }
+}
+
+function playGoalReachedSound() {
+  if (!goalAudioContext) return;
+  const context = goalAudioContext;
+  if (context.state === 'suspended') {
+    context.resume().catch(() => {});
+  }
+
+  // 外部音声ファイル不要の、短い上昇音を2回鳴らす。
+  const notes = [880, 1174.66, 1567.98, 1174.66, 1567.98];
+  const noteLength = 0.22;
+  const gap = 0.06;
+  const startAt = context.currentTime + 0.05;
+
+  notes.forEach((frequency, index) => {
+    const start = startAt + index * (noteLength + gap);
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(0.18, start + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + noteLength);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(start);
+    oscillator.stop(start + noteLength + 0.02);
+  });
+}
+
+function announceGoalReached(title, message) {
+  playGoalReachedSound();
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  try {
+    const notification = new Notification(title, {
+      body: message,
+      tag: 'goup-calculator-goal-reached-' + Date.now()
+    });
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+    };
+  } catch (error) {
+    // 通知が作れなくても、サウンドと画面上の結果は維持する。
+  }
+}
+
+function clearSavingGoalAlert() {
+  if (savingGoalAlertTimer !== null) {
+    clearTimeout(savingGoalAlertTimer);
+    savingGoalAlertTimer = null;
+  }
+  savingGoalAlertTimestamp = null;
+  savingGoalAlertMessage = '';
+}
+
+function checkSavingGoalAlert() {
+  if (savingGoalAlertTimestamp === null) return;
+  const remaining = savingGoalAlertTimestamp - Date.now();
+  if (remaining > 0) {
+    // JavaScriptのタイマー上限を超える目標でも、期限を分割して確認する。
+    savingGoalAlertTimer = setTimeout(checkSavingGoalAlert, Math.min(remaining, 2147483000));
+    return;
+  }
+
+  const message = savingGoalAlertMessage;
+  clearSavingGoalAlert();
+  announceGoalReached('GOUP Calculator：目標金額に到達！', message + ' に到達する予定時刻です。');
+}
+
+function scheduleSavingGoalAlert(arrivalDate, goalDescription) {
+  clearSavingGoalAlert();
+  if (!(arrivalDate instanceof Date) || Number.isNaN(arrivalDate.getTime())) return false;
+  if (arrivalDate.getTime() <= Date.now()) return false;
+
+  savingGoalAlertTimestamp = arrivalDate.getTime();
+  savingGoalAlertMessage = '目標金額 ' + goalDescription;
+  checkSavingGoalAlert();
+  return true;
+}
+savingForm.addEventListener('submit', event => {
+  event.preventDefault();
+  clearSavingGoalAlert();
+  savingResult.className = 'result show';
+
+  const rateText = document.getElementById('rate').value.trim();
+  const heldText = document.getElementById('held').value.trim();
+  const goalText = document.getElementById('goal').value.trim();
+  const rate = rateText === '' ? null : Number(rateText);
+  const rateUnit = document.getElementById('rateUnit').value;
+  const held = heldText === '' ? 0 : Number(heldText);
+  const heldUnit = document.getElementById('heldUnit').value;
+  const goal = Number(goalText);
+  const goalUnit = document.getElementById('goalUnit').value;
+  const dailyHoursText = document.getElementById('dailyHours').value.trim();
+  const dailyHours = dailyHoursText === '' ? 24 : Number(dailyHoursText);
+
+  if (
+    goalText === '' ||
+    (rateText !== '' && (!Number.isFinite(rate) || rate <= 0)) ||
+    !Number.isFinite(held) || held < 0 ||
+    !Number.isFinite(goal) || goal < 0 ||
+    !Number.isFinite(dailyHours) || dailyHours <= 0 || dailyHours > 24
+  ) {
+    setError(savingResult, '入力を確認してください', '目標金額は必須です。増加速度を入力する場合は0より大きい数値にしてください。所持金は空欄でも計算できます。');
+    return;
+  }
+
+  const heldBase = toBase(held, heldUnit);
+  const goalBase = toBase(goal, goalUnit);
+  const remaining = goalBase - heldBase;
+
+  if (!Number.isFinite(remaining)) {
+    setError(savingResult, '金額が大きすぎます');
+    return;
+  }
+
+  savingResult.className = 'result show';
+  savingResult.replaceChildren();
+
+  if (remaining <= 0) {
+    addText(savingResult, 'div', 'big', '目標達成済み！');
+    addText(savingResult, 'p', '', '現在の所持金が目標金額以上です。');
+    return;
+  }
+
+  const remainingInGoalUnit = remaining / Math.pow(1000, UNIT_POWER[goalUnit] ?? 0);
+  const formattedRemaining = remainingInGoalUnit.toLocaleString('ja-JP', { maximumFractionDigits: 6 });
+
+  addText(savingResult, 'div', '', '目標までに必要な金額');
+  addText(savingResult, 'div', 'big', `${formattedRemaining} ${goalUnit}`);
+
+  if (rate === null) {
+    addText(savingResult, 'p', '', '必要な時間を計算するには、増加速度を入力してください。');
+    addText(savingResult, 'p', 'hint', '増加速度は任意です。空欄でも必要金額は計算できます。');
+    return;
+  }
+
+  const seconds = remaining / toBase(rate, rateUnit);
+  if (!Number.isFinite(seconds) || seconds < 0) {
+    setError(savingResult, '計算できません');
+    return;
+  }
+
+  const now = new Date();
+  const arrivalDate = addDailyActiveTime(now, seconds, dailyHours);
+  if (Number.isNaN(arrivalDate.getTime())) {
+    setError(savingResult, '日時を計算できません');
+    return;
+  }
+
+  // 計算ボタンを押した操作を使って音声を準備し、以前の予約は差し替える。
+  prepareGoalAlerts();
+  clearSavingGoalAlert();
+
+  addText(savingResult, 'div', '', '目標までに必要な時間');
+  addText(savingResult, 'div', 'big', formatDuration(seconds) + (dailyHours < 24 ? '（実際の起動時間）' : ''));
+  addText(savingResult, 'div', '', '到達予定日時');
+  addText(savingResult, 'div', 'result-datetime', formatJapanArrivalDateTime(arrivalDate, now));
+  addText(savingResult, 'div', 'current-time', '現在時刻：' + formatJapanClockTime(now));
+  addText(savingResult, 'p', 'hint', '日本時間（JST）で表示しています。' + (dailyHours < 24 ? ` 1日の起動時間を${dailyHours}時間として到達日時を概算しています。毎日0:00〜入力した時間まで起動し、それ以外の時間は停止する前提で計算しています。` : ''));
+  if (scheduleSavingGoalAlert(arrivalDate, `${goal} ${goalUnit}`)) {
+    addText(savingResult, 'p', 'hint', '目標到達時に通知音でお知らせします。ブラウザ通知も許可されていれば表示します。このページを開いたままにしてください。');
+  }
+});
+savingForm.addEventListener('reset', () => setTimeout(() => {
+  clearSavingGoalAlert();
+  document.getElementById('rateUnit').value = 'Sx';
+  document.getElementById('heldUnit').value = 'Sp';
+  document.getElementById('goalUnit').value = 'Oc';
+  document.getElementById('dailyHours').value = '';
+  savingResult.className = 'result'; savingResult.replaceChildren();
+}, 0));
+
+/* Rebirthデータ。CostとJumpはユーザー提供の表をそのまま登録 */
+const REBIRTH_DATA = [
+  [1,10,'260','x1.5',''],[2,20,'1.87K','x2',''],[3,30,'11.8K','x2.5',''],[4,40,'73.4K','x3',''],[5,50,'455K','x3.5',''],
+  [6,60,'2.82M','x4',''],[7,70,'17.4M','x4.5',''],[8,80,'108M','x5',''],[9,90,'669M','x5.5',''],[10,100,'4.14B','x6',''],
+  [11,110,'25.6B','x6.5',''],[12,120,'159B','x7',''],[13,130,'983B','x7.5',''],[14,140,'6.09T','x8','Speed 1'],[15,150,'37.7T','x8.5',''],
+  [16,160,'233T','x9',''],[17,170,'1.440Qa','x9.5','Speed 2'],[18,180,'8.950Qa','x10',''],[19,190,'55.40Qa','x10.5','Speed 3'],[20,200,'343Qa','x11',''],
+  [21,210,'2.12Qi','x11.5',''],[22,220,'13.1Qi','x12','Speed 4'],[23,230,'81.4Qi','x12.5',''],[24,240,'504Qi','x13',''],[25,250,'3.12Sx','x13.5',''],
+  [26,260,'14.15Sx','x14',''],[27,270,'42.45Sx','x14.5',''],[28,280,'113Sx','x15',''],[29,290,'274Sx','x15.5',''],[30,300,'578Sx','x16',''],
+  [31,310,'1.085Sp','x16.5',''],[32,320,'1.895Sp','x17',''],[33,330,'3.225Sp','x17.5',''],[34,340,'5.345Sp','x18',''],[35,350,'8.685Sp','x18.5',''],
+  [36,360,'13.85Sp','x19',''],[37,370,'21.45Sp','x19.5',''],[38,380,'32.25Sp','x20',''],[39,390,'46.85Sp','x20.5',''],[40,400,'65.45Sp','x21',''],
+  [41,410,'88.25Sp','x21.5',''],[42,420,'116Sp','x22',''],[43,430,'150Sp','x22.5',''],[44,440,'191Sp','x23',''],[45,450,'241Sp','x23.5',''],
+  [46,460,'301Sp','x24',''],[47,470,'374Sp','x24.5',''],[48,480,'461Sp','x25',''],[49,490,'564Sp','x25.5',''],[50,500,'686Sp','x26',''],
+  [51,510,'828Sp','x26.5',''],[52,520,'993Sp','x27',''],[53,530,'1.180Oc','x27.5',''],[54,540,'1.400Oc','x28',''],[55,550,'1.630Oc','x28.5',''],
+  [56,560,'1.910Oc','x29',''],[57,570,'2.250Oc','x29.5',''],[58,580,'2.660Oc','x30',''],[59,590,'3.170Oc','x30.5',''],[60,600,'3.780Oc','x31',''],
+  [61,610,'4.520Oc','x31.5',''],[62,620,'5.430Oc','x32',''],[63,630,'6.530Oc','x32.5',''],[64,640,'7.860Oc','x33',''],[65,650,'9.460Oc','x33.5',''],
+  [66,660,'11.40Oc','x34',''],[67,670,'13.70Oc','x34.5',''],[68,680,'16.50Oc','x35',''],[69,690,'19.90Oc','x35.5',''],[70,700,'23.80Oc','x36',''],
+  [71,710,'28.50Oc','x36.5',''],[72,720,'34.10Oc','x37',''],[73,730,'40.60Oc','x37.5',''],[74,740,'48.30Oc','x38',''],[75,750,'57.20Oc','x38.5','']
+].map(([rebirth,jump,cost,cash,note]) => ({rebirth,jump,cost,cash,note}));
+
+/* Cost単位を数値にする。各接尾辞は1000倍刻み。 */
+const GAME_SUFFIX_POWER = {'1':0,'':0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9};
+function parseGameAmount(text) {
+  const match = String(text).trim().match(/^([0-9]+(?:\.[0-9]+)?)\s*(Qa|Qi|Sx|Sp|Oc|K|M|B|T)?$/);
+  if (!match) throw new Error('不明なCost形式: ' + text);
+  const value = Number(match[1]);
+  const suffix = match[2] || '';
+  return value * Math.pow(1000, GAME_SUFFIX_POWER[suffix]);
+}
+const GAME_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc'];
+
+/* 動画の各ジャンプ表示を1〜750まで1フレームずつ確認した累計Cost。文字列は画面に表示された値。 */
+const JUMP_COST_STRINGS = '0|10|22|36|54|74|99|129|165|208|260|322|396|485|592|720|874|1.06K|1.28K|1.55K|1.87K|2.25K|2.7K|3.26K|3.92K|4.72K|5.67K|6.82K|8.19K|9.84K|11.8K|14.2K|17.0K|20.5K|24.6K|29.5K|35.4K|42.5K|51.0K|61.2K|73.4K|88.1K|106K|127K|152K|183K|219K|263K|316K|379K|455K|546K|655K|786K|943K|1.13M|1.36M|1.63M|1.96M|2.35M|2.82M|3.38M|4.06M|4.87M|5.84M|7.01M|8.41M|10.1M|12.1M|14.5M|17.4M|20.9M|25.1M|30.1M|36.2M|43.4M|52.1M|62.5M|75.0M|90.0M|108M|130M|156M|187M|224M|269M|323M|387M|464M|557M|669M|803M|963M|1.168B|1.398B|1.668B|2.008B|2.408B|2.888B|3.45B|4.14B|4.97B|5.96B|7.16B|8.59B|10.3B|12.4B|14.8B|17.8B|21.4B|25.6B|30.8B|36.9B|44.3B|53.2B|63.8B|76.6B|91.9B|110B|132B|159B|191B|229B|274B|329B|395B|474B|569B|683B|819B|983B|1.18T|1.42T|1.70T|2.04T|2.45T|2.94T|3.52T|4.23T|5.07T|6.09T|7.30T|8.76T|10.5T|12.6T|15.1T|18.2T|21.8T|26.2T|31.4T|37.7T|45.2T|54.3T|65.1T|78.1T|93.8T|113T|135T|162T|194T|233T|280T|336T|403T|484T|581T|697T|836T|1.000Qa|1.200Qa|1.440Qa|1.730Qa|2.080Qa|2.500Qa|3.000Qa|3.590Qa|4.310Qa|5.180Qa|6.210Qa|7.450Qa|8.950Qa|10.70Qa|12.90Qa|15.50Qa|18.50Qa|22.30Qa|26.70Qa|32.10Qa|38.50Qa|46.20Qa|55.40Qa|66.50Qa|79.80Qa|95.70Qa|115Qa|138Qa|165Qa|198Qa|238Qa|286Qa|343Qa|412Qa|494Qa|593Qa|711Qa|853Qa|1.02Qi|1.23Qi|1.47Qi|1.77Qi|2.12Qi|2.55Qi|3.06Qi|3.67Qi|4.40Qi|5.28Qi|6.34Qi|7.61Qi|9.13Qi|11.0Qi|13.1Qi|15.8Qi|18.9Qi|22.7Qi|27.3Qi|32.7Qi|39.3Qi|47.1Qi|56.5Qi|67.8Qi|81.4Qi|97.7Qi|117Qi|141Qi|169Qi|203Qi|243Qi|292Qi|350Qi|420Qi|504Qi|605Qi|726Qi|871Qi|1.05Sx|1.25Sx|1.51Sx|1.81Sx|2.17Sx|2.60Sx|3.12Sx|3.815Sx|4.565Sx|5.395Sx|6.315Sx|7.315Sx|8.425Sx|9.635Sx|11.05Sx|12.45Sx|14.15Sx|15.85Sx|17.85Sx|20.05Sx|22.35Sx|24.95Sx|27.85Sx|31.05Sx|34.45Sx|38.25Sx|42.45Sx|47.05Sx|52.05Sx|57.55Sx|63.55Sx|70.15Sx|77.45Sx|85.25Sx|93.85Sx|103.5Sx|113Sx|124Sx|136Sx|149Sx|164Sx|179Sx|195Sx|213Sx|232Sx|252Sx|274Sx|297Sx|322Sx|348Sx|376Sx|406Sx|437Sx|470Sx|504Sx|540Sx|578Sx|618Sx|659Sx|703Sx|749Sx|798Sx|848Sx|902Sx|958Sx|1.025Sp|1.085Sp|1.145Sp|1.215Sp|1.285Sp|1.365Sp|1.445Sp|1.525Sp|1.615Sp|1.705Sp|1.795Sp|1.895Sp|2.005Sp|2.115Sp|2.225Sp|2.355Sp|2.485Sp|2.615Sp|2.755Sp|2.905Sp|3.055Sp|3.225Sp|3.395Sp|3.575Sp|3.755Sp|3.955Sp|4.165Sp|4.375Sp|4.605Sp|4.835Sp|5.085Sp|5.345Sp|5.615Sp|5.895Sp|6.195Sp|6.505Sp|6.825Sp|7.165Sp|7.525Sp|7.895Sp|8.275Sp|8.685Sp|9.105Sp|9.545Sp|10.00Sp|10.55Sp|11.05Sp|11.55Sp|12.05Sp|12.65Sp|13.25Sp|13.85Sp|14.45Sp|15.15Sp|15.85Sp|16.55Sp|17.35Sp|18.05Sp|18.85Sp|19.75Sp|20.55Sp|21.45Sp|22.35Sp|23.35Sp|24.35Sp|25.35Sp|26.45Sp|27.55Sp|28.65Sp|29.85Sp|31.05Sp|32.25Sp|33.55Sp|34.85Sp|36.25Sp|37.65Sp|39.05Sp|40.55Sp|42.05Sp|43.65Sp|45.25Sp|46.85Sp|48.55Sp|50.25Sp|52.05Sp|53.85Sp|55.65Sp|57.55Sp|59.45Sp|61.45Sp|63.45Sp|65.45Sp|67.55Sp|69.65Sp|71.85Sp|74.05Sp|76.25Sp|78.55Sp|80.95Sp|83.35Sp|85.75Sp|88.25Sp|90.75Sp|93.35Sp|95.95Sp|98.65Sp|101Sp|104Sp|107Sp|110Sp|113Sp|116Sp|119Sp|122Sp|125Sp|129Sp|132Sp|135Sp|139Sp|142Sp|146Sp|150Sp|153Sp|157Sp|161Sp|165Sp|169Sp|173Sp|178Sp|182Sp|186Sp|191Sp|195Sp|200Sp|205Sp|210Sp|215Sp|220Sp|225Sp|230Sp|235Sp|241Sp|246Sp|252Sp|258Sp|263Sp|269Sp|276Sp|282Sp|288Sp|294Sp|301Sp|308Sp|314Sp|321Sp|328Sp|336Sp|343Sp|350Sp|358Sp|366Sp|374Sp|382Sp|390Sp|398Sp|407Sp|415Sp|424Sp|433Sp|442Sp|451Sp|461Sp|470Sp|480Sp|490Sp|500Sp|510Sp|520Sp|531Sp|542Sp|553Sp|564Sp|575Sp|587Sp|598Sp|610Sp|622Sp|635Sp|647Sp|660Sp|673Sp|686Sp|699Sp|713Sp|726Sp|740Sp|754Sp|769Sp|783Sp|798Sp|813Sp|828Sp|844Sp|859Sp|875Sp|891Sp|908Sp|924Sp|941Sp|958Sp|976Sp|993Sp|1.010Oc|1.030Oc|1.050Oc|1.070Oc|1.080Oc|1.100Oc|1.120Oc|1.140Oc|1.160Oc|1.180Oc|1.200Oc|1.220Oc|1.240Oc|1.260Oc|1.290Oc|1.310Oc|1.330Oc|1.350Oc|1.370Oc|1.400Oc|1.420Oc|1.440Oc|1.460Oc|1.490Oc|1.510Oc|1.530Oc|1.560Oc|1.580Oc|1.610Oc|1.630Oc|1.660Oc|1.680Oc|1.710Oc|1.740Oc|1.760Oc|1.790Oc|1.820Oc|1.850Oc|1.880Oc|1.910Oc|1.940Oc|1.970Oc|2.010Oc|2.040Oc|2.070Oc|2.110Oc|2.140Oc|2.180Oc|2.210Oc|2.250Oc|2.290Oc|2.330Oc|2.370Oc|2.410Oc|2.450Oc|2.490Oc|2.530Oc|2.570Oc|2.620Oc|2.660Oc|2.710Oc|2.760Oc|2.800Oc|2.850Oc|2.900Oc|2.950Oc|3.000Oc|3.060Oc|3.110Oc|3.170Oc|3.220Oc|3.280Oc|3.340Oc|3.400Oc|3.460Oc|3.520Oc|3.580Oc|3.650Oc|3.710Oc|3.780Oc|3.850Oc|3.920Oc|3.990Oc|4.060Oc|4.130Oc|4.210Oc|4.280Oc|4.360Oc|4.440Oc|4.520Oc|4.610Oc|4.690Oc|4.780Oc|4.860Oc|4.950Oc|5.050Oc|5.140Oc|5.230Oc|5.330Oc|5.430Oc|5.530Oc|5.630Oc|5.740Oc|5.840Oc|5.950Oc|6.060Oc|6.180Oc|6.290Oc|6.410Oc|6.530Oc|6.650Oc|6.770Oc|6.900Oc|7.030Oc|7.160Oc|7.290Oc|7.430Oc|7.570Oc|7.710Oc|7.860Oc|8.000Oc|8.150Oc|8.310Oc|8.460Oc|8.620Oc|8.780Oc|8.950Oc|9.120Oc|9.290Oc|9.460Oc|9.640Oc|9.820Oc|10.00Oc|10.20Oc|10.40Oc|10.60Oc|10.80Oc|11.00Oc|11.20Oc|11.40Oc|11.60Oc|11.80Oc|12.10Oc|12.30Oc|12.50Oc|12.70Oc|13.00Oc|13.20Oc|13.50Oc|13.70Oc|14.00Oc|14.20Oc|14.50Oc|14.80Oc|15.10Oc|15.30Oc|15.60Oc|15.90Oc|16.20Oc|16.50Oc|16.80Oc|17.10Oc|17.50Oc|17.80Oc|18.10Oc|18.50Oc|18.80Oc|19.10Oc|19.50Oc|19.90Oc|20.20Oc|20.60Oc|21.00Oc|21.40Oc|21.80Oc|22.20Oc|22.60Oc|23.00Oc|23.40Oc|23.80Oc|24.30Oc|24.70Oc|25.20Oc|25.60Oc|26.10Oc|26.60Oc|27.00Oc|27.50Oc|28.00Oc|28.50Oc|29.10Oc|29.60Oc|30.10Oc|30.70Oc|31.20Oc|31.80Oc|32.30Oc|32.90Oc|33.50Oc|34.10Oc|34.70Oc|35.30Oc|36.00Oc|36.60Oc|37.20Oc|37.90Oc|38.60Oc|39.30Oc|39.90Oc|40.60Oc|41.40Oc|42.10Oc|42.80Oc|43.60Oc|44.30Oc|45.10Oc|45.90Oc|46.70Oc|47.50Oc|48.30Oc|49.10Oc|50.00Oc|50.80Oc|51.70Oc|52.60Oc|53.50Oc|54.40Oc|55.30Oc|56.30Oc|57.20Oc'.split('|');
+const JUMP_COST_VALUES = JUMP_COST_STRINGS.map(parseGameAmount);
+const JUMP_COST_ESTIMATED = JUMP_COST_STRINGS.map(() => false);
+function formatGameAmount(value) {
+  if (!Number.isFinite(value)) return '計算できません';
+  if (value === 0) return '0';
+  const abs = Math.abs(value);
+  let power = Math.floor(Math.log10(abs) / 3);
+  power = Math.max(0, Math.min(power, GAME_SUFFIXES.length - 1));
+  const scaled = value / Math.pow(1000, power);
+  const rounded = Number(scaled.toPrecision(4));
+  return rounded.toLocaleString('en-US', {maximumFractionDigits:3}) + GAME_SUFFIXES[power];
+}
+
+/* 表示Costは画面に表示された丸め値です。1つ前との差分は、表示された累計Cost同士の差です。 */
+/* 表のCostは、各Jumpまでに必要な累計費用として扱う。 */
+function cumulativeJumpCost(jump) {
+  if (!Number.isFinite(jump) || jump <= 0) return { value: 0, estimated: false };
+
+  // Integer jump targets from 1 through 750 use the frame-reviewed lookup table.
+  if (Number.isInteger(jump) && jump <= 750) {
+    return { value: JUMP_COST_VALUES[jump], estimated: JUMP_COST_ESTIMATED[jump] };
+  }
+
+  // Decimal targets interpolate between adjacent integer values.
+  if (jump < 750) {
+    const lowerJump = Math.floor(jump);
+    const upperJump = Math.ceil(jump);
+    const fraction = jump - lowerJump;
+    const lowerCost = JUMP_COST_VALUES[Math.max(0, lowerJump)];
+    const upperCost = JUMP_COST_VALUES[Math.min(750, upperJump)];
+    if (Number.isFinite(lowerCost) && Number.isFinite(upperCost)) {
+      return { value: lowerCost + (upperCost - lowerCost) * fraction, estimated: true };
+    }
+  }
+
+  // Beyond the reviewed range, retain the previous fallback behavior.
+  const known = REBIRTH_DATA.map(row => ({ jump: row.jump, cost: parseGameAmount(row.cost) }));
+  const exact = known.find(item => item.jump === jump);
+  if (exact) return { value: exact.cost, estimated: false };
+  const lower = [...known].reverse().find(item => item.jump < jump) || { jump: 0, cost: 0 };
+  const upper = known.find(item => item.jump > jump);
+  if (!upper) return { value: lower.cost, estimated: true };
+  const fraction = (jump - lower.jump) / (upper.jump - lower.jump);
+  return { value: lower.cost + (upper.cost - lower.cost) * fraction, estimated: true };
+}
+/* ジャンプ計算機：スライダーと数値入力を同期 */
+const jumpCurrentSlider = document.getElementById('jumpCurrentSlider');
+const jumpCurrentNumber = document.getElementById('jumpCurrentNumber');
+const jumpTargetSlider = document.getElementById('jumpTargetSlider');
+const jumpTargetNumber = document.getElementById('jumpTargetNumber');
+const jumpCalcResult = document.getElementById('jumpCalcResult');
+const jumpResetButton = document.getElementById('jumpResetButton');
+
+function clampJumpNumber(value) {
+  return Math.max(0, Math.min(750, Math.round(value)));
+}
+function syncJumpInput(sourceInput, pairedSlider) {
+  const text = sourceInput.value.trim();
+  if (text === '') {
+    setError(jumpCalcResult, 'ジャンプ数を入力してね', '0〜750の整数を入力してください。');
+    return;
+  }
+  const parsed = Number(text);
+  if (!Number.isFinite(parsed)) {
+    setError(jumpCalcResult, '入力を確認してください', 'ジャンプ数は0〜750の整数です。');
+    return;
+  }
+  const normalized = clampJumpNumber(parsed);
+  sourceInput.value = String(normalized);
+  pairedSlider.value = String(normalized);
+  renderJumpCalculator();
+}
+function renderJumpCalculator() {
+  const currentText = jumpCurrentNumber.value.trim();
+  const targetText = jumpTargetNumber.value.trim();
+  const current = Number(currentText);
+  const target = Number(targetText);
+  if (currentText === '' || targetText === '' || !Number.isInteger(current) || !Number.isInteger(target) || current < 0 || target < 0 || current > 750 || target > 750) {
+    setError(jumpCalcResult, 'ジャンプ数を確認してください', '現在と目標のジャンプ数は0〜750の整数で入力してください。');
+    return;
+  }
+  if (target < current) {
+    setError(jumpCalcResult, '目標ジャンプ数が現在より小さいよ', '目標ジャンプ数を現在のジャンプ数以上にしてください。');
+    return;
+  }
+
+  const currentCost = JUMP_COST_VALUES[current];
+  const targetCost = JUMP_COST_VALUES[target];
+  const additionalCost = Math.max(0, targetCost - currentCost);
+  const targetOneJumpCost = target === 0 ? 0 : targetCost - JUMP_COST_VALUES[target - 1];
+  const jumpCount = target - current;
+
+  jumpCalcResult.className = 'result show';
+  jumpCalcResult.replaceChildren();
+  addText(jumpCalcResult, 'div', '', 'ジャンプ ' + current + ' → ' + target);
+  addText(jumpCalcResult, 'div', 'big', '必要な追加Cost：' + formatGameAmount(additionalCost));
+
+  const grid = document.createElement('div');
+  grid.className = 'jump-result-grid';
+  const items = [
+    {label: '必要なジャンプ数', value: jumpCount.toLocaleString('ja-JP') + ' 回', primary: false},
+    {label: '現在ジャンプの累計Cost', value: formatGameAmount(currentCost), primary: false},
+    {label: '目標ジャンプの累計Cost', value: formatGameAmount(targetCost), primary: false},
+    {label: '目標ジャンプ1回分のCost', value: formatGameAmount(targetOneJumpCost), primary: false},
+  ];
+  items.forEach(item => {
+    const box = document.createElement('div');
+    box.className = 'jump-result-item' + (item.primary ? ' primary-value' : '');
+    addText(box, 'span', 'label', item.label);
+    addText(box, 'div', 'value', item.value);
+    grid.appendChild(box);
+  });
+  jumpCalcResult.appendChild(grid);
+  addText(jumpCalcResult, 'p', 'hint', 'Costデータ範囲：ジャンプ0〜750。各値は動画上の累計表示Costです。');
+}
+
+jumpCurrentSlider.addEventListener('input', () => {
+  jumpCurrentNumber.value = jumpCurrentSlider.value;
+  renderJumpCalculator();
+});
+jumpCurrentNumber.addEventListener('input', () => syncJumpInput(jumpCurrentNumber, jumpCurrentSlider));
+jumpCurrentNumber.addEventListener('change', () => syncJumpInput(jumpCurrentNumber, jumpCurrentSlider));
+jumpTargetSlider.addEventListener('input', () => {
+  jumpTargetNumber.value = jumpTargetSlider.value;
+  renderJumpCalculator();
+});
+jumpTargetNumber.addEventListener('input', () => syncJumpInput(jumpTargetNumber, jumpTargetSlider));
+jumpTargetNumber.addEventListener('change', () => syncJumpInput(jumpTargetNumber, jumpTargetSlider));
+jumpResetButton.addEventListener('click', () => {
+  jumpCurrentSlider.value = '0';
+  jumpCurrentNumber.value = '0';
+  jumpTargetSlider.value = '100';
+  jumpTargetNumber.value = '100';
+  renderJumpCalculator();
+});
+renderJumpCalculator();
+
+const rebirthForm = document.getElementById('rebirthForm');
+const rebirthResult = document.getElementById('rebirthResult');
+rebirthForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const currentText = document.getElementById('currentRebirth').value.trim();
+  const targetText = document.getElementById('targetRebirth').value.trim();
+  const jumpText = document.getElementById('currentJump').value.trim();
+  const current = Number(currentText), target = Number(targetText), currentJump = Number(jumpText);
+
+  if (currentText === '' || targetText === '' || jumpText === '' ||
+      !Number.isInteger(current) || current < 1 || current > 75 ||
+      !Number.isInteger(target) || target < 1 || target > 75 || target <= current ||
+      !Number.isInteger(currentJump) || currentJump < 0) {
+    setError(rebirthResult, '入力を確認してください', '現在と目標のリバースは1〜75の整数で入力してください。目標リバースは現在のリバースより大きく、ジャンプ数は0以上の整数にしてください。');
+    return;
+  }
+
+  const stages = REBIRTH_DATA.filter(row => row.rebirth > current && row.rebirth <= target);
+  if (stages.length !== target - current) {
+    setError(rebirthResult, 'データが見つかりません', '現在と目標のリバース番号を確認してください。');
+    return;
+  }
+
+  let totalCost = 0;
+  let totalJumpAdvances = 0;
+  let hasEstimate = false;
+  const breakdown = [];
+
+  stages.forEach((stage, index) => {
+    /* 最初は現在のジャンプを使う。リバースすると次からジャンプ0になる。 */
+    const startingJump = index === 0 ? currentJump : 0;
+    const neededJumps = Math.max(0, stage.jump - startingJump);
+    let neededCost = 0;
+    let estimated = false;
+
+    if (neededJumps > 0) {
+      const targetCumulative = parseGameAmount(stage.cost);
+
+      if (index === 0) {
+        const currentCumulative = cumulativeJumpCost(Math.min(currentJump, stage.jump));
+        neededCost = Math.max(0, targetCumulative - currentCumulative.value);
+        estimated = currentCumulative.estimated;
+      } else {
+        /* リバース後はジャンプ0なので、そのJumpまでの累計費用が必要 */
+        neededCost = targetCumulative;
+      }
+    }
+
+    totalCost += neededCost;
+    totalJumpAdvances += neededJumps;
+    hasEstimate = hasEstimate || estimated;
+    breakdown.push({ stage, neededCost, neededJumps, startingJump, estimated });
+  });
+
+  if (!Number.isFinite(totalCost) || !Number.isFinite(totalJumpAdvances)) {
+    setError(rebirthResult, '計算できません', '入力数値または費用データを確認してください。');
+    return;
+  }
+
+  rebirthResult.className = 'result show';
+  rebirthResult.replaceChildren();
+  addText(rebirthResult, 'div', '', `リバース #${current} → #${target}`);
+  addText(rebirthResult, 'div', 'big', '追加で必要なジャンプ費用：' + formatGameAmount(totalCost));
+
+  /* 費用結果の直下に、現在時刻・必要時間・到達予定日時を表示 */
+  const forecast = document.createElement('section');
+  forecast.className = 'time-forecast';
+  addText(forecast, 'h2', '', '⏱ 目標までの時間予測');
+
+  const now = new Date();
+  const currentTimeText = formatJapanClockTime(now);
+  addText(forecast, 'p', 'forecast-line', '現在時刻：' + currentTimeText);
+
+  const rateText = document.getElementById('rebirthCashRate').value.trim();
+  const rateUnit = document.getElementById('rebirthCashRateUnit').value;
+  const heldText = document.getElementById('rebirthHeldCash').value.trim();
+  const heldCash = heldText === '' ? 0 : Number(heldText);
+  const dailyHoursText = document.getElementById('rebirthDailyHours').value.trim();
+  const dailyHours = dailyHoursText === '' ? 24 : Number(dailyHoursText);
+  const heldUnit = document.getElementById('rebirthHeldCashUnit').value;
+
+  if (rateText === '' || !Number.isFinite(Number(rateText)) || Number(rateText) <= 0 || !Number.isFinite(heldCash) || heldCash < 0 || !Number.isFinite(dailyHours) || dailyHours <= 0 || dailyHours > 24) {
+    addText(forecast, 'p', 'forecast-line', '必要な時間：増加速度を入力すると計算できます。');
+    addText(forecast, 'p', 'hint', '増加速度は任意です。入力すると必要時間と到達予定日時を計算します。空欄の場合はリバース費用だけを計算します。現在の所持金は空欄の場合0として扱います。');
+  } else {
+    const rateValue = Number(rateText) * Math.pow(1000, GAME_SUFFIX_POWER[rateUnit] ?? 0);
+    const heldValue = heldCash * Math.pow(1000, GAME_SUFFIX_POWER[heldUnit] ?? 0);
+    const remainingCash = Math.max(0, totalCost - heldValue);
+    const requiredSeconds = remainingCash === 0 ? 0 : remainingCash / rateValue;
+
+    if (!Number.isFinite(requiredSeconds) || requiredSeconds < 0) {
+      addText(forecast, 'p', 'forecast-line', '必要な時間：計算できません。増加速度と所持金を確認してください。');
+    } else {
+      const arrivalDate = addDailyActiveTime(now, requiredSeconds, dailyHours);
+      addText(forecast, 'p', 'forecast-line', '必要な起動時間：' + formatDuration(requiredSeconds) + (dailyHours < 24 ? '（実際の起動時間）' : ''));
+      if (dailyHours < 24) addText(forecast, 'p', 'forecast-line', `1日の起動時間：${dailyHours}時間（毎日0:00〜${dailyHours}時間後まで起動）`);
+      addText(forecast, 'div', 'forecast-label', '到達予定日時');
+      addText(forecast, 'div', 'forecast-date', formatJapanArrivalDateTime(arrivalDate, now));
+      if (remainingCash === 0) {
+        addText(forecast, 'p', 'hint', '現在の所持金で必要額を満たしています。')
+      } else {
+        addText(forecast, 'p', 'hint', '残り必要額：約 ' + formatGameAmount(remainingCash) + '（現在の所持金を差し引いて計算）');
+      }
+      if (dailyHours < 24) addText(forecast, 'p', 'hint', '到達日時は、毎日0:00に起動して指定時間だけ稼働し、それ以外は停止する前提の概算です。');
+    }
+  }
+
+  rebirthResult.appendChild(forecast);
+  addText(rebirthResult, 'p', '', `リバース回数：${stages.length}回`);
+
+  const grid = document.createElement('div');
+  grid.className = 'summary-grid';
+  const summaries = [
+    ['追加で必要なジャンプ合計', totalJumpAdvances.toLocaleString('ja-JP') + '回'],
+    ['最初の目標ジャンプ', stages[0].jump.toLocaleString('ja-JP')],
+    ['目標リバース後のCash倍率', stages[stages.length - 1].cash],
+    ['目標リバースのジャンプ条件', stages[stages.length - 1].jump.toLocaleString('ja-JP') + 'ジャンプ']
+  ];
+
+  for (const [label, value] of summaries) {
+    const box = document.createElement('div');
+    box.className = 'summary-item';
+    addText(box, 'div', 'label', label);
+    addText(box, 'div', 'value', value);
+    grid.appendChild(box);
+  }
+  rebirthResult.appendChild(grid);
+
+  const details = document.createElement('details');
+  details.className = 'breakdown';
+  const summary = document.createElement('summary');
+  summary.textContent = 'リバースごとの内訳を表示';
+  details.appendChild(summary);
+  const list = document.createElement('ol');
+
+  breakdown.forEach(({ stage, neededCost, neededJumps, estimated }) => {
+    const item = document.createElement('li');
+    const note = stage.note ? `（${stage.note}）` : '';
+    const estimateLabel = estimated ? '（Cost推定）' : '';
+    item.textContent = `#${stage.rebirth}${note}：Jump ${stage.jump}、追加費用 ${formatGameAmount(neededCost)}${estimateLabel}、必要ジャンプ ${neededJumps.toLocaleString('ja-JP')}回、Cash ${stage.cash}`;
+    list.appendChild(item);
+  });
+  details.appendChild(list);
+  rebirthResult.appendChild(details);
+
+  addText(
+    rebirthResult,
+    'p',
+    'hint',
+    hasEstimate
+      ? '現在のジャンプ数が表の10刻みと一致しないため、最初の区間の費用は表の前後の値を線形補間した概算です。すでに目標ジャンプ数に達している段階の追加費用は0です。'
+      : 'Costは各Jumpまでの累計費用として計算しています。現在のジャンプが最初の目標ジャンプ以上なら、その段階の追加費用は0です。リバース後はジャンプ0へ戻るため、次の段階から再計算します。'
+  );
+});
+rebirthForm.addEventListener('reset', () => setTimeout(() => {
+  document.getElementById('currentRebirth').value = '1';
+  document.getElementById('targetRebirth').value = '10';
+  document.getElementById('currentJump').value = '0';
+  document.getElementById('rebirthCashRate').value = '';
+  document.getElementById('rebirthCashRateUnit').value = 'Sx';
+  document.getElementById('rebirthHeldCash').value = '';
+  document.getElementById('rebirthHeldCashUnit').value = 'Sp';
+  rebirthResult.className = 'result'; rebirthResult.replaceChildren();
+}, 0));
+
+
+/* 放置後の所持金予測 */
+const forecastForm = document.getElementById('forecastForm');
+const forecastResult = document.getElementById('forecastResult');
+const forecastMode = document.getElementById('forecastMode');
+const forecastDailyHoursField = document.getElementById('forecastDailyHoursField');
+const forecastDailyHours = document.getElementById('forecastDailyHours');
+const forecastEnd = document.getElementById('forecastEnd');
+function localDateTimeInputValue(date) {
+  const pad = n => String(n).padStart(2, '0');
+  return date.getFullYear() + '-' + pad(date.getMonth()+1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+}
+function updateForecastMode() {
+  const daily = forecastMode.value === 'daily';
+  forecastDailyHoursField.hidden = !daily;
+  forecastDailyHours.disabled = !daily;
+}
+function activeSecondsBetween(start, end, dailyHours) {
+  if (end <= start) return 0;
+  if (dailyHours >= 24) return (end.getTime() - start.getTime()) / 1000;
+  let total = 0;
+  const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0, 0, 0, 0);
+  while (cursor.getTime() < end.getTime()) {
+    const dayStart = cursor.getTime();
+    const dayEnd = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1, 0, 0, 0, 0).getTime();
+    const activeEnd = Math.min(dayEnd, dayStart + dailyHours * 3600000);
+    const overlapStart = Math.max(start.getTime(), dayStart);
+    const overlapEnd = Math.min(end.getTime(), activeEnd);
+    if (overlapEnd > overlapStart) total += (overlapEnd - overlapStart) / 1000;
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return total;
+}
+function formatForecastDateTime(date) {
+  return new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(date);
+}
+forecastMode.addEventListener('change', updateForecastMode);
+forecastForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const endDate = forecastEnd.value ? new Date(forecastEnd.value) : null;
+  const rateText = document.getElementById('forecastRate').value.trim();
+  const rate = Number(rateText);
+  const rateUnit = document.getElementById('forecastRateUnit').value;
+  const heldText = document.getElementById('forecastHeld').value.trim();
+  const held = heldText === '' ? 0 : Number(heldText);
+  const heldUnit = document.getElementById('forecastHeldUnit').value;
+  const dailyHours = Number(forecastDailyHours.value);
+  const now = new Date();
+  if (!endDate || Number.isNaN(endDate.getTime()) || endDate <= now) {
+    setError(forecastResult, '終了日時を確認してください', '終了日時は現在より後の日時にしてください。'); return;
+  }
+  if (rateText === '' || !Number.isFinite(rate) || rate <= 0) {
+    setError(forecastResult, '収入速度を入力してください', '0より大きい数値を入力してください。'); return;
+  }
+  if (heldText !== '' && (!Number.isFinite(held) || held < 0)) {
+    setError(forecastResult, '所持金を確認してください', '所持金は0以上の数値、または空欄にしてください。'); return;
+  }
+  if (forecastMode.value === 'daily' && (!Number.isFinite(dailyHours) || dailyHours <= 0 || dailyHours > 24)) {
+    setError(forecastResult, '1日の起動時間を確認してください', '0より大きく24以下の時間を入力してください。'); return;
+  }
+  const elapsedSeconds = (endDate.getTime() - now.getTime()) / 1000;
+  const earningSeconds = forecastMode.value === 'daily' ? activeSecondsBetween(now, endDate, dailyHours) : elapsedSeconds;
+  const earned = toBase(rate, rateUnit) * earningSeconds;
+  const total = toBase(held, heldUnit) + earned;
+  if (!Number.isFinite(earned) || !Number.isFinite(total)) {
+    setError(forecastResult, '計算結果が大きすぎます', '収入速度・所持金・期間を確認してください。'); return;
+  }
+  forecastResult.className = 'result show';
+  forecastResult.replaceChildren();
+  addText(forecastResult, 'div', '', '予測開始：' + formatForecastDateTime(now));
+  addText(forecastResult, 'div', '', '予測終了：' + formatForecastDateTime(endDate));
+  addText(forecastResult, 'div', '', '日時の差：' + formatDuration(elapsedSeconds));
+  addText(forecastResult, 'div', '', '収入が発生する時間：' + formatDuration(earningSeconds));
+  addText(forecastResult, 'p', 'hint', forecastMode.value === 'daily' ? '計算方式：毎日0:00〜' + dailyHours + '時間だけ稼ぐ想定' : '計算方式：24時間ずっと稼ぐ想定');
+  addText(forecastResult, 'div', '', '期間中に増える予測金額');
+  addText(forecastResult, 'div', 'big', formatIdleAmount(earned));
+  addText(forecastResult, 'div', '', '予測される所持金');
+  addText(forecastResult, 'div', 'result-datetime', formatIdleAmount(total));
+  addText(forecastResult, 'p', 'hint', '入力した収入：' + rate + ' ' + rateUnit + '/s。ゲーム内の実際の所持金を取得した値ではなく推定値です。');
+});
+forecastForm.addEventListener('reset', () => setTimeout(() => {
+  forecastMode.value = 'continuous'; forecastDailyHours.value = '8';
+  forecastEnd.value = localDateTimeInputValue(new Date(Date.now() + 3600000));
+  forecastResult.className = 'result'; forecastResult.replaceChildren(); updateForecastMode();
+}, 0));
+forecastEnd.value = localDateTimeInputValue(new Date(Date.now() + 3600000));
+updateForecastMode();
+
+/* ボタン式の放置収入・時間記録 */
+const IDLE_UNIT_POWER = {'1':0, K:1, M:2, B:3, T:4, Qa:5, Qi:6, Sx:7, Sp:8, Oc:9, No:10};
+const IDLE_UNIT_LABELS = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No'];
+const IDLE_STORAGE_KEY = 'goupCalculatorIdleRecorderV1';
+
+function idleToBase(value, unit) {
+  return value * Math.pow(1000, IDLE_UNIT_POWER[unit] ?? 0);
+}
+
+function formatIdleAmount(value) {
+  if (!Number.isFinite(value)) return '計算できません';
+  if (value === 0) return '0';
+  const sign = value < 0 ? '-' : '';
+  const abs = Math.abs(value);
+  let power = Math.floor(Math.log10(abs) / 3);
+  power = Math.max(0, Math.min(power, IDLE_UNIT_LABELS.length - 1));
+  const scaled = abs / Math.pow(1000, power);
+  const digits = Number(scaled.toPrecision(4));
+  return sign + digits.toLocaleString('en-US', {maximumFractionDigits:4}) + (IDLE_UNIT_LABELS[power] ? ' ' + IDLE_UNIT_LABELS[power] : '');
+}
+
+function formatLocalDateTime(timestamp) {
+  return new Intl.DateTimeFormat('ja-JP', {
+    year:'numeric', month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'
+  }).format(new Date(timestamp));
+}
+
+// 到達予定日時は、今日なら時刻だけ、別の日なら年月日と時刻を表示する
+function formatLocalArrivalDateTime(timestamp) {
+  return formatJapanArrivalDateTime(new Date(timestamp), new Date());
+}
+
+const idleForm = document.getElementById('idleForm');
+const idleRateInput = document.getElementById('idleRate');
+const idleRateUnitInput = document.getElementById('idleRateUnit');
+const idleHeldInput = document.getElementById('idleHeld');
+const idleHeldUnitInput = document.getElementById('idleHeldUnit');
+const idleGoalInput = document.getElementById('idleGoal');
+const idleGoalUnitInput = document.getElementById('idleGoalUnit');
+const idleStartButton = document.getElementById('idleStartButton');
+const idleStopButton = document.getElementById('idleStopButton');
+const idleResetButton = document.getElementById('idleResetButton');
+const idleStatus = document.getElementById('idleStatus');
+const idleResult = document.getElementById('idleResult');
+const UPDATE_INTERVAL_STORAGE_KEY = 'goupCalculatorUpdateIntervalV2';
+const updateIntervalSecondsInput = document.getElementById('updateIntervalSeconds');
+const updateIntervalDisplay = document.getElementById('updateIntervalDisplay');
+
+function normalizeUpdateIntervalSeconds(rawValue) {
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed)) return 0.05;
+  const hundredths = Math.round(parsed * 100) / 100;
+  return Math.max(0.01, Math.min(60, hundredths));
+}
+
+function getCalculationUpdateIntervalMs() {
+  return Math.max(10, Math.round(normalizeUpdateIntervalSeconds(updateIntervalSecondsInput.value) * 1000));
+}
+
+function renderUpdateIntervalDisplay() {
+  const milliseconds = getCalculationUpdateIntervalMs();
+  updateIntervalDisplay.textContent = `${(milliseconds / 1000).toFixed(2)}秒（${milliseconds}ms）`;
+}
+
+try {
+  const savedInterval = Number(localStorage.getItem(UPDATE_INTERVAL_STORAGE_KEY));
+  if (Number.isFinite(savedInterval) && savedInterval >= 0.01 && savedInterval <= 60) {
+    updateIntervalSecondsInput.value = normalizeUpdateIntervalSeconds(savedInterval).toFixed(2);
+  }
+} catch (error) {
+  // localStorageが使えなくても既定の0.05秒で動作します。
+}
+renderUpdateIntervalDisplay();
+
+function restartCalculationTimers() {
+  // 設定を変更したら、動作中のタイマーを新しい間隔で再登録する。
+  if (idleTicker !== null) {
+    clearInterval(idleTicker);
+    idleTicker = null;
+  }
+  if (idleState && idleState.activeRecord) {
+    renderIdleActiveRecord();
+    idleTicker = setInterval(renderIdleActiveRecord, getCalculationUpdateIntervalMs());
+  }
+
+  if (typeof multiplierActivationTicker !== 'undefined' && multiplierActivationTicker !== null) {
+    clearInterval(multiplierActivationTicker);
+    multiplierActivationTicker = null;
+  }
+  if (typeof multiplierActivationState !== 'undefined' && multiplierActivationState &&
+      multiplierActivationState.startedAt + multiplierActivationState.durationMinutes * 60000 > Date.now()) {
+    renderMultiplierActivationStatus();
+    multiplierActivationTicker = setInterval(renderMultiplierActivationStatus, getCalculationUpdateIntervalMs());
+  }
+}
+
+updateIntervalSecondsInput.addEventListener('change', () => {
+  const intervalSeconds = normalizeUpdateIntervalSeconds(updateIntervalSecondsInput.value);
+  updateIntervalSecondsInput.value = intervalSeconds.toFixed(2);
+  try { localStorage.setItem(UPDATE_INTERVAL_STORAGE_KEY, String(intervalSeconds)); } catch (error) { /* 保存不可でも現在の設定は反映 */ }
+  renderUpdateIntervalDisplay();
+  restartCalculationTimers();
+});
+
+let idleTicker = null;
+let idleState = loadIdleState();
+
+function loadIdleState() {
+  try {
+    const raw = localStorage.getItem(IDLE_STORAGE_KEY);
+    if (!raw) return { activeRecord:null, lastResult:null };
+    const parsed = JSON.parse(raw);
+    return {
+      activeRecord: parsed && parsed.activeRecord ? parsed.activeRecord : null,
+      lastResult: parsed && parsed.lastResult ? parsed.lastResult : null
+    };
+  } catch (error) {
+    return { activeRecord:null, lastResult:null };
+  }
+}
+
+function saveIdleState() {
+  try {
+    localStorage.setItem(IDLE_STORAGE_KEY, JSON.stringify(idleState));
+  } catch (error) {
+    setError(idleStatus, '記録を保存できません', 'ブラウザの保存機能が無効になっている可能性があります。このページを閉じると記録が失われることがあります。');
+  }
+}
+
+function setIdleInputsDisabled(disabled) {
+  idleRateInput.disabled = disabled;
+  idleRateUnitInput.disabled = disabled;
+  idleHeldInput.disabled = disabled;
+  idleHeldUnitInput.disabled = disabled;
+  idleGoalInput.disabled = disabled;
+  idleGoalUnitInput.disabled = disabled;
+  idleStartButton.disabled = disabled;
+  idleStopButton.disabled = !disabled;
+}
+
+function getRecordMultiplierPeriods(record) {
+  if (!Array.isArray(record.multiplierPeriods)) record.multiplierPeriods = [];
+  return record.multiplierPeriods
+    .filter(period => Number.isFinite(Number(period.startedAt)) && Number.isFinite(Number(period.endsAt)) && Number.isFinite(Number(period.multiplier)) && Number(period.multiplier) >= 1 && Number(period.endsAt) > Number(period.startedAt))
+
+    .slice()
+    .sort((a, b) => Number(a.startedAt) - Number(b.startedAt));
+}
+
+function calculateRecordEarned(record, untilTimestamp) {
+  const start = Number(record.startedAt);
+  const end = Math.max(start, Number(untilTimestamp));
+  const elapsedSeconds = Math.max(0, (end - start) / 1000);
+  const rateBase = idleToBase(record.rate, record.rateUnit);
+  let effectiveSeconds = elapsedSeconds;
+
+  for (const period of getRecordMultiplierPeriods(record)) {
+    const overlapStart = Math.max(start, Number(period.startedAt));
+    const overlapEnd = Math.min(end, Number(period.endsAt));
+    if (overlapEnd > overlapStart) {
+      // 通常の1倍分に、(倍率-1)倍分を加算する。記録額を二重計上しない。
+      effectiveSeconds += ((Number(period.multiplier) - 1) * (overlapEnd - overlapStart)) / 1000;
+    }
+  }
+
+  return {
+    elapsedSeconds,
+    effectiveSeconds,
+    rateBase,
+    earned: rateBase * effectiveSeconds
+  };
+}
+
+function getRecordMultiplierAt(record, timestamp) {
+  const active = getRecordMultiplierPeriods(record)
+    .filter(period => Number(period.startedAt) <= timestamp && Number(period.endsAt) > timestamp)
+    .sort((a, b) => Number(b.startedAt) - Number(a.startedAt));
+  return active.length ? active[0] : null;
+}
+
+function findRecordGoalReachedAt(record, goalBase, untilTimestamp) {
+  const rateBase = idleToBase(record.rate, record.rateUnit);
+  if (!Number.isFinite(rateBase) || rateBase <= 0) return null;
+  const startingCash = record.heldValue === null || record.heldValue === undefined
+    ? 0
+    : idleToBase(Number(record.heldValue), record.heldUnit);
+  if (startingCash >= goalBase) return Number(record.startedAt);
+
+  const start = Number(record.startedAt);
+  const end = Math.max(start, Number(untilTimestamp));
+  const periods = getRecordMultiplierPeriods(record);
+  let cursor = start;
+  let cash = startingCash;
+
+  function consumeSegment(segmentStart, segmentEnd, multiplier) {
+    if (segmentEnd <= segmentStart) return null;
+    const seconds = (segmentEnd - segmentStart) / 1000;
+    const segmentRate = rateBase * multiplier;
+    const segmentEarned = segmentRate * seconds;
+    if (cash + segmentEarned >= goalBase) {
+      return segmentStart + Math.max(0, goalBase - cash) / segmentRate * 1000;
+    }
+    cash += segmentEarned;
+    return null;
+  }
+
+  for (const period of periods) {
+    const periodStart = Math.max(start, Number(period.startedAt));
+    const periodEnd = Math.min(end, Number(period.endsAt));
+    if (periodEnd <= cursor || periodStart >= end) continue;
+
+    if (periodStart > cursor) {
+      const hit = consumeSegment(cursor, Math.min(periodStart, end), 1);
+      if (hit !== null) return hit;
+      cursor = Math.min(periodStart, end);
+    }
+
+    const multiplierSegmentStart = Math.max(cursor, periodStart);
+    if (periodEnd > multiplierSegmentStart) {
+      const hit = consumeSegment(multiplierSegmentStart, periodEnd, Number(period.multiplier));
+      if (hit !== null) return hit;
+      cursor = periodEnd;
+    }
+    if (cursor >= end) break;
+  }
+
+  if (cursor < end) {
+    const hit = consumeSegment(cursor, end, 1);
+    if (hit !== null) return hit;
+  }
+  return null;
+}
+
+function estimateIdleGoalArrival(record, remaining, now) {
+  const rateBase = idleToBase(record.rate, record.rateUnit);
+  if (remaining <= 0) return now;
+  const activePeriod = getRecordMultiplierAt(record, now);
+  if (activePeriod) {
+    const multiplier = Number(activePeriod.multiplier);
+    const endsAt = Number(activePeriod.endsAt);
+    const activeSecondsLeft = Math.max(0, (endsAt - now) / 1000);
+    const earningsBeforeMultiplierEnds = rateBase * multiplier * activeSecondsLeft;
+    if (remaining <= earningsBeforeMultiplierEnds) {
+      return now + (remaining / (rateBase * multiplier)) * 1000;
+    }
+    return endsAt + ((remaining - earningsBeforeMultiplierEnds) / rateBase) * 1000;
+  }
+  return now + (remaining / rateBase) * 1000;
+}
+
+function renderIdleActiveRecord() {
+  const record = idleState.activeRecord;
+  if (!record) return;
+
+  const now = Date.now();
+  const earnedInfo = calculateRecordEarned(record, now);
+  const elapsedSeconds = earnedInfo.elapsedSeconds;
+  const rateBase = earnedInfo.rateBase;
+  const estimatedEarned = earnedInfo.earned;
+  const startingCashBase = record.heldValue === null ? 0 : idleToBase(record.heldValue, record.heldUnit);
+  const currentCashBase = startingCashBase + estimatedEarned;
+  const activeMultiplierPeriod = getRecordMultiplierAt(record, now);
+  const activeMultiplier = activeMultiplierPeriod ? Number(activeMultiplierPeriod.multiplier) : 1;
+
+  if (Number.isFinite(record.goalBase) && currentCashBase >= record.goalBase && !record.goalAlertSent) {
+    record.goalAlertSent = true;
+    saveIdleState();
+    const goalLabel = record.goalValue === null || record.goalValue === undefined
+      ? formatIdleAmount(record.goalBase)
+      : record.goalValue + ' ' + (record.goalUnit || 'Sx');
+    announceGoalReached('GOUP Calculator：目標金額に到達！', '放置収入計算の目標金額 ' + goalLabel + ' に到達しました。');
+  }
+
+  idleStatus.className = 'result show';
+  idleStatus.replaceChildren();
+  addText(idleStatus, 'div', 'big', '🔴 記録中');
+  addText(idleStatus, 'p', '', '開始時刻：' + formatLocalDateTime(record.startedAt));
+  addText(idleStatus, 'div', '', '経過時間');
+  addText(idleStatus, 'div', 'big', formatPreciseDuration(elapsedSeconds));
+  addText(idleStatus, 'div', '', '現在適用中の倍率');
+  addText(idleStatus, 'div', 'big', activeMultiplier + '倍');
+  addText(idleStatus, 'div', '', '現時点の推定増加額（倍率反映済み）');
+  addText(idleStatus, 'div', 'big', formatIdleAmount(estimatedEarned));
+  addText(idleStatus, 'div', '', '現在の計算上の所持金');
+  addText(idleStatus, 'div', 'big', formatIdleAmount(currentCashBase));
+
+  if (activeMultiplierPeriod) {
+    addText(idleStatus, 'p', 'hint', `倍率終了予定：${formatLocalDateTime(Number(activeMultiplierPeriod.endsAt))}`);
+  }
+
+  if (Number.isFinite(record.goalBase) && Number.isFinite(rateBase) && rateBase > 0) {
+    addText(idleStatus, 'div', '', '目標金額');
+    addText(idleStatus, 'div', 'big', formatIdleAmount(record.goalBase));
+
+    if (currentCashBase >= record.goalBase) {
+      const reachedAt = findRecordGoalReachedAt(record, record.goalBase, now) ?? now;
+      addText(idleStatus, 'div', 'big', '🎉 目標達成！');
+      addText(idleStatus, 'p', '', '推定到達時刻：' + formatLocalArrivalDateTime(reachedAt));
+    } else {
+      const remaining = record.goalBase - currentCashBase;
+      const arrivalAt = estimateIdleGoalArrival(record, remaining, now);
+      const secondsLeft = Math.max(0, (arrivalAt - now) / 1000);
+      addText(idleStatus, 'div', '', '目標まで残り');
+      addText(idleStatus, 'div', 'big', formatIdleAmount(remaining));
+      addText(idleStatus, 'div', '', '到達までの予想時間');
+      addText(idleStatus, 'div', 'big', formatPreciseDuration(secondsLeft));
+      addText(idleStatus, 'div', 'result-datetime', '到達予定：' + formatLocalArrivalDateTime(arrivalAt));
+    }
+  } else {
+    addText(idleStatus, 'p', 'hint', 'この記録は旧バージョンで開始されたため、目標金額の予測は利用できません。記録終了後に、新しい記録を開始してください。');
+  }
+
+  addText(idleStatus, 'p', 'hint', `基準収入：${record.rate} ${record.rateUnit}/s。発動した倍率の時間は計算に反映済みです。`);
+  idleResult.className = 'result';
+  idleResult.replaceChildren();
+}
+
+function renderIdleCompletedResult(result) {
+  idleResult.className = 'result show';
+  idleResult.replaceChildren();
+
+  addText(idleResult, 'div', '', '記録した時間');
+  addText(idleResult, 'div', 'big', formatDuration(result.elapsedSeconds));
+  addText(idleResult, 'p', 'hint', `開始：${formatLocalDateTime(result.startedAt)} ／ 終了：${formatLocalDateTime(result.endedAt)}`);
+  addText(idleResult, 'div', '', 'その間に増えた推定金額（倍率反映済み）');
+  addText(idleResult, 'div', 'big', formatIdleAmount(result.earned));
+
+  const startCashBase = result.heldBase === null ? 0 : result.heldBase;
+  const endCashBase = startCashBase + result.earned;
+  if (result.heldBase !== null) {
+    addText(idleResult, 'div', '', '記録開始時の所持金');
+    addText(idleResult, 'div', 'big', formatIdleAmount(result.heldBase));
+  }
+  addText(idleResult, 'div', '', '記録終了時の計算上の所持金');
+  addText(idleResult, 'div', 'result-datetime', formatIdleAmount(endCashBase));
+
+  const periods = getRecordMultiplierPeriods(result).filter(period =>
+    Number(period.startedAt) < Number(result.endedAt) && Number(period.endsAt) > Number(result.startedAt)
+  );
+  if (periods.length) {
+    const details = document.createElement('details');
+    details.className = 'breakdown';
+    addText(details, 'summary', '', '記録中に適用した倍率');
+    const list = document.createElement('ol');
+    for (const period of periods) {
+      const actualStart = Math.max(Number(result.startedAt), Number(period.startedAt));
+      const actualEnd = Math.min(Number(result.endedAt), Number(period.endsAt));
+      if (actualEnd <= actualStart) continue;
+      const item = document.createElement('li');
+      item.textContent = `${period.multiplier}倍：${formatLocalDateTime(actualStart)} ～ ${formatLocalDateTime(actualEnd)}（${formatPreciseDuration((actualEnd - actualStart) / 1000)}）`;
+      list.appendChild(item);
+    }
+    details.appendChild(list);
+    idleResult.appendChild(details);
+  }
+
+  if (Number.isFinite(result.goalBase) && Number.isFinite(result.rateBase) && result.rateBase > 0) {
+    addText(idleResult, 'div', '', '目標金額');
+    addText(idleResult, 'div', 'big', formatIdleAmount(result.goalBase));
+    if (startCashBase >= result.goalBase) {
+      addText(idleResult, 'div', 'big', '🎉 記録開始時点で目標達成済み');
+      addText(idleResult, 'p', '', '目標到達時刻：' + formatLocalArrivalDateTime(result.startedAt));
+    } else if (endCashBase >= result.goalBase) {
+      const goalReachedAt = findRecordGoalReachedAt(result, result.goalBase, result.endedAt);
+      addText(idleResult, 'div', 'big', '🎉 記録中に目標達成！');
+      addText(idleResult, 'p', '', '推定到達時刻：' + formatLocalArrivalDateTime(goalReachedAt ?? result.endedAt));
+      addText(idleResult, 'p', 'hint', '記録中に発動した倍率の時間も、目標到達時刻の計算に反映しています。');
+    } else {
+      const remaining = result.goalBase - endCashBase;
+      const arrivalAt = estimateIdleGoalArrival(result, remaining, result.endedAt);
+      const secondsLeft = Math.max(0, (arrivalAt - result.endedAt) / 1000);
+      addText(idleResult, 'div', '', '目標まで残り');
+      addText(idleResult, 'div', 'big', formatIdleAmount(remaining));
+      addText(idleResult, 'div', '', '目標到達までの予想時間（記録終了時点から）');
+      addText(idleResult, 'div', 'big', formatPreciseDuration(secondsLeft));
+      addText(idleResult, 'div', 'result-datetime', '到達予定：' + formatLocalArrivalDateTime(arrivalAt));
+    }
+  }
+
+  addText(idleResult, 'p', 'hint', `計算に使用した基準収入：${result.rate} ${result.rateUnit}/s。記録中に発動した倍率の期間を反映しています。`);
+}
+
+function renderIdleUI() {
+  if (idleTicker !== null) {
+    clearInterval(idleTicker);
+    idleTicker = null;
+  }
+
+  if (idleState.activeRecord) {
+    const record = idleState.activeRecord;
+    idleRateInput.value = String(record.rate);
+    idleRateUnitInput.value = record.rateUnit;
+    idleHeldInput.value = record.heldValue === null ? '' : String(record.heldValue);
+    idleHeldUnitInput.value = record.heldUnit;
+    idleGoalInput.value = record.goalValue === null || record.goalValue === undefined ? '' : String(record.goalValue);
+
+    idleGoalUnitInput.value = record.goalUnit || 'Sx';
+
+    setIdleInputsDisabled(true);
+    renderIdleActiveRecord();
+    idleTicker = setInterval(renderIdleActiveRecord, getCalculationUpdateIntervalMs());
+    return;
+  }
+
+  setIdleInputsDisabled(false);
+  idleStopButton.disabled = true;
+
+  if (idleState.lastResult) {
+    idleRateInput.value = String(idleState.lastResult.rate);
+    idleRateUnitInput.value = idleState.lastResult.rateUnit;
+    idleHeldInput.value = idleState.lastResult.heldValue === null ? '' : String(idleState.lastResult.heldValue);
+    idleHeldUnitInput.value = idleState.lastResult.heldUnit || 'Sx';
+    idleGoalInput.value = idleState.lastResult.goalValue === null || idleState.lastResult.goalValue === undefined ? '' : String(idleState.lastResult.goalValue);
+    idleGoalUnitInput.value = idleState.lastResult.goalUnit || 'Sx';
+
+    idleStatus.className = 'result show';
+    idleStatus.replaceChildren();
+    addText(idleStatus, 'div', 'big', '✅ 記録完了');
+    addText(idleStatus, 'p', '', '最後の記録結果を表示しています。次の計測を始めるには「記録開始」を押してください。');
+    renderIdleCompletedResult(idleState.lastResult);
+  } else {
+    idleStatus.className = 'result show';
+    idleStatus.replaceChildren();
+    addText(idleStatus, 'div', 'big', '未記録');
+    addText(idleStatus, 'p', '', '収入速度・開始時の所持金・目標金額を入力して「記録開始」を押してください。');
+    idleResult.className = 'result';
+    idleResult.replaceChildren();
+  }
+}
+
+idleStartButton.addEventListener('click', () => {
+  if (idleState.activeRecord) return;
+
+  const rateText = idleRateInput.value.trim();
+  const rate = Number(rateText);
+  const rateUnit = idleRateUnitInput.value;
+  const heldText = idleHeldInput.value.trim();
+  const heldValue = heldText === '' ? null : Number(heldText);
+  const heldUnit = idleHeldUnitInput.value;
+  const goalText = idleGoalInput.value.trim();
+  const goalValue = goalText === '' ? null : Number(goalText);
+  const goalUnit = idleGoalUnitInput.value;
+
+  if (rateText === '' || !Number.isFinite(rate) || rate <= 0) {
+    setError(idleStatus, '収入速度を入力してください', '記録前に、0より大きい収入速度を入力してください。');
+    return;
+  }
+  if (heldValue !== null && (!Number.isFinite(heldValue) || heldValue < 0)) {
+    setError(idleStatus, '所持金を確認してください', '所持金は0以上の数値にするか、空欄にしてください。');
+    return;
+  }
+  if (goalText === '' || !Number.isFinite(goalValue) || goalValue < 0) {
+    setError(idleStatus, '目標金額を入力してください', '到達時間を計算するため、目標金額は0以上の数値で入力してください。');
+    return;
+  }
+
+  const startedAt = Date.now();
+  const goalBase = idleToBase(goalValue, goalUnit);
+  const rateBase = idleToBase(rate, rateUnit);
+
+  if (!Number.isFinite(goalBase) || !Number.isFinite(rateBase) || rateBase <= 0) {
+    setError(idleStatus, '金額を計算できません', '収入速度や目標金額を確認してください。');
+    return;
+  }
+
+  // 記録開始ボタンの操作を使って、到達時の音声と通知を準備する。
+  prepareGoalAlerts();
+
+  const multiplierPeriods = [];
+  if (typeof multiplierActivationState !== 'undefined' && multiplierActivationState) {
+    const activationEnd = Number(multiplierActivationState.startedAt) + Number(multiplierActivationState.durationMinutes) * 60000;
+    if (activationEnd > startedAt) {
+      multiplierPeriods.push({
+        multiplier: Number(multiplierActivationState.multiplier),
+        startedAt,
+        endsAt: activationEnd
+      });
+    }
+  }
+
+  idleState = {
+    activeRecord: {
+      startedAt,
+      rate,
+      rateUnit,
+      heldValue,
+      heldUnit,
+      goalValue,
+      goalUnit,
+      goalBase,
+      rateBase,
+      multiplierPeriods,
+      goalAlertSent: false
+    },
+    lastResult: null
+  };
+
+  saveIdleState();
+  renderIdleUI();
+});
+
+idleStopButton.addEventListener('click', () => {
+  const record = idleState.activeRecord;
+  if (!record) return;
+
+  const endedAt = Date.now();
+  const earnedInfo = calculateRecordEarned(record, endedAt);
+  const elapsedSeconds = earnedInfo.elapsedSeconds;
+  const rateBase = earnedInfo.rateBase;
+  const earned = earnedInfo.earned;
+  const heldBase = record.heldValue === null ? null : idleToBase(record.heldValue, record.heldUnit);
+  const goalBase = Number.isFinite(record.goalBase)
+    ? record.goalBase
+    : (Number.isFinite(record.goalValue) ? idleToBase(record.goalValue, record.goalUnit || 'Sx') : null);
+
+  if (!Number.isFinite(earned) || (heldBase !== null && !Number.isFinite(heldBase + earned))) {
+    setError(idleStatus, '計算結果が大きすぎます', '収入速度を確認してください。記録は終了していないため、もう一度計算できます。');
+    return;
+  }
+
+  idleState = {
+    activeRecord: null,
+    lastResult: {
+      startedAt: record.startedAt,
+      endedAt,
+      elapsedSeconds,
+      rate: record.rate,
+      rateUnit: record.rateUnit,
+      rateBase,
+      heldValue: record.heldValue,
+      heldUnit: record.heldUnit,
+      heldBase,
+      earned,
+      multiplierPeriods: getRecordMultiplierPeriods(record),
+      goalValue: record.goalValue ?? null,
+      goalUnit: record.goalUnit || 'Sx',
+      goalBase
+    }
+  };
+
+  saveIdleState();
+  renderIdleUI();
+});
+
+idleResetButton.addEventListener('click', () => {
+  const message = idleState.activeRecord
+    ? '計測中の記録を破棄してリセットしますか？'
+    : '最後の記録結果を消去しますか？';
+  if (!window.confirm(message)) return;
+
+  if (idleTicker !== null) {
+    clearInterval(idleTicker);
+    idleTicker = null;
+  }
+  idleState = { activeRecord:null, lastResult:null };
+  try { localStorage.removeItem(IDLE_STORAGE_KEY); } catch (error) { /* 保存機能が使えない場合は画面をリセット */ }
+  idleRateInput.disabled = false;
+  idleRateUnitInput.disabled = false;
+  idleHeldInput.disabled = false;
+  idleHeldUnitInput.disabled = false;
+  idleRateInput.value = '';
+  idleRateUnitInput.value = 'Sx';
+  idleHeldInput.value = '';
+  idleHeldUnitInput.value = 'Sx';
+  idleGoalInput.disabled = false;
+  idleGoalUnitInput.disabled = false;
+  idleGoalInput.value = '';
+  idleGoalUnitInput.value = 'Sx';
+  renderIdleUI();
+});
+
+
+/* 倍率イベントの継続時間・収入予測 */
+const multiplierStartAt = document.getElementById('multiplierStartAt');
+const multiplierResult = document.getElementById('multiplierResult');
+const multiplierRows = document.getElementById('multiplierRows');
+const multiplierActivationStatus = document.getElementById('multiplierActivationStatus');
+const MULTIPLIER_DURATIONS_KEY = 'goupCalculatorMultiplierDurationsV1';
+const MULTIPLIER_ACTIVATION_KEY = 'goupCalculatorMultiplierActivationV1';
+let multiplierActivationTicker = null;
+let multiplierActivationState = loadMultiplierActivationState();
+
+function toLocalDateTimeInputValue(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
+function formatMultiplierDuration(totalMinutes) {
+  const wholeSeconds = Math.round(totalMinutes * 60);
+  const days = Math.floor(wholeSeconds / 86400);
+  const hours = Math.floor((wholeSeconds % 86400) / 3600);
+  const minutes = Math.floor((wholeSeconds % 3600) / 60);
+  const seconds = wholeSeconds % 60;
+  const parts = [];
+  if (days) parts.push(`${days}日`);
+  if (hours) parts.push(`${hours}時間`);
+  if (minutes || (!days && !hours)) parts.push(`${minutes}分`);
+  if (seconds) parts.push(`${seconds}秒`);
+  return parts.join('');
+}
+
+function formatMultiplierDate(date) {
+  return new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    weekday: 'short', hour: '2-digit', minute: '2-digit'
+  }).format(date);
+}
+
+function loadMultiplierDurations() {
+  try {
+    const value = JSON.parse(localStorage.getItem(MULTIPLIER_DURATIONS_KEY) || '{}');
+    return value && typeof value === 'object' ? value : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveMultiplierDurations() {
+  const values = {};
+  for (const row of multiplierRows.querySelectorAll('.multiplier-row')) {
+    values[row.dataset.multiplier] = row.querySelector('.multiplier-minutes').value.trim();
+  }
+  try { localStorage.setItem(MULTIPLIER_DURATIONS_KEY, JSON.stringify(values)); } catch (error) { /* 保存できない環境でも計算は続行 */ }
+}
+
+function loadMultiplierActivationState() {
+  try {
+    const value = JSON.parse(localStorage.getItem(MULTIPLIER_ACTIVATION_KEY) || 'null');
+    if (!value || !Number.isFinite(Number(value.multiplier)) || !Number.isFinite(Number(value.durationMinutes)) || !Number.isFinite(Number(value.startedAt))) return null;
+    if (Number(value.multiplier) < 1 || Number(value.multiplier) > 12 || Number(value.durationMinutes) <= 0) return null;
+    return { multiplier:Number(value.multiplier), durationMinutes:Number(value.durationMinutes), startedAt:Number(value.startedAt) };
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveMultiplierActivationState() {
+  try {
+    if (multiplierActivationState) localStorage.setItem(MULTIPLIER_ACTIVATION_KEY, JSON.stringify(multiplierActivationState));
+    else localStorage.removeItem(MULTIPLIER_ACTIVATION_KEY);
+  } catch (error) { /* 保存できない環境でもタイマーは動作 */ }
+}
+
+function createMultiplierRow(multiplier, minutes = '') {
+  const row = document.createElement('div');
+  row.className = 'multiplier-row';
+  row.dataset.multiplier = String(multiplier);
+
+  const activateButton = document.createElement('button');
+  activateButton.type = 'button';
+  activateButton.className = 'btn primary multiplier-activate';
+  activateButton.textContent = '▶ 発動';
+  activateButton.setAttribute('aria-label', `${multiplier}倍を発動`);
+  activateButton.addEventListener('click', () => activateMultiplier(multiplier, row));
+
+  const badge = document.createElement('span');
+  badge.className = 'multiplier-badge';
+  badge.textContent = `${multiplier}倍`;
+
+  const minutesInput = document.createElement('input');
+  minutesInput.className = 'multiplier-minutes';
+  minutesInput.type = 'number';
+  minutesInput.min = '0';
+  minutesInput.step = 'any';
+  minutesInput.placeholder = '例:10分';
+  minutesInput.inputMode = 'decimal';
+  minutesInput.value = minutes === '' ? '' : String(minutes);
+  minutesInput.setAttribute('aria-label', `${multiplier}倍が続く時間（分）`);
+  minutesInput.addEventListener('change', saveMultiplierDurations);
+  minutesInput.addEventListener('input', saveMultiplierDurations);
+
+  row.append(activateButton, badge, minutesInput);
+  multiplierRows.append(row);
+  return row;
+}
+
+function renderMultiplierActivationStatus() {
+  const rows = [...multiplierRows.querySelectorAll('.multiplier-row')];
+  for (const row of rows) {
+    row.classList.remove('is-active', 'is-finished');
+    const button = row.querySelector('.multiplier-activate');
+    button.classList.remove('is-running');
+    button.textContent = '▶ 発動';
+    button.disabled = false;
+  }
+
+  multiplierActivationStatus.replaceChildren();
+  if (!multiplierActivationState) {
+    addText(multiplierActivationStatus, 'div', 'activation-title', 'まだ倍率は発動していません');
+    addText(multiplierActivationStatus, 'div', 'activation-time', '継続時間を入力して「発動」を押してください。');
+    return;
+  }
+
+  const state = multiplierActivationState;
+  const row = rows.find(item => Number(item.dataset.multiplier) === state.multiplier);
+  const button = row?.querySelector('.multiplier-activate');
+  const startedAt = state.startedAt;
+  const endAt = startedAt + state.durationMinutes * 60000;
+  const remainingMs = endAt - Date.now();
+
+  if (remainingMs > 0) {
+    row?.classList.add('is-active');
+    if (button) {
+      button.classList.add('is-running');
+      button.textContent = '● 発動中';
+    }
+    addText(multiplierActivationStatus, 'div', 'activation-title', `🟢 ${state.multiplier}倍 発動中`);
+    addText(multiplierActivationStatus, 'div', 'big', `残り ${formatPreciseDuration(remainingMs / 1000)}`);
+    addText(multiplierActivationStatus, 'div', 'activation-time', `発動：${formatMultiplierDate(new Date(startedAt))}`);
+    addText(multiplierActivationStatus, 'div', 'activation-time', `終了予定：${formatMultiplierDate(new Date(endAt))}`);
+  } else {
+    row?.classList.add('is-finished');
+    if (button) button.textContent = '✓ 終了';
+    addText(multiplierActivationStatus, 'div', 'activation-title', `✅ ${state.multiplier}倍の設定時間が終了しました`);
+    addText(multiplierActivationStatus, 'div', 'activation-time', `発動：${formatMultiplierDate(new Date(startedAt))}`);
+    addText(multiplierActivationStatus, 'div', 'activation-time', `終了：${formatMultiplierDate(new Date(endAt))}`);
+    if (multiplierActivationTicker !== null) {
+      clearInterval(multiplierActivationTicker);
+      multiplierActivationTicker = null;
+    }
+  }
+}
+
+function activateMultiplier(multiplier, row) {
+  const raw = row.querySelector('.multiplier-minutes').value.trim();
+  const minutes = Number(raw);
+  if (raw === '' || !Number.isFinite(minutes) || minutes <= 0) {
+    multiplierActivationStatus.replaceChildren();
+    addText(multiplierActivationStatus, 'div', 'activation-title', '時間を入力してね');
+    addText(multiplierActivationStatus, 'div', 'activation-time', `${multiplier}倍が何分続くか、0より大きい数字を入力してから「発動」を押してください。`);
+    row.querySelector('.multiplier-minutes').focus();
+    return;
+  }
+
+  const startedAt = Date.now();
+  const endsAt = startedAt + minutes * 60000;
+
+  // If a different multiplier was still running, end its recording interval at this activation time.
+  // This assumes multiplier events replace one another rather than stack together.
+  if (idleState.activeRecord) {
+    const record = idleState.activeRecord;
+    if (!Array.isArray(record.multiplierPeriods)) record.multiplierPeriods = [];
+    for (const period of record.multiplierPeriods) {
+      if (Number(period.startedAt) <= startedAt && Number(period.endsAt) > startedAt) {
+        period.endsAt = startedAt;
+      }
+    }
+    record.multiplierPeriods.push({ multiplier, startedAt, endsAt });
+    saveIdleState();
+    renderIdleActiveRecord();
+  }
+
+  multiplierActivationState = { multiplier, durationMinutes:minutes, startedAt };
+  saveMultiplierActivationState();
+  saveMultiplierDurations();
+  renderMultiplierActivationStatus();
+  if (multiplierActivationTicker !== null) {
+    clearInterval(multiplierActivationTicker);
+    multiplierActivationTicker = null;
+  }
+  multiplierActivationTicker = setInterval(renderMultiplierActivationStatus, getCalculationUpdateIntervalMs());
+}
+
+function showMultiplierError(title, message) {
+  multiplierResult.className = 'result show error';
+  multiplierResult.replaceChildren();
+  addText(multiplierResult, 'div', 'big', title);
+  addText(multiplierResult, 'p', '', message);
+}
+
+function calculateMultiplierTime() {
+  const entries = [];
+  let totalMinutes = 0;
+  let weightedMultiplierMinutes = 0;
+  const rows = [...multiplierRows.querySelectorAll('.multiplier-row')];
+
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index];
+    const raw = row.querySelector('.multiplier-minutes').value.trim();
+    const multiplier = Number(row.dataset.multiplier);
+    if (raw === '') continue;
+    const minutes = Number(raw);
+    if (!Number.isFinite(minutes) || minutes < 0) {
+      showMultiplierError('入力内容を確認してね', `${index + 1}行目の時間は0以上の分数で入力してください。空欄でも大丈夫です。`);
+      return;
+    }
+    if (minutes > 0) {
+      entries.push({ multiplier, minutes });
+      totalMinutes += minutes;
+      weightedMultiplierMinutes += multiplier * minutes;
+    }
+  }
 (() => {
   "use strict";
 
+  if (totalMinutes <= 0) {
+    showMultiplierError('継続時間を入力してね', '倍率を選び、続く時間を分単位で入力してください。空欄や0分の行は計算対象になりません。');
+    return;
+  }
   /*
    * GOUP Calculator - レベル収入計算機
    * 使い方：このスクリプト全体を index.html の </body> 直前に貼る
@@ -10,180 +1910,197 @@
    * 過去に追加したレベル収入計算があれば差し替える。
    */
 
+  const startText = multiplierStartAt.value;
+  const startDate = startText ? new Date(startText) : new Date();
+  if (Number.isNaN(startDate.getTime())) {
+    showMultiplierError('開始時刻を確認してね', '有効な開始予定時刻を入力してください。');
+    return;
+  }
   // ================================================
   // 1. 過去に追加されたレベル収入ページを置き換える
   // ================================================
 
+  const endDate = new Date(startDate.getTime() + totalMinutes * 60000);
+  multiplierResult.className = 'result show';
+  multiplierResult.replaceChildren();
+  addText(multiplierResult, 'div', 'big', `合計：${formatMultiplierDuration(totalMinutes)}`);
+  addText(multiplierResult, 'p', 'hint', `合計 ${Number(totalMinutes.toFixed(4))} 分（${(totalMinutes / 60).toFixed(2)} 時間）`);
+  addText(multiplierResult, 'div', 'result-datetime', `終了予定：${formatMultiplierDate(endDate)}`);
+
+  const summary = document.createElement('div');
+  summary.className = 'summary-grid';
+  const weightedHours = weightedMultiplierMinutes / 60;
+  const normalExtraMinutes = weightedMultiplierMinutes - totalMinutes;
+  const items = [
+    ['設定した区間数', `${entries.length}区間`],
+    ['倍率を考慮した合計', `${Number(weightedHours.toFixed(2))} 倍・時間相当`],
+    ['1倍と比べた追加時間相当', `${formatMultiplierDuration(normalExtraMinutes)}`]
+  ];
+  for (const [label, value] of items) {
+    const item = document.createElement('div');
+    item.className = 'summary-item';
+    addText(item, 'div', 'label', label);
+    addText(item, 'div', 'value', value);
+    summary.append(item);
+  }
+  multiplierResult.append(summary);
+
+  // If the normal (1x) income rate is entered in the idle income form,
+  // estimate the money earned during each consecutive multiplier period.
+  const rateText = idleRateInput.value.trim();
+  if (rateText !== '') {
+    const rate = Number(rateText);
+    const rateUnit = idleRateUnitInput.value;
+    const rateBase = idleToBase(rate, rateUnit);
+    if (!Number.isFinite(rate) || rate <= 0 || !Number.isFinite(rateBase) || rateBase <= 0) {
+      addText(multiplierResult, 'p', 'hint', '収入予測を行うには、上の収入速度に0より大きい数値を入力してください。時間の計算結果は表示しています。');
+    } else {
+      const heldText = idleHeldInput.value.trim();
+      const heldValue = heldText === '' ? 0 : Number(heldText);
+      const heldUnit = idleHeldUnitInput.value;
+      if (!Number.isFinite(heldValue) || heldValue < 0) {
+        addText(multiplierResult, 'p', 'hint', '所持金が不正な値のため、収入予測では開始時の所持金を0として扱いました。');
+      }
+      const safeHeldValue = Number.isFinite(heldValue) && heldValue >= 0 ? heldValue : 0;
+      const startingCash = idleToBase(safeHeldValue, heldUnit);
+      const eventEarned = rateBase * weightedMultiplierMinutes * 60;
+      const baseEarned = rateBase * totalMinutes * 60;
+      const endCash = startingCash + eventEarned;
+
+      const earningsBreakdown = document.createElement('div');
+      earningsBreakdown.className = 'breakdown';
+      addText(earningsBreakdown, 'strong', '', '💰 倍率中の収入予測');
+      addText(earningsBreakdown, 'p', '', `イベント中の推定増加額：${formatIdleAmount(eventEarned)}`);
+      addText(earningsBreakdown, 'p', '', `倍率なし（1倍）の場合：${formatIdleAmount(baseEarned)}`);
+      addText(earningsBreakdown, 'p', '', `倍率による追加分：${formatIdleAmount(eventEarned - baseEarned)}`);
+      addText(earningsBreakdown, 'p', '', `イベント終了時の推定所持金：${formatIdleAmount(endCash)}`);
+      addText(earningsBreakdown, 'p', 'hint', `基準の収入：${rate} ${rateUnit}/s。開始時の所持金は${heldText === '' ? '0として' : '入力値を使って'}計算しています。`);
+
+      const goalText = idleGoalInput.value.trim();
+      if (goalText !== '') {
+        const goalValue = Number(goalText);
+        const goalUnit = idleGoalUnitInput.value;
+        const goalBase = idleToBase(goalValue, goalUnit);
+        if (Number.isFinite(goalValue) && goalValue >= 0 && Number.isFinite(goalBase)) {
+          let reachedAt = null;
+          let reachedDuring = '';
+          if (startingCash >= goalBase) {
+            reachedAt = startDate;
+            reachedDuring = '開始時点ですでに目標金額に到達しています。';
+          } else {
+            let cashAtStageStart = startingCash;
+            let elapsedSeconds = 0;
+            for (const { multiplier, minutes } of entries) {
+              const stageSeconds = minutes * 60;
+              const stageRate = rateBase * multiplier;
+              const stageEarned = stageRate * stageSeconds;
+              if (cashAtStageStart + stageEarned >= goalBase) {
+                const neededSeconds = (goalBase - cashAtStageStart) / stageRate;
+                reachedAt = new Date(startDate.getTime() + (elapsedSeconds + neededSeconds) * 1000);
+                reachedDuring = `${multiplier}倍の時間中に目標へ到達する予測です。`;
+                break;
+              }
+              cashAtStageStart += stageEarned;
+              elapsedSeconds += stageSeconds;
+            }
+            if (!reachedAt) {
+              const remainingAfterEvent = Math.max(0, goalBase - endCash);
+              reachedAt = new Date(endDate.getTime() + remainingAfterEvent / rateBase * 1000);
+              reachedDuring = '倍率イベント終了後は1倍の収入が続く前提です。';
+            }
+          }
+          addText(earningsBreakdown, 'p', '', `目標金額の到達予定：${formatMultiplierDate(reachedAt)}`);
+          addText(earningsBreakdown, 'p', 'hint', reachedDuring);
+        }
+      }
+      multiplierResult.append(earningsBreakdown);
+    }
+  } else {
+    addText(multiplierResult, 'p', 'hint', '上の「収入速度（毎秒・1倍時の基準）」を入力すると、倍率中の増加額とイベント終了時の所持金も計算します。');
+  }
   document.getElementById("levelincome")?.remove();
 
+  const breakdown = document.createElement('div');
+  breakdown.className = 'breakdown';
+  addText(breakdown, 'strong', '', '倍率ごとの時間（入力順）');
+  const list = document.createElement('ol');
+  for (const { multiplier, minutes } of entries) {
+    const li = document.createElement('li');
+    li.textContent = `${multiplier}倍：${formatMultiplierDuration(minutes)}（${Number(minutes.toFixed(4))}分）`;
+    list.append(li);
+  }
+  breakdown.append(list);
+  multiplierResult.append(breakdown);
+}
+
+document.getElementById('calculateMultiplierTime').addEventListener('click', calculateMultiplierTime);
+document.getElementById('resetMultiplierTime').addEventListener('click', () => {
+  for (const row of multiplierRows.querySelectorAll('.multiplier-row')) {
+    row.querySelector('.multiplier-minutes').value = '';
+  }
+  saveMultiplierDurations();
+  multiplierActivationState = null;
+  saveMultiplierActivationState();
+  renderMultiplierActivationStatus();
+  multiplierStartAt.value = toLocalDateTimeInputValue(new Date());
+  multiplierResult.className = 'result';
+  multiplierResult.replaceChildren();
+});
+
+const savedMultiplierDurations = loadMultiplierDurations();
+for (let multiplier = 1; multiplier <= 12; multiplier++) {
+  createMultiplierRow(multiplier, savedMultiplierDurations[multiplier] ?? '');
+}
+multiplierStartAt.value = toLocalDateTimeInputValue(new Date());
+renderMultiplierActivationStatus();
+if (multiplierActivationState && multiplierActivationState.startedAt + multiplierActivationState.durationMinutes * 60000 > Date.now()) {
+  multiplierActivationTicker = setInterval(renderMultiplierActivationStatus, getCalculationUpdateIntervalMs());
+}
+
+// ブラウザを再読み込みしても進行中の記録や最後の結果を復元する。
+renderIdleUI();
+</script>
+<script>
+(() => {
+  "use strict";
   document
     .querySelectorAll(
       '[data-page="levelincome"], [data-goto="levelincome"]'
     )
     .forEach(element => element.remove());
 
+  // 二重追加を防止
+  if (document.getElementById("levelincome")) {
+    alert("レベル収入計算はすでに追加されています。");
+    return;
+  }
   // ================================================
   // 2. 確認済みのレベル倍率
   // ================================================
 
+  // =============================================
+  // 1. 確認済みレベル倍率データ
+  // =============================================
+  const LEVEL_MULTIPLIERS = {
   const MEASURED_LEVEL_MULTIPLIERS = {
     1: 1,
     2: 1.30,
     3: 1.69,
-    4: 2.20,
-    5: 2.86,
-    6: 3.71,
-    10: 10.6,
-    13: 23.3,
-    14: 30.29,
-    19: 112.46,
-    20: 146.19,
-    24: 417.54,
-    25: 542.8,
-    28: 1192.53,
-    35: 7482.97,
-    38: 16440.08,
-    39: 21372.11,
-    44: 79353.15,
-    45: 103159.09,
-    47: 174338.86,
-    50: 383022.48,
-    53: 661862.84,
-    56: 1141792.83,
-    60: 2351876.88,
-    63: 3993336.56,
-    64: 4764050.52,
-    66: 6723595.01,
-    69: 11131553.56,
-    70: 13168627.87,
-    72: 18026534.68,
-    75: 28871532.3,
-    81: 66946640.42,
-    85: 110318520.08,
-    88: 150467624.85,
-    91: 200046912.02,
-    94: 252702148.14,
-    97: 301171051.91,
-    100: 348643138.97,
-    103: 403598013.75,
-    110: 567686624.72,
-    113: 656548807.89,
-    116: 759017108.46,
-    119: 876775687.93,
-    122: 1011684659.56,
-    125: 1166706713.26,
-    128: 1342598273,
-    131: 1543665407.87,
-    135: 1855053719.86,
-    138: 2122581381.02,
-    141: 2425788151.59,
-    144: 2765684983.22,
-    147: 3144701517.28,
-    150: 3570833393.42,
-    153: 4036315193.23,
-    156: 4554810843.43,
-    157: 4736729988.51,
-    159: 5122656028.73,
-    161: 5529850414.76,
-    162: 5740150626.03,
-    163: 5958448554.34,
-    166: 6651138497.8,
-    175: 9041938050.68,
-    182: 11163218514.88,
-    186: 12469026152.32,
-    188: 13125332850.07,
-    191: 14134923594.94,
-    197: 16110729581.35,
-    200: 17096835117.57,
-    206: 19253813197.76,
-    207: 19638889461.71,
-    209: 20432300595.96,
-    213: 22116579267.86,
-    216: 23470290851.68,
-    219: 24906860414.13,
-    228: 29766003788.65,
-    231: 31587921348.54,
-    232: 32219679775.51,
-    234: 33521354838.44,
-    235: 34191781935.21,
-    238: 36284592523.9,
-    241: 38505499863.1,
-    244: 40862344498.73,
-    250: 46017636737.48,
-    253: 48834284246.91,
-    256: 51823333117.1,
-    257: 52859799779.44,
-    259: 54995335690.53,
-    260: 56095242404.34,
-    262: 58361490197.47,
-    263: 59528720001.42,
-    272: 71142330893.3,
-    278: 80117819470.88,
-    279: 81720175860.3,
-    281: 85021670965.05,
-    282: 86722104384.35,
-    287: 95748210663.87,
-    288: 97663174877.15,
-    294: 109984597292.65,
-    297: 116716534523.74,
-    300: 123860520168.87,
-    303: 129518267456.84,
-    306: 135433117117.51,
-    307: 137463259543.1,
-    309: 141615296072.37,
-    312: 148065086931.65,
-    313: 150277179330.41,
-    316: 157104442793.61,
-    323: 174165824753.3,
-    325: 179352212778.76,
-    328: 187350785513.99,
-    330: 192880373223.52,
-    331: 195677138635.26,
-    332: 198514457145.47,
-    334: 204313114067.3,
-    337: 213254533401.29,
-    338: 216308338319.6,
-    340: 222547765836.07,
-    341: 225687914812.02,
-    347: 245370121150.41,
-    348: 248775858431.98,
-    350: 255729804025.79,
-    351: 259210286658.58,
-    353: 266314004727.17,
-    356: 277256919030.68,
-    357: 280949981192.17,
-    359: 288484335511.08,
-    360: 292326946860.08,
-    362: 299982773305.64,
-    363: 303885549186.35,
-    364: 307839100181.26,
-    365: 311844086874.62,
-    367: 319789960152.41,
-    368: 323838501047.94,
-    369: 327938296471.21,
-    371: 336171381346.83,
-    375: 353004730528.56,
-    376: 357198426727.24,
-    378: 365735874331.92,
-    381: 378765142581.52,
-    382: 383102003464.08,
-    384: 391925264973.81,
-    385: 396412809257.76,
-    387: 405181857011.36,
-    388: 409638857438.48,
-    390: 418700478603.88,
-    391: 423101020634,
-    393: 432041339868.78,
-    394: 436582094350.8,
-    396: 445582277884.05,
+@@ -2212,202 +178,324 @@ <h1>🔄 リバース費用計算</h1>
     397: 450038100662.89
   };
 
+  // =============================================
+  // 2. キャラクター名・基礎収入データ
+  // =============================================
+  // unit が "1" の場合は通常の数値/s、
+  // "M" の場合は M/s として扱う。
   /*
-   * 未確認のレベルは、前後の確認済み倍率を使って対数補間する。
-   * 補間値は実測値ではないため、画面に「推定値」と表示する。
+   * 400レベルを埋めるため、未確認のレベルは
+   * 前後の確認済み倍率を使って対数補間する。
+   *
+   * 補間値は実測値ではないので、画面に推定値と表示する。
    */
-
   const LEVEL_MULTIPLIERS = {};
   const ESTIMATED_LEVELS = new Set();
 
@@ -208,7 +2125,6 @@
 
     for (const knownLevel of knownLevels) {
       if (knownLevel < level) lowerLevel = knownLevel;
-
       if (knownLevel > level) {
         upperLevel = knownLevel;
         break;
@@ -218,11 +2134,8 @@
     let estimatedValue;
 
     if (lowerLevel !== null && upperLevel !== null) {
-      const lowValue =
-        MEASURED_LEVEL_MULTIPLIERS[lowerLevel];
-
-      const highValue =
-        MEASURED_LEVEL_MULTIPLIERS[upperLevel];
+      const lowValue = MEASURED_LEVEL_MULTIPLIERS[lowerLevel];
+      const highValue = MEASURED_LEVEL_MULTIPLIERS[upperLevel];
 
       const fraction =
         (level - lowerLevel) / (upperLevel - lowerLevel);
@@ -280,6 +2193,60 @@
   // ================================================
 
   const CHARACTERS = [
+    {r:"Ascended",n:"Tung Tung Tung Asce…",v:67,u:"1"},
+    {r:"Ascended",n:"Mega Yachtadon",v:53,u:"M"},
+    {r:"Ascended",n:"Il Cannone Dominatore",v:55,u:"M"},
+    {r:"Ascended",n:"Horseidon",v:56,u:"M"},
+    {r:"Ascended",n:"Arcangelo Mantisio",v:58,u:"M"},
+    {r:"Ascended",n:"Gorgonzilla",v:60,u:"M"},
+    {r:"Ascended",n:"Pumpkinator",v:61,u:"M"},
+    {r:"Ascended",n:"Titanocchio",v:65,u:"M"},
+    {r:"Ascended",n:"Lionaldo",v:66,u:"M"},
+    {r:"Ascended",n:"Goatini Messini",v:66,u:"M"},
+    {r:"Ascended",n:"Wreckzilla 67",v:67,u:"M"},
+    {r:"Ascended",n:"Chronomondo",v:70,u:"M"},
+    {r:"Ascended",n:"King Kongini Bananini",v:71,u:"M"},
+    {r:"Ascended",n:"Chickeninio Paladino",v:72,u:"M"},
+    {r:"Ascended",n:"Sir Pegasusio",v:74,u:"M"},
+    {r:"Ascended",n:"Bearini Plammini Gua…",v:75,u:"M"},
+    {r:"Ascended",n:"Il Marionetto",v:77,u:"M"},
+    {r:"Ascended",n:"Triceradon",v:80,u:"M"},
+    {r:"Ascended",n:"La Catrina Mariposa",v:85,u:"M"},
+    {r:"Ascended",n:"Sunculus Ferris",v:90,u:"M"},
+    {r:"Ascended",n:"Servissimo",v:93,u:"M"},
+    {r:"Ascended",n:"Guro Guro",v:95,u:"M"},
+    {r:"Ascended",n:"Capitano Moby",v:100,u:"M"},
+    {r:"Ascended",n:"Doom Doom Doom Sa…",v:105,u:"M"},
+    {r:"Ascended",n:"Garbagzilla",v:110,u:"M"},
+    {r:"Ascended",n:"Il Demonico Maskino",v:115,u:"M"},
+    {r:"Ascended",n:"Demon Ship",v:117,u:"M"},
+    {r:"Ascended",n:"Cerberus",v:120,u:"M"},
+    {r:"Ascended",n:"Vulkarion",v:125,u:"M"},
+    {r:"Ascended",n:"Godgodzilla",v:127,u:"M"},
+    {r:"Ascended",n:"Bulzilla",v:130,u:"M"},
+    {r:"Ascended",n:"Witchantula",v:133,u:"M"},
+    {r:"Ascended",n:"Golemcoluss",v:135,u:"M"},
+    {r:"Ascended",n:"Kingorilla",v:140,u:"M"},
+    {r:"Ascended",n:"Fishini Mechinini",v:145,u:"M"},
+    {r:"Ascended",n:"Don Guitarion",v:147,u:"M"},
+    {r:"Ascended",n:"Ghost Cavallo Skeleto…",v:150,u:"M"},
+    {r:"Ascended",n:"Gargolini",v:153,u:"M"},
+    {r:"Ascended",n:"Cementzilla",v:155,u:"M"},
+    {r:"Ascended",n:"Triplelaledon",v:160,u:"M"},
+    {r:"Ascended",n:"Accordissimo",v:165,u:"M"},
+    {r:"Ascended",n:"Cavezilla",v:170,u:"M"},
+    {r:"Ascended",n:"Checkmate",v:173,u:"M"},
+    {r:"Ascended",n:"Drago Polpo",v:175,u:"M"},
+    {r:"Ascended",n:"Headless Pumpkin",v:180,u:"M"},
+    {r:"Ascended",n:"Klombo",v:185,u:"M"},
+
+    {r:"Forbidden",n:"Hydralitraktos Spidoro…",v:200,u:"M"},
+    {r:"Forbidden",n:"Chimera",v:210,u:"M"},
+    {r:"Forbidden",n:"Meowberus",v:215,u:"M"},
+    {r:"Forbidden",n:"Hydragoni Skeletoni",v:225,u:"M"},
+    {r:"Forbidden",n:"Kitsune",v:230,u:"M"},
+    {r:"Forbidden",n:"Gigaclops",v:240,u:"M"},
+    {r:"Forbidden",n:"Chainsawatron",v:250,u:"M"}
     {rarity:"Ascended", name:"Tung Tung Tung Asce…", income:67, unit:"1"},
     {rarity:"Ascended", name:"Mega Yachtadon", income:53, unit:"M"},
     {rarity:"Ascended", name:"Il Cannone Dominatore", income:55, unit:"M"},
@@ -326,6 +2293,7 @@
     {rarity:"Ascended", name:"Drago Polpo", income:175, unit:"M"},
     {rarity:"Ascended", name:"Headless Pumpkin", income:180, unit:"M"},
     {rarity:"Ascended", name:"Klombo", income:185, unit:"M"},
+
     {rarity:"Forbidden", name:"Hydralitraktos Spidoro…", income:200, unit:"M"},
     {rarity:"Forbidden", name:"Chimera", income:210, unit:"M"},
     {rarity:"Forbidden", name:"Meowberus", income:215, unit:"M"},
@@ -335,6 +2303,9 @@
     {rarity:"Forbidden", name:"Chainsawatron", income:250, unit:"M"}
   ];
 
+  // =============================================
+  // 3. デザイン
+  // =============================================
   // ================================================
   // 4. デザイン
   // ================================================
@@ -355,19 +2326,23 @@
     .level-income-status {
       margin-top:14px;
       padding:12px 14px;
+      border:1px solid var(--border);
       border:1px solid var(--border,#30364d);
       border-radius:12px;
       background:#ffffff05;
+      color:var(--muted);
       color:var(--muted,#a7aec4);
       overflow-wrap:anywhere;
     }
 
     .level-income-status strong {
+      color:var(--accent2);
       color:var(--accent2,#5ce1c0);
     }
 
     .level-income-table {
       display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
       grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
       gap:8px;
       margin-top:12px;
@@ -376,8 +2351,10 @@
     .level-income-entry {
       display:flex;
       flex-direction:column;
+      gap:3px;
       gap:4px;
       min-width:0;
+      border:1px solid var(--border);
       border:1px solid var(--border,#30364d);
       border-radius:10px;
       padding:10px;
@@ -386,6 +2363,7 @@
     }
 
     .level-income-entry strong {
+      color:var(--accent2);
       color:var(--accent2,#5ce1c0);
     }
 
@@ -402,6 +2380,7 @@
 
     .level-income-result-item {
       min-width:0;
+      border:1px solid var(--border);
       border:1px solid var(--border,#30364d);
       border-radius:12px;
       padding:12px;
@@ -413,6 +2392,7 @@
     }
 
     .level-income-result-item .label {
+      color:var(--muted);
       color:var(--muted,#a7aec4);
       font-size:.85rem;
     }
@@ -423,10 +2403,12 @@
 
     .level-income-result-item.final {
       grid-column:1/-1;
+      border-color:var(--accent2);
       border-color:var(--accent2,#5ce1c0);
     }
 
     .level-income-result-item.final .value {
+      color:var(--accent2);
       color:var(--accent2,#5ce1c0);
       font-size:1.5rem;
     }
@@ -434,6 +2416,7 @@
     .level-income-details {
       margin-top:18px;
       padding:13px;
+      border:1px solid var(--border);
       border:1px solid var(--border,#30364d);
       border-radius:12px;
     }
@@ -458,6 +2441,9 @@
 
   document.head.appendChild(style);
 
+  // =============================================
+  // 4. 計算ページを作成
+  // =============================================
   // ================================================
   // 5. 計算ページを作る
   // ================================================
@@ -480,10 +2466,12 @@
         <div class="level-income-grid">
 
           <div class="field wide">
+            <label for="levelCharacterSelect">キャラクターを選択</label>
             <label for="levelCharacterSelect">キャラクター</label>
             <select id="levelCharacterSelect">
               <option value="">キャラクターを選択してください</option>
             </select>
+            <p class="hint">選択すると基礎収入が自動入力されます。</p>
             <p class="hint">
               選択するとキャラクター名・基礎収入・単位が自動入力されます。
             </p>
@@ -492,40 +2480,24 @@
           <div class="field">
             <label for="levelCharacterName">キャラクター名</label>
             <input id="levelCharacterName" type="text"
+              placeholder="キャラクター名">
                    placeholder="キャラクター名">
           </div>
 
           <div class="field">
             <label for="levelBaseIncome">基礎収入</label>
             <input id="levelBaseIncome" type="number"
+              min="0" step="any" placeholder="例：53" required>
                    min="0" step="any" placeholder="例：53" required>
           </div>
 
           <div class="field">
-            <label for="levelBaseUnit">収入の単位</label>
-            <select id="levelBaseUnit">
-              <option value="No">No/s</option>
-              <option value="Oc">Oc/s</option>
-              <option value="Sp">Sp/s</option>
-              <option value="Sx">Sx/s</option>
-              <option value="Qi">Qi/s</option>
-              <option value="Qa">Qa/s</option>
-              <option value="T">T/s</option>
-              <option value="B">B/s</option>
-              <option value="M" selected>M/s</option>
-              <option value="K">K/s</option>
-              <option value="1">通常の数値/s</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="levelIncomeLevel">レベル（1〜400）</label>
-            <select id="levelIncomeLevel"></select>
-          </div>
-
+@@ -2435,27 +523,31 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
           <div class="field">
             <label for="levelIncomeMultiplier">レベル倍率</label>
             <input id="levelIncomeMultiplier" type="number"
+              min="0" step="any" required>
+            <p class="hint">未登録のレベルは実測倍率を入力してください。</p>
                    min="0" step="any" required>
             <p class="hint">
               倍率が未確認のレベルは推定値が入り、手動で修正できます。
@@ -535,61 +2507,69 @@
           <div class="field">
             <label for="levelMutationMultiplier">変異倍率</label>
             <input id="levelMutationMultiplier" type="number"
+              min="0" step="any" value="1" required>
                    min="0" step="any" value="1" required>
             <p class="hint">変異がない場合は1。</p>
           </div>
 
           <div class="field">
+            <label for="levelEventMultiplier">イベント・その他倍率</label>
             <label for="levelEventMultiplier">イベント・その他の倍率</label>
             <input id="levelEventMultiplier" type="number"
+              min="0" step="any" value="1" required>
                    min="0" step="any" value="1" required>
             <p class="hint">追加倍率がない場合は1。</p>
           </div>
 
         </div>
 
+        <div id="levelIncomeStatus" class="level-income-status"
+          aria-live="polite"></div>
         <div id="levelIncomeStatus"
              class="level-income-status"
              aria-live="polite"></div>
 
         <div class="actions">
           <button class="btn primary" type="submit">収入を計算</button>
-          <button class="btn" type="reset">リセット</button>
-        </div>
+@@ -2464,16 +556,18 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
       </form>
 
       <div id="levelIncomeResult" class="result"
+        aria-live="polite"></div>
            aria-live="polite"></div>
 
       <div class="notice">
+        計算式：基礎収入 × レベル倍率 × 変異倍率 × イベント倍率。
+        未登録のレベルは推測で補完しません。
         計算式：基礎収入 × レベル倍率 × 変異倍率 × イベント・その他倍率。
         実測値と推定値は区別して表示します。
       </div>
 
       <details class="level-income-details">
         <summary>登録済みのレベル倍率一覧</summary>
+        <p class="hint">確認済みのレベル倍率のみ表示します。</p>
         <p class="hint">
           実測値と推定値を区別して確認できます。
         </p>
         <div id="levelMultiplierList" class="level-income-table"></div>
       </details>
 
-      <details class="level-income-details">
-        <summary>キャラクター53体の一覧</summary>
-        <div id="levelCharacterList" class="level-income-table"></div>
-      </details>
-    </div>
+@@ -2485,69 +579,100 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
   `;
 
   const main = document.querySelector("main");
 
   if (!main) {
+    alert("サイトのmain要素が見つかりません。");
     console.error("GOUP Calculator: main要素が見つかりません。");
     return;
   }
 
   main.appendChild(section);
 
+  // =============================================
+  // 5. サイドバー・ホームにリンクを追加
+  // =============================================
   // ================================================
   // 6. サイドバーとホームへのリンク
   // ================================================
@@ -625,6 +2605,13 @@
   }
 
   if (sidebar) {
+    const nav = document.createElement("button");
+    nav.type = "button";
+    nav.className = "sidebar-link";
+    nav.dataset.page = "levelincome";
+    nav.textContent = "🧬 レベル収入計算";
+    nav.addEventListener("click", () => window.showPage("levelincome"));
+    sidebar.appendChild(nav);
     const navButton = document.createElement("button");
 
     navButton.type = "button";
@@ -648,6 +2635,8 @@
 
     tile.innerHTML =
       "<strong>🧬 レベル収入計算</strong>" +
+      "<span>キャラクターを選択し、レベル・変異・イベント倍率を適用します。</span>";
+    tile.addEventListener("click", () => window.showPage("levelincome"));
       "<span>キャラクター・レベル・変異・イベント倍率から収入を計算します。</span>";
 
     tile.addEventListener("click", openLevelIncomePage);
@@ -655,18 +2644,41 @@
     homeTiles.appendChild(tile);
   }
 
+  // 既存ページ切り替えも、新しく追加したページに対応させる
+  window.showPage = function (id) {
+    document.querySelectorAll(".page").forEach(page => {
+      page.classList.toggle("active", page.id === id);
+    });
   // ================================================
   // 7. 入力欄とキャラクター一覧
   // ================================================
 
+    document.querySelectorAll(".sidebar-link").forEach(button => {
+      button.classList.toggle("active", button.dataset.page === id);
+    });
   const characterSelect =
     document.getElementById("levelCharacterSelect");
 
+    const currentSidebar = document.getElementById("appSidebar");
+    if (currentSidebar?.classList.contains("open")) {
+      document.getElementById("sidebarClose")?.click();
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const levelSelect =
     document.getElementById("levelIncomeLevel");
 
+  // =============================================
+  // 6. 入力欄・キャラクター一覧を設定
+  // =============================================
+  const characterSelect = document.getElementById("levelCharacterSelect");
+  const levelSelect = document.getElementById("levelIncomeLevel");
   const levelMultiplierInput =
     document.getElementById("levelIncomeMultiplier");
+  const status = document.getElementById("levelIncomeStatus");
+  const result = document.getElementById("levelIncomeResult");
+  const form = document.getElementById("levelIncomeForm");
 
   const status =
     document.getElementById("levelIncomeStatus");
@@ -679,12 +2691,14 @@
 
   const rarityLabels = {
     Ascended: "アセンデッド",
-    Forbidden: "禁止"
-  };
-
+@@ -2557,126 +682,171 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
   const groups = {};
 
   CHARACTERS.forEach((character, index) => {
+    if (!groups[character.r]) {
+      groups[character.r] = document.createElement("optgroup");
+      groups[character.r].label = rarityLabels[character.r] || character.r;
+      characterSelect.appendChild(groups[character.r]);
     if (!groups[character.rarity]) {
       const group = document.createElement("optgroup");
 
@@ -699,6 +2713,9 @@
 
     option.value = String(index);
     option.textContent =
+      character.n + " — " +
+      character.v.toLocaleString("ja-JP") + character.u + "/s";
+    groups[character.r].appendChild(option);
       character.name + " — " +
       character.income.toLocaleString("ja-JP") +
       (character.unit === "1"
@@ -714,9 +2731,12 @@
     item.className = "level-income-entry";
 
     const name = document.createElement("span");
+    name.textContent = character.n;
     name.textContent = character.name;
 
     const income = document.createElement("strong");
+    income.textContent = character.v.toLocaleString("ja-JP") +
+      (character.u === "1" ? "/s" : character.u + "/s");
 
     income.textContent =
       character.income.toLocaleString("ja-JP") +
@@ -726,10 +2746,12 @@
 
     const rarity = document.createElement("span");
     rarity.className = "hint";
+    rarity.textContent = rarityLabels[character.r] || character.r;
     rarity.textContent =
       rarityLabels[character.rarity] || character.rarity;
 
     item.append(name, income, rarity);
+    document.getElementById("levelCharacterList").appendChild(item);
 
     document
       .getElementById("levelCharacterList")
@@ -759,21 +2781,33 @@
 
   function updateLevelMultiplier(resetValue) {
     const level = Number(levelSelect.value);
+    const known = Object.prototype.hasOwnProperty.call(
+      LEVEL_MULTIPLIERS, String(level)
+    );
     const value = LEVEL_MULTIPLIERS[level];
     const estimated = ESTIMATED_LEVELS.has(level);
 
     if (resetValue) {
+      levelMultiplierInput.value = known
+        ? String(LEVEL_MULTIPLIERS[level])
+        : "";
       levelMultiplierInput.value = String(value);
     }
 
+    if (known) {
     if (estimated) {
       status.innerHTML =
+        "<strong>登録済み：</strong> レベル " + level + " は " +
+        LEVEL_MULTIPLIERS[level].toLocaleString("ja-JP") +
+        " 倍。登録済みの実測データを使用できます。";
         "<strong>推定値：</strong> レベル " + level +
         " の倍率は約 " + formatMultiplier(value) +
         " 倍です。前後の実測値から補間した値なので、" +
         "ゲーム内で確認できた正確な倍率があれば入力欄を修正してください。";
     } else {
       status.innerHTML =
+        "<strong>未登録：</strong> レベル " + level +
+        " の倍率は未登録です。確認した倍率を手入力してください。";
         "<strong>実測データ：</strong> レベル " + level +
         " の倍率は " + formatMultiplier(value) +
         " 倍です。";
@@ -789,6 +2823,9 @@
 
     if (!character) return;
 
+    document.getElementById("levelCharacterName").value = character.n;
+    document.getElementById("levelBaseIncome").value = character.v;
+    document.getElementById("levelBaseUnit").value = character.u;
     document.getElementById("levelCharacterName").value =
       character.name;
 
@@ -803,11 +2840,25 @@
     updateLevelMultiplier(true);
   });
 
+  // =============================================
+  // 7. 金額の単位変換・表示
+  // =============================================
   // ================================================
   // 9. 数値と単位の表示
   // ================================================
 
   const unitPower = {
+    "1":0,
+    K:1,
+    M:2,
+    B:3,
+    T:4,
+    Qa:5,
+    Qi:6,
+    Sx:7,
+    Sp:8,
+    Oc:9,
+    No:10
     "1": 0,
     K: 1,
     M: 2,
@@ -822,6 +2873,8 @@
   };
 
   function formatIncome(value) {
+    if (!Number.isFinite(value)) return "計算範囲外";
+    if (value === 0) return "0/s";
     if (!Number.isFinite(value)) {
       return "計算範囲外";
     }
@@ -831,6 +2884,16 @@
     }
 
     const units = [
+      ["No",10],
+      ["Oc",9],
+      ["Sp",8],
+      ["Sx",7],
+      ["Qi",6],
+      ["Qa",5],
+      ["T",4],
+      ["B",3],
+      ["M",2],
+      ["K",1]
       ["No", 10],
       ["Oc", 9],
       ["Sp", 8],
@@ -847,38 +2910,31 @@
       const scale = Math.pow(1000, power);
 
       if (Math.abs(value) >= scale) {
+        return (value / scale).toLocaleString("ja-JP", {
         return (
           value / scale
         ).toLocaleString("ja-JP", {
           maximumFractionDigits: 6
         }) + " " + unit + "/s";
       }
-    }
-
-    return value.toLocaleString("ja-JP", {
-      maximumFractionDigits: 8
-    }) + "/s";
-  }
+@@ -2689,7 +859,9 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
 
   function addResultItem(parent, label, value, finalItem) {
     const box = document.createElement("div");
+    box.className = "level-income-result-item" +
 
     box.className =
       "level-income-result-item" +
       (finalItem ? " final" : "");
 
     const labelNode = document.createElement("span");
-    labelNode.className = "label";
-    labelNode.textContent = label;
-
-    const valueNode = document.createElement("span");
-    valueNode.className = "value";
-    valueNode.textContent = value;
-
-    box.append(labelNode, valueNode);
+@@ -2704,42 +876,52 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
     parent.appendChild(box);
   }
 
+  // =============================================
+  // 8. 計算
+  // =============================================
   function showError(message) {
     result.className = "result show error";
     result.replaceChildren();
@@ -901,11 +2957,13 @@
       document.getElementById("levelBaseIncome").value.trim();
 
     const baseIncome = Number(baseText);
+    const baseUnit = document.getElementById("levelBaseUnit").value;
 
     const baseUnit =
       document.getElementById("levelBaseUnit").value;
 
     const level = Number(levelSelect.value);
+    const levelMultiplierText = levelMultiplierInput.value.trim();
 
     const levelMultiplierText =
       levelMultiplierInput.value.trim();
@@ -925,57 +2983,46 @@
     const characterName =
       document.getElementById("levelCharacterName").value.trim();
 
-    if (
-      baseText === "" ||
-      !Number.isFinite(baseIncome) ||
-      baseIncome < 0
-    ) {
-      showError("基礎収入を確認してください。");
-      return;
+    function showError(message) {
+      result.className = "result show error";
+      result.replaceChildren();
+
+      const title = document.createElement("div");
+      title.className = "big";
+      title.textContent = message;
+      result.appendChild(title);
     }
 
     if (
-      levelMultiplierText === "" ||
+      baseText === "" ||
+      !Number.isFinite(baseIncome) ||
+@@ -2754,7 +936,7 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
       !Number.isFinite(levelMultiplier) ||
       levelMultiplier <= 0
     ) {
+      showError("レベル倍率を入力してください。");
       showError("レベル倍率を確認してください。");
       return;
     }
 
-    if (
-      mutationText === "" ||
-      !Number.isFinite(mutationMultiplier) ||
-      mutationMultiplier <= 0 ||
-      eventText === "" ||
-      !Number.isFinite(eventMultiplier) ||
-      eventMultiplier <= 0
-    ) {
-      showError("変異・イベント倍率を確認してください。");
-      return;
-    }
-
-    const baseValue =
+@@ -2774,7 +956,9 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
       baseIncome * Math.pow(1000, unitPower[baseUnit] ?? 0);
 
     const totalMultiplier =
+      levelMultiplier * mutationMultiplier * eventMultiplier;
       levelMultiplier *
       mutationMultiplier *
       eventMultiplier;
 
     const finalIncome = baseValue * totalMultiplier;
 
-    if (!Number.isFinite(finalIncome)) {
-      showError("計算範囲を超えています。入力値を確認してください。");
-      return;
-    }
-
-    result.className = "result show";
+@@ -2787,62 +971,97 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
     result.replaceChildren();
 
     const title = document.createElement("div");
 
     title.className = "big";
+    title.textContent = "計算結果：" + formatIncome(finalIncome);
     title.textContent =
       "計算結果：" + formatIncome(finalIncome);
 
@@ -992,8 +3039,18 @@
     grid.className = "level-income-result-grid";
 
     addResultItem(grid, "レベル", String(level), false);
+    addResultItem(
+      grid, "レベル倍率",
+      levelMultiplier.toLocaleString("ja-JP") + " 倍", false
+      grid,
+      "レベル",
+      String(level),
+      false
+    );
 
     addResultItem(
+      grid, "変異倍率",
+      mutationMultiplier.toLocaleString("ja-JP") + " 倍", false
       grid,
       "レベル倍率",
       formatMultiplier(levelMultiplier) + " 倍",
@@ -1001,6 +3058,8 @@
     );
 
     addResultItem(
+      grid, "イベント・その他倍率",
+      eventMultiplier.toLocaleString("ja-JP") + " 倍", false
       grid,
       "変異倍率",
       formatMultiplier(mutationMultiplier) + " 倍",
@@ -1008,6 +3067,10 @@
     );
 
     addResultItem(
+      grid, "合計倍率",
+      totalMultiplier.toLocaleString("ja-JP", {
+        maximumFractionDigits: 10
+      }) + " 倍", false
       grid,
       "イベント・その他倍率",
       formatMultiplier(eventMultiplier) + " 倍",
@@ -1015,6 +3078,7 @@
     );
 
     addResultItem(
+      grid, "基礎収入",
       grid,
       "合計倍率",
       formatMultiplier(totalMultiplier) + " 倍",
@@ -1025,6 +3089,7 @@
       grid,
       "基礎収入",
       baseIncome.toLocaleString("ja-JP") +
+        (baseUnit === "1" ? "/s" : " " + baseUnit + "/s"),
         (baseUnit === "1"
           ? "/s"
           : " " + baseUnit + "/s"),
@@ -1032,6 +3097,8 @@
     );
 
     addResultItem(
+      grid, "最終的な毎秒の収入",
+      formatIncome(finalIncome), true
       grid,
       "最終的な毎秒の収入",
       formatIncome(finalIncome),
@@ -1042,6 +3109,12 @@
 
     const note = document.createElement("p");
     note.className = "hint";
+    note.textContent =
+      Object.prototype.hasOwnProperty.call(
+        LEVEL_MULTIPLIERS, String(level)
+      )
+      ? "登録済み倍率、または入力した倍率を使用しました。"
+      : "このレベルは未登録のため、入力された倍率を使用しました。";
 
     if (ESTIMATED_LEVELS.has(level)) {
       note.textContent =
@@ -1063,13 +3136,35 @@
   form.addEventListener("reset", () => {
     setTimeout(() => {
       characterSelect.value = "";
-      levelSelect.value = "1";
-      result.className = "result";
-      result.replaceChildren();
-      updateLevelMultiplier(true);
+@@ -2853,41 +1072,44 @@ <h1>🧬 キャラクターのレベル収入計算</h1>
     }, 0);
   });
 
+  // =============================================
+  // 9. 倍率一覧を表示
+  // =============================================
+  const multiplierList = document.getElementById("levelMultiplierList");
+
+  Object.entries(LEVEL_MULTIPLIERS)
+    .map(([level, multiplier]) => ({
+      level: Number(level),
+      multiplier
+    }))
+    .sort((a, b) => a.level - b.level)
+    .forEach(({level, multiplier}) => {
+      const item = document.createElement("div");
+      item.className = "level-income-entry";
+
+      const levelText = document.createElement("span");
+      levelText.textContent = "レベル " + level;
+
+      const multiplierText = document.createElement("strong");
+      multiplierText.textContent =
+        multiplier.toLocaleString("ja-JP") + " 倍";
+
+      item.append(levelText, multiplierText);
+      multiplierList.appendChild(item);
+    });
   // ================================================
   // 12. レベル倍率の一覧
   // ================================================
@@ -1101,6 +3196,10 @@
   updateLevelMultiplier(true);
 
   console.log(
+    "GOUP レベル収入計算を追加しました。",
+    "倍率データ:", Object.keys(LEVEL_MULTIPLIERS).length,
+    "レベル / 400",
+    "キャラクターデータ:", CHARACTERS.length, "体"
     "GOUP レベル収入計算機を追加しました。",
     "レベル数：400",
     "実測倍率：" +
@@ -1111,3 +3210,5 @@
 
 })();
 </script>
+</body>
+</html>
