@@ -108,7 +108,19 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-character-entry{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#ffffff04;font-size:.88rem;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .level-character-entry .character-meta{display:block;color:var(--muted);font-size:.78rem}
 .level-character-entry strong{color:var(--accent2);text-align:right;white-space:nowrap}
-@media(max-width:560px){.level-income-form-grid,.level-income-result-grid{grid-template-columns:1fr}.level-income-result-item.primary-income{grid-column:auto}.level-character-select-field{grid-column:auto}}
+.level-event-settings-field{grid-column:1/-1;border:1px solid var(--border);border-radius:14px;padding:14px;background:#ffffff03}
+.level-event-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px}
+.level-trait-fieldset{margin:14px 0 0;padding:12px;border:1px solid var(--border);border-radius:12px;min-width:0}
+.level-trait-fieldset legend{padding:0 6px;font-weight:800;font-size:.92rem}
+.level-trait-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.level-trait-option{display:flex;align-items:center;gap:8px;min-width:0;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#ffffff05;cursor:pointer}
+.level-trait-option input{width:18px;height:18px;flex:0 0 auto;margin:0;accent-color:var(--accent2)}
+.level-trait-option span{display:flex;justify-content:space-between;align-items:center;gap:4px;min-width:0;width:100%;font-size:.88rem;overflow-wrap:anywhere}
+.level-trait-option strong{color:var(--accent2);white-space:nowrap}
+.level-trait-option:has(input:checked){border-color:var(--accent2);background:#5ce1c010}
+.level-event-trait-summary{margin-top:12px;padding:10px 12px;background:#111625;border-radius:10px;border:1px solid var(--border);font-size:.88rem;color:var(--muted);overflow-wrap:anywhere}
+.level-event-trait-summary strong{color:var(--accent2)}
+@media(max-width:560px){.level-income-form-grid,.level-income-result-grid,.level-event-controls{grid-template-columns:1fr}.level-income-result-item.primary-income{grid-column:auto}.level-character-select-field,.level-event-settings-field{grid-column:auto}.level-trait-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .level-income-list-item .level-income-state{color:var(--muted);font-size:.78rem;min-width:48px;text-align:right}
 
 </style>
@@ -335,13 +347,62 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
       <div class="field"><label for="levelIncomeLevel">キャラクターレベル（1〜400）</label><select id="levelIncomeLevel" required></select><p class="hint">実測値があればそれを使い、未確認レベルは推定値を自動入力します。</p></div>
       <div class="field"><label for="levelIncomeMultiplier">レベル倍率</label><input id="levelIncomeMultiplier" type="number" min="0" step="any" placeholder="未登録レベルは倍率を入力" required><p class="hint">登録済み倍率は自動入力。未登録レベルは実測値を入力してください。</p></div>
       <div class="field"><label for="levelMutationMultiplier">変異倍率</label><input id="levelMutationMultiplier" type="number" min="0" step="any" value="1" required><p class="hint">変異がなければ1。例：2倍なら「2」と入力します。</p></div>
-      <div class="field"><label for="levelEventMultiplier">イベント・その他の追加倍率</label><input id="levelEventMultiplier" type="number" min="0" step="any" value="1" required><p class="hint">追加倍率がなければ1。複数の倍率は個別に入力して掛け合わせます。</p></div>
+      <div class="field level-event-settings-field">
+        <label>イベント・その他の追加倍率</label>
+        <p class="hint">イベント変異を選ぶと倍率が自動で適用されます。特性は画像の説明どおり、変異倍率（x1が標準）に加算されます。</p>
+        <div class="level-event-controls">
+          <div class="field">
+            <label for="levelEventPreset">イベント変異（1つ選択）</label>
+            <select id="levelEventPreset">
+              <option value="1" data-event-name="デフォルト">デフォルト ×1</option>
+              <option value="1.25" data-event-name="シルバー">シルバー ×1.25</option>
+              <option value="1.5" data-event-name="ゴールド">ゴールド ×1.5</option>
+              <option value="5" data-event-name="紅">紅 ×5</option>
+              <option value="3" data-event-name="クリスタル">クリスタル ×3</option>
+              <option value="4" data-event-name="ブラッドムーン">ブラッドムーン ×4</option>
+              <option value="6" data-event-name="キャンディ">キャンディ ×6</option>
+              <option value="6.5" data-event-name="サイバー">サイバー ×6.5</option>
+              <option value="7" data-event-name="パーティー">パーティー ×7</option>
+              <option value="7.5" data-event-name="白黒">白黒 ×7.5</option>
+              <option value="8" data-event-name="水中">水中 ×8</option>
+              <option value="8.5" data-event-name="マグマ">マグマ ×8.5</option>
+              <option value="9" data-event-name="フットボール">フットボール ×9</option>
+              <option value="9.5" data-event-name="サマー">サマー ×9.5</option>
+              <option value="10" data-event-name="ドリーミー">ドリーミー ×10</option>
+              <option value="10.5" data-event-name="ギャラクシー">ギャラクシー ×10.5</option>
+              <option value="11" data-event-name="放射能">放射能 ×11</option>
+              <option value="12" data-event-name="ハロウィン">ハロウィン ×12</option>
+              <option value="12" data-event-name="Dia de Muertos">Dia de Muertos ×12</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="levelEventMultiplier">その他の追加倍率</label>
+            <input id="levelEventMultiplier" type="number" min="0" step="any" value="1" required>
+            <p class="hint">イベント以外の追加倍率。なければ1です。</p>
+          </div>
+        </div>
+        <fieldset class="level-trait-fieldset">
+          <legend>特性（ミューテーション倍率に加算・x1が標準）</legend>
+          <div class="level-trait-grid">
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="3" data-trait-name="アステロイド"><span>☄️ アステロイド <strong>+3</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2" data-trait-name="雷"><span>⚡ 雷 <strong>+2</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2" data-trait-name="火"><span>🔥 火 <strong>+2</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2" data-trait-name="波"><span>🌊 波 <strong>+2</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2.5" data-trait-name="マグマ"><span>🌋 マグマ <strong>+2.5</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="1.5" data-trait-name="雨"><span>🌧️ 雨 <strong>+1.5</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="3.5" data-trait-name="ハッカー"><span>🎭 ハッカー <strong>+3.5</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="4" data-trait-name="Ghost"><span>👻 Ghost <strong>+4</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="4" data-trait-name="Pumpkin"><span>🎃 Pumpkin <strong>+4</strong></span></label>
+          </div>
+        </fieldset>
+        <div id="levelEventTraitSummary" class="level-event-trait-summary" aria-live="polite"></div>
+      </div>
     </div>
     <div id="levelIncomeDataStatus" class="level-income-data-status" aria-live="polite"></div>
     <div class="actions"><button class="btn primary" type="submit">収入を計算</button><button class="btn" type="reset">リセット</button></div>
   </form>
   <div id="levelIncomeResult" class="result" aria-live="polite"></div>
-  <div class="notice">登録済みのレベル倍率は君が送ってくれた実測データを使っています。未登録のレベルは倍率を推測で補完しません。未登録の場合はゲームで確認した倍率を入力すれば計算できます。結果は「基礎収入 × レベル倍率 × 変異倍率 × イベント・その他倍率」です。</div>
+  <div class="notice">登録済みのレベル倍率は君が送ってくれた実測データを使っています。未登録のレベルは倍率を推測で補完しません。未登録の場合はゲームで確認した倍率を入力すれば計算できます。結果は「基礎収入 × レベル倍率 ×（入力した変異倍率＋選択した特性ボーナス）× 選択イベント倍率 × その他の追加倍率」です。</div>
   <details class="level-income-details">
     <summary>レベル倍率一覧（実測値・推定値）を表示</summary>
     <p class="hint">全400レベルを表示し、実測値と推定値を区別します。</p>
@@ -2627,6 +2688,10 @@ const levelIncomeLevelSelect = document.getElementById('levelIncomeLevel');
 const levelIncomeMultiplierInput = document.getElementById('levelIncomeMultiplier');
 const levelIncomeDataStatus = document.getElementById('levelIncomeDataStatus');
 const levelIncomeMultiplierList = document.getElementById('levelIncomeMultiplierList');
+const levelEventPresetSelect = document.getElementById('levelEventPreset');
+const levelEventOtherMultiplierInput = document.getElementById('levelEventMultiplier');
+const levelTraitCheckboxes = [...document.querySelectorAll('.level-trait-checkbox')];
+const levelEventTraitSummary = document.getElementById('levelEventTraitSummary');
 const registeredLevelCount = Object.keys(MEASURED_LEVEL_MULTIPLIERS).length;
 
 function formatCharacterIncome(character) {
@@ -2757,6 +2822,53 @@ function renderLevelIncomeMultiplierList() {
 levelIncomeLevelSelect.addEventListener('change', () => updateLevelIncomeMultiplier(true));
 levelIncomeMultiplierInput.addEventListener('input', () => updateLevelIncomeMultiplier(false));
 
+function getSelectedTraitBonuses() {
+  return levelTraitCheckboxes
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => ({
+      name: checkbox.dataset.traitName || '',
+      bonus: Number(checkbox.value) || 0
+    }));
+}
+
+function getTraitBonusTotal() {
+  return getSelectedTraitBonuses().reduce((sum, trait) => sum + trait.bonus, 0);
+}
+
+function getSelectedEventMultiplier() {
+  const value = Number(levelEventPresetSelect.value);
+  return Number.isFinite(value) && value > 0 ? value : 1;
+}
+
+function updateEventTraitSummary() {
+  const mutationBaseText = document.getElementById('levelMutationMultiplier').value.trim();
+  const mutationBase = mutationBaseText === '' ? 1 : Number(mutationBaseText);
+  const traitBonus = getTraitBonusTotal();
+  const mutationEffective = Number.isFinite(mutationBase) ? mutationBase + traitBonus : traitBonus + 1;
+  const chosenEventOption = levelEventPresetSelect.selectedOptions[0];
+  const eventName = chosenEventOption?.dataset.eventName || 'デフォルト';
+  const eventPresetMultiplier = getSelectedEventMultiplier();
+  const otherText = levelEventOtherMultiplierInput.value.trim();
+  const otherMultiplier = otherText === '' ? 1 : Number(otherText);
+  const eventCombined = Number.isFinite(otherMultiplier) ? eventPresetMultiplier * otherMultiplier : NaN;
+  const traitNames = getSelectedTraitBonuses().map(trait => trait.name);
+  const traitText = traitNames.length ? traitNames.join('、') : 'なし';
+  const fmt = value => Number.isFinite(value)
+    ? new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 6 }).format(value)
+    : '入力を確認';
+
+  levelEventTraitSummary.innerHTML =
+    '<strong>選択内容：</strong> 特性 ' + traitText +
+    '（加算 +' + fmt(traitBonus) + '）／実効変異倍率 ×' + fmt(mutationEffective) +
+    '。イベント ' + eventName + '（×' + fmt(eventPresetMultiplier) + '）' +
+    ' × その他倍率（×' + fmt(otherMultiplier) + '）＝イベント・その他合計 ×' + fmt(eventCombined) + '。';
+}
+
+levelEventPresetSelect.addEventListener('change', updateEventTraitSummary);
+levelEventOtherMultiplierInput.addEventListener('input', updateEventTraitSummary);
+document.getElementById('levelMutationMultiplier').addEventListener('input', updateEventTraitSummary);
+levelTraitCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateEventTraitSummary));
+
 levelIncomeForm.addEventListener('submit', event => {
   event.preventDefault();
   const baseText = document.getElementById('levelBaseIncome').value.trim();
@@ -2766,9 +2878,15 @@ levelIncomeForm.addEventListener('submit', event => {
   const levelMultiplierText = levelIncomeMultiplierInput.value.trim();
   const levelMultiplier = Number(levelMultiplierText);
   const mutationText = document.getElementById('levelMutationMultiplier').value.trim();
-  const mutationMultiplier = Number(mutationText);
-  const eventText = document.getElementById('levelEventMultiplier').value.trim();
-  const eventMultiplier = Number(eventText);
+  const mutationBaseMultiplier = Number(mutationText);
+  const traitBonusTotal = getTraitBonusTotal();
+  const mutationMultiplier = mutationBaseMultiplier + traitBonusTotal;
+  const eventText = levelEventOtherMultiplierInput.value.trim();
+  const eventOtherMultiplier = Number(eventText);
+  const eventPresetMultiplier = getSelectedEventMultiplier();
+  const selectedEventName = levelEventPresetSelect.selectedOptions[0]?.dataset.eventName || 'デフォルト';
+  const eventMultiplier = eventPresetMultiplier * eventOtherMultiplier;
+  const selectedTraits = getSelectedTraitBonuses();
   const characterName = document.getElementById('levelCharacterName').value.trim();
 
   if (baseText === '' || !Number.isFinite(baseIncome) || baseIncome < 0) {
@@ -2779,9 +2897,11 @@ levelIncomeForm.addEventListener('submit', event => {
     showLevelIncomeError('レベル倍率が必要です', '選択したレベルの倍率が未登録の場合は、ゲーム内で確認した倍率を入力してください。');
     return;
   }
-  if (mutationText === '' || !Number.isFinite(mutationMultiplier) || mutationMultiplier <= 0 ||
-      eventText === '' || !Number.isFinite(eventMultiplier) || eventMultiplier <= 0) {
-    showLevelIncomeError('変異・イベント倍率を確認してください', '倍率は0より大きい数値を入力してください。倍率がない場合は1を入力します。');
+  if (mutationText === '' || !Number.isFinite(mutationBaseMultiplier) || mutationBaseMultiplier <= 0 ||
+      !Number.isFinite(mutationMultiplier) || mutationMultiplier <= 0 ||
+      eventText === '' || !Number.isFinite(eventOtherMultiplier) || eventOtherMultiplier <= 0 ||
+      !Number.isFinite(eventPresetMultiplier) || eventPresetMultiplier <= 0) {
+    showLevelIncomeError('変異・イベント倍率を確認してください', '変異倍率とその他の追加倍率は0より大きい数値を入力してください。倍率がない場合は1を入力します。');
     return;
   }
 
@@ -2801,11 +2921,18 @@ levelIncomeForm.addEventListener('submit', event => {
   grid.className = 'level-income-result-grid';
   addLevelIncomeResultItem(grid, 'レベル', String(level));
   addLevelIncomeResultItem(grid, 'レベル倍率', formatMultiplierNumber(levelMultiplier) + ' 倍');
-  addLevelIncomeResultItem(grid, '変異倍率', formatMultiplierNumber(mutationMultiplier) + ' 倍');
-  addLevelIncomeResultItem(grid, 'イベント・その他倍率', formatMultiplierNumber(eventMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '入力した変異倍率', formatMultiplierNumber(mutationBaseMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '特性の加算合計', '+' + formatMultiplierNumber(traitBonusTotal));
+  addLevelIncomeResultItem(grid, '特性適用後の変異倍率', formatMultiplierNumber(mutationMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, 'イベント変異：' + selectedEventName, formatMultiplierNumber(eventPresetMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, 'その他の追加倍率', formatMultiplierNumber(eventOtherMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, 'イベント・その他の合計倍率', formatMultiplierNumber(eventMultiplier) + ' 倍');
   addLevelIncomeResultItem(grid, '合計倍率', formatMultiplierNumber(totalMultiplier) + ' 倍');
   addLevelIncomeResultItem(grid, '計算に使った基礎収入', formatMultiplierNumber(baseIncome) + ' ' + baseUnit + '/s');
   addLevelIncomeResultItem(grid, '毎秒の最終収入', formatLevelIncome(incomePerSecond), true);
+  if (selectedTraits.length) {
+    addText(levelIncomeResult, 'p', 'hint', '適用した特性：' + selectedTraits.map(trait => trait.name + ' +' + formatMultiplierNumber(trait.bonus)).join('、'));
+  }
   levelIncomeResult.appendChild(grid);
 
   const measured = Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level));
@@ -2819,10 +2946,12 @@ levelIncomeForm.addEventListener('reset', () => {
     levelIncomeResult.className = 'result';
     levelIncomeResult.replaceChildren();
     updateLevelIncomeMultiplier(true);
+    updateEventTraitSummary();
   }, 0);
 });
 
 updateLevelIncomeMultiplier(true);
+updateEventTraitSummary();
 renderLevelIncomeMultiplierList();
 renderCharacterDatabase();
 })();
