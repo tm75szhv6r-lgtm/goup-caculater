@@ -89,6 +89,28 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 @media(max-width:700px){.rarity-audio-grid{grid-template-columns:1fr}.rarity-audio-card p{min-height:0}}
 @media(max-width:560px){.jump-input-row{grid-template-columns:minmax(0,1fr) 94px}.jump-result-grid{grid-template-columns:1fr}}
 @media(max-width:560px){.grid,.summary-grid{grid-template-columns:1fr}.card{border-radius:16px}.result .result-datetime{font-size:1.7rem}.sidebar-toggle{top:10px;left:10px}}
+/* レベル別キャラクター収入計算 */
+.level-income-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.level-income-data-status{margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;color:var(--muted);font-size:.9rem}
+.level-income-data-status strong{color:var(--accent2)}
+.level-income-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.level-income-result-item{padding:13px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
+.level-income-result-item .label{display:block;color:var(--muted);font-size:.85rem}
+.level-income-result-item .value{display:block;font-weight:850;overflow-wrap:anywhere}
+.level-income-result-item.primary-income{grid-column:1/-1;border-color:#5ce1c077;background:#5ce1c010}
+.level-income-result-item.primary-income .value{font-size:1.6rem;color:var(--accent2)}
+.level-income-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:7px;margin-top:12px}
+.level-income-list-item{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#ffffff04;font-size:.88rem;display:flex;justify-content:space-between;gap:10px}
+.level-income-list-item strong{color:var(--accent2);text-align:right;overflow-wrap:anywhere}
+.level-income-details{margin-top:18px;padding:13px;border:1px solid var(--border);border-radius:12px}
+.level-income-details summary{cursor:pointer;font-weight:800}
+.level-character-select-field{grid-column:1/-1}
+.level-character-entry{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#ffffff04;font-size:.88rem;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.level-character-entry .character-meta{display:block;color:var(--muted);font-size:.78rem}
+.level-character-entry strong{color:var(--accent2);text-align:right;white-space:nowrap}
+@media(max-width:560px){.level-income-form-grid,.level-income-result-grid{grid-template-columns:1fr}.level-income-result-item.primary-income{grid-column:auto}.level-character-select-field{grid-column:auto}}
+.level-income-list-item .level-income-state{color:var(--muted);font-size:.78rem;min-width:48px;text-align:right}
+
 </style>
 </head>
 <body>
@@ -104,6 +126,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
   <button class="sidebar-link" data-page="idle" type="button">⏳ 放置収入計算</button>
   <button class="sidebar-link" data-page="forecast" type="button">🌙 放置後の所持金予測</button>
   <button class="sidebar-link" data-page="jumpcalc" type="button">🦘 ジャンプ計算機</button>
+  <button class="sidebar-link" data-page="levelincome" type="button">🧬 レベル収入計算</button>
   <button class="sidebar-link" data-page="rebirth" type="button">🔄 リバース計算</button>
   <button class="sidebar-link" data-page="raritysounds" type="button">🔊 レアリティの音</button>
 </aside>
@@ -118,6 +141,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
     <button class="tile" data-goto="forecast" type="button"><strong>🌙 放置後の所持金予測</strong><span>指定日時までに、24時間ずっと稼ぐ場合と1日の起動時間を指定する場合を計算します。</span></button>
     <button class="tile" data-goto="jumpcalc" type="button"><strong>🦘 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></button>
     <button class="tile" data-goto="raritysounds" type="button"><strong>🔊 レアリティの音</strong><span>Divine・Ascended・Forbiddenの音をプレイヤーで再生できます。</span></button>
+    <button class="tile" data-goto="levelincome" type="button"><strong>🧬 レベル収入計算</strong><span>キャラクター・レベル・変異・イベント倍率から毎秒の収入を計算します。</span></button>
     <button class="tile" data-goto="rebirth" type="button"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とリバースでリセットされるジャンプ数を計算します。</span></button>
   </div>
 </div></section>
@@ -298,6 +322,36 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
   </form>
   <div id="rebirthResult" class="result" aria-live="polite"></div>
   <div class="notice">表のCostは「ジャンプ0からそのJumpに到達するまでの累計費用」として扱います。現在のジャンプが最初の目標ジャンプ以上なら、その段階に必要な追加金額は0です。リバース後はジャンプが0に戻るため、次の段階からは各目標Jumpまでの累計費用が必要です。表にない途中のジャンプ数は、10ジャンプ刻みのCostから線形補間で概算します。</div>
+</div></section>
+<section id="levelincome" class="page"><div class="card">
+  <h1>🧬 キャラクターのレベル収入計算</h1>
+  <p class="description">レベル1・変異なしの基礎収入に、選択したレベルの倍率、変異倍率、イベントなどの追加倍率を掛けて毎秒の収入を計算します。確認済みの倍率は自動入力されます。</p>
+  <form id="levelIncomeForm" novalidate>
+    <div class="level-income-form-grid">
+      <div class="field level-character-select-field"><label for="levelCharacterSelect">キャラクターを選択</label><select id="levelCharacterSelect"><option value="">手動入力（キャラクターを選ばない）</option></select><p class="hint">一覧から選ぶと、キャラ名・基礎収入・単位が自動入力されます。画像上で名前が切れている場合は「…」を付けています。</p></div>
+      <div class="field"><label for="levelCharacterName">キャラクター名（任意）</label><input id="levelCharacterName" type="text" maxlength="80" placeholder="例：キャラクター名"></div>
+      <div class="field"><label for="levelBaseIncome">レベル1・変異なしの基礎収入</label><input id="levelBaseIncome" type="number" min="0" step="any" placeholder="例：53" required><p class="hint">ゲーム内で表示される毎秒の収入を入力します。</p></div>
+      <div class="field"><label for="levelBaseUnit">基礎収入の単位</label><select id="levelBaseUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx">Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M" selected>M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="levelIncomeLevel">キャラクターレベル（1〜400）</label><select id="levelIncomeLevel" required></select><p class="hint">実測値があればそれを使い、未確認レベルは推定値を自動入力します。</p></div>
+      <div class="field"><label for="levelIncomeMultiplier">レベル倍率</label><input id="levelIncomeMultiplier" type="number" min="0" step="any" placeholder="未登録レベルは倍率を入力" required><p class="hint">登録済み倍率は自動入力。未登録レベルは実測値を入力してください。</p></div>
+      <div class="field"><label for="levelMutationMultiplier">変異倍率</label><input id="levelMutationMultiplier" type="number" min="0" step="any" value="1" required><p class="hint">変異がなければ1。例：2倍なら「2」と入力します。</p></div>
+      <div class="field"><label for="levelEventMultiplier">イベント・その他の追加倍率</label><input id="levelEventMultiplier" type="number" min="0" step="any" value="1" required><p class="hint">追加倍率がなければ1。複数の倍率は個別に入力して掛け合わせます。</p></div>
+    </div>
+    <div id="levelIncomeDataStatus" class="level-income-data-status" aria-live="polite"></div>
+    <div class="actions"><button class="btn primary" type="submit">収入を計算</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="levelIncomeResult" class="result" aria-live="polite"></div>
+  <div class="notice">登録済みのレベル倍率は君が送ってくれた実測データを使っています。未登録のレベルは倍率を推測で補完しません。未登録の場合はゲームで確認した倍率を入力すれば計算できます。結果は「基礎収入 × レベル倍率 × 変異倍率 × イベント・その他倍率」です。</div>
+  <details class="level-income-details">
+    <summary>レベル倍率一覧（実測値・推定値）を表示</summary>
+    <p class="hint">全400レベルを表示し、実測値と推定値を区別します。</p>
+    <div id="levelIncomeMultiplierList" class="level-income-list"></div>
+  </details>
+  <details class="level-income-details">
+    <summary>読み取ったキャラクター53体と基礎収入の一覧</summary>
+    <p class="hint">画像から確認できたアセンデッド46体・禁止7体を登録。画面上で名前が省略されているものは、省略記号付きで表示します。</p>
+    <div id="levelCharacterList" class="level-income-list"></div>
+  </details>
 </div></section>
 </main>
 <footer>GOUP Calculator · リバース費用は提供された表の数値を使用</footer>
@@ -1895,18 +1949,19 @@ function calculateMultiplierTime() {
       weightedMultiplierMinutes += multiplier * minutes;
     }
   }
-
   if (totalMinutes <= 0) {
     showMultiplierError('継続時間を入力してね', '倍率を選び、続く時間を分単位で入力してください。空欄や0分の行は計算対象になりません。');
     return;
   }
-
   const startText = multiplierStartAt.value;
   const startDate = startText ? new Date(startText) : new Date();
   if (Number.isNaN(startDate.getTime())) {
     showMultiplierError('開始時刻を確認してね', '有効な開始予定時刻を入力してください。');
     return;
   }
+  // ================================================
+  // 1. 過去に追加されたレベル収入ページを置き換える
+  // ================================================
 
   const endDate = new Date(startDate.getTime() + totalMinutes * 60000);
   multiplierResult.className = 'result show';
@@ -2046,6 +2101,731 @@ if (multiplierActivationState && multiplierActivationState.startedAt + multiplie
 
 // ブラウザを再読み込みしても進行中の記録や最後の結果を復元する。
 renderIdleUI();
+</script>
+
+<script>
+(() => {
+"use strict";
+const UNIT_POWER = {'1':0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10};function toBase(value,unit){return value*Math.pow(1000,UNIT_POWER[unit]??0)}function addText(parent,tag,className,text){const el=document.createElement(tag);if(className)el.className=className;el.textContent=text;parent.appendChild(el);return el;}
+/* 実測データ：レベル1〜400のうち倍率を確認できたレベルのみ登録 */
+const MEASURED_LEVEL_MULTIPLIERS = Object.freeze({
+  "1": 1.0,
+  "3": 1.69,
+  "5": 2.86,
+  "6": 3.71,
+  "10": 10.6,
+  "13": 23.3,
+  "14": 30.29,
+  "19": 112.46,
+  "20": 146.19,
+  "24": 417.54,
+  "25": 542.8,
+  "28": 1192.53,
+  "35": 7482.97,
+  "38": 16440.08,
+  "39": 21372.11,
+  "44": 79353.15,
+  "45": 103159.09,
+  "47": 174338.86,
+  "50": 383022.48,
+  "53": 661862.84,
+  "56": 1141792.83,
+  "60": 2351876.88,
+  "63": 3993336.56,
+  "64": 4764050.52,
+  "66": 6723595.01,
+  "69": 11131553.56,
+  "70": 13168627.87,
+  "72": 18026534.68,
+  "75": 28871532.3,
+  "81": 66946640.42,
+  "85": 110318520.08,
+  "88": 150467624.85,
+  "91": 200046912.02,
+  "94": 252702148.14,
+  "97": 301171051.91,
+  "100": 348643138.97,
+  "103": 403598013.75,
+  "110": 567686624.72,
+  "113": 656548807.89,
+  "116": 759017108.46,
+  "119": 876775687.93,
+  "122": 1011684659.56,
+  "125": 1166706713.26,
+  "128": 1342598273.0,
+  "131": 1543665407.87,
+  "135": 1855053719.86,
+  "138": 2122581381.02,
+  "141": 2425788151.59,
+  "144": 2765684983.22,
+  "147": 3144701517.28,
+  "150": 3570833393.42,
+  "153": 4036315193.23,
+  "156": 4554810843.43,
+  "157": 4736729988.51,
+  "159": 5122656028.73,
+  "161": 5529850414.76,
+  "162": 5740150626.03,
+  "163": 5958448554.34,
+  "166": 6651138497.8,
+  "175": 9041938050.68,
+  "182": 11163218514.88,
+  "186": 12469026152.32,
+  "188": 13125332850.07,
+  "191": 14134923594.94,
+  "197": 16110729581.35,
+  "200": 17096835117.57,
+  "206": 19253813197.76,
+  "207": 19638889461.71,
+  "209": 20432300595.96,
+  "213": 22116579267.86,
+  "216": 23470290851.68,
+  "219": 24906860414.13,
+  "228": 29766003788.65,
+  "231": 31587921348.54,
+  "232": 32219679775.51,
+  "234": 33521354838.44,
+  "235": 34191781935.21,
+  "238": 36284592523.9,
+  "241": 38505499863.1,
+  "244": 40862344498.73,
+  "250": 46017636737.48,
+  "253": 48834284246.91,
+  "256": 51823333117.1,
+  "257": 52859799779.44,
+  "259": 54995335690.53,
+  "260": 56095242404.34,
+  "262": 58361490197.47,
+  "263": 59528720001.42,
+  "272": 71142330893.3,
+  "278": 80117819470.88,
+  "279": 81720175860.3,
+  "281": 85021670965.05,
+  "282": 86722104384.35,
+  "287": 95748210663.87,
+  "288": 97663174877.15,
+  "294": 109984597292.65,
+  "297": 116716534523.74,
+  "300": 123860520168.87,
+  "303": 129518267456.84,
+  "306": 135433117117.51,
+  "307": 137463259543.1,
+  "309": 141615296072.37,
+  "312": 148065086931.65,
+  "313": 150277179330.41,
+  "316": 157104442793.61,
+  "323": 174165824753.3,
+  "325": 179352212778.76,
+  "328": 187350785513.99,
+  "330": 192880373223.52,
+  "331": 195677138635.26,
+  "332": 198514457145.47,
+  "334": 204313114067.3,
+  "337": 213254533401.29,
+  "338": 216308338319.6,
+  "340": 222547765836.07,
+  "341": 225687914812.02,
+  "347": 245370121150.41,
+  "348": 248775858431.98,
+  "350": 255729804025.79,
+  "351": 259210286658.58,
+  "353": 266314004727.17,
+  "356": 277256919030.68,
+  "357": 280949981192.17,
+  "359": 288484335511.08,
+  "360": 292326946860.08,
+  "362": 299982773305.64,
+  "363": 303885549186.35,
+  "364": 307839100181.26,
+  "365": 311844086874.62,
+  "367": 319789960152.41,
+  "368": 323838501047.94,
+  "369": 327938296471.21,
+  "371": 336171381346.83,
+  "375": 353004730528.56,
+  "376": 357198426727.24,
+  "378": 365735874331.92,
+  "381": 378765142581.52,
+  "382": 383102003464.08,
+  "384": 391925264973.81,
+  "385": 396412809257.76,
+  "387": 405181857011.36,
+  "388": 409638857438.48,
+  "390": 418700478603.88,
+  "391": 423101020634.0,
+  "393": 432041339868.78,
+  "394": 436582094350.8,
+  "396": 445582277884.05,
+  "397": 450038100662.89
+});
+const LEVEL_INCOME_MULTIPLIERS = {};
+const ESTIMATED_LEVELS = new Set();
+const knownLevels = Object.keys(MEASURED_LEVEL_MULTIPLIERS).map(Number).sort((a, b) => a - b);
+
+// Build values for levels 1–400. Missing levels are logarithmically interpolated
+// between nearest measured data points and clearly labeled as estimates.
+for (let level = 1; level <= 400; level++) {
+  if (Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level))) {
+    LEVEL_INCOME_MULTIPLIERS[level] = MEASURED_LEVEL_MULTIPLIERS[level];
+    continue;
+  }
+  let lower = null;
+  let upper = null;
+  for (const knownLevel of knownLevels) {
+    if (knownLevel < level) lower = knownLevel;
+    if (knownLevel > level) { upper = knownLevel; break; }
+  }
+  let estimate;
+  if (lower !== null && upper !== null) {
+    const lowValue = MEASURED_LEVEL_MULTIPLIERS[lower];
+    const highValue = MEASURED_LEVEL_MULTIPLIERS[upper];
+    const fraction = (level - lower) / (upper - lower);
+    estimate = lowValue * Math.pow(highValue / lowValue, fraction);
+  } else if (lower !== null) {
+    const previous = [...knownLevels].reverse().find(value => value < lower);
+    if (previous !== undefined) {
+      const ratio = Math.pow(MEASURED_LEVEL_MULTIPLIERS[lower] / MEASURED_LEVEL_MULTIPLIERS[previous], 1 / (lower - previous));
+      estimate = MEASURED_LEVEL_MULTIPLIERS[lower] * Math.pow(ratio, level - lower);
+    } else {
+      estimate = MEASURED_LEVEL_MULTIPLIERS[lower];
+    }
+  } else if (upper !== null) {
+    estimate = MEASURED_LEVEL_MULTIPLIERS[upper];
+  } else {
+    estimate = 1;
+  }
+  LEVEL_INCOME_MULTIPLIERS[level] = estimate;
+  ESTIMATED_LEVELS.add(level);
+}
+
+/* 画像から読み取ったキャラクター名・基礎収入 */
+const GOUP_CHARACTERS = Object.freeze([
+  {
+    "rarity": "Ascended",
+    "name": "Tung Tung Tung Asce…",
+    "income": 67,
+    "unit": "1"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Mega Yachtadon",
+    "income": 53,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Il Cannone Dominatore",
+    "income": 55,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Horseidon",
+    "income": 56,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Arcangelo Mantisio",
+    "income": 58,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Gorgonzilla",
+    "income": 60,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Pumpkinator",
+    "income": 61,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Titanocchio",
+    "income": 65,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Lionaldo",
+    "income": 66,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Goatini Messini",
+    "income": 66,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Wreckzilla 67",
+    "income": 67,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Chronomondo",
+    "income": 70,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "King Kongini Bananini",
+    "income": 71,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Chickeninio Paladino",
+    "income": 72,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Sir Pegasusio",
+    "income": 74,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Bearini Plammini Gua…",
+    "income": 75,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Il Marionetto",
+    "income": 77,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Triceradon",
+    "income": 80,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "La Catrina Mariposa",
+    "income": 85,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Sunculus Ferris",
+    "income": 90,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Servissimo",
+    "income": 93,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Guro Guro",
+    "income": 95,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Capitano Moby",
+    "income": 100,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Doom Doom Doom Sa…",
+    "income": 105,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Garbagzilla",
+    "income": 110,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Il Demonico Maskino",
+    "income": 115,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Demon Ship",
+    "income": 117,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Cerberus",
+    "income": 120,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Vulkarion",
+    "income": 125,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Godgodzilla",
+    "income": 127,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Bulzilla",
+    "income": 130,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Witchantula",
+    "income": 133,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Golemcoluss",
+    "income": 135,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Kingorilla",
+    "income": 140,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Fishini Mechinini",
+    "income": 145,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Don Guitarion",
+    "income": 147,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Ghost Cavallo Skeleto…",
+    "income": 150,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Gargolini",
+    "income": 153,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Cementzilla",
+    "income": 155,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Triplelaledon",
+    "income": 160,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Accordissimo",
+    "income": 165,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Cavezilla",
+    "income": 170,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Checkmate",
+    "income": 173,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Drago Polpo",
+    "income": 175,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Headless Pumpkin",
+    "income": 180,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Klombo",
+    "income": 185,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Hydralitraktos Spidoro…",
+    "income": 200,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Chimera",
+    "income": 210,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Meowberus",
+    "income": 215,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Hydragoni Skeletoni",
+    "income": 225,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Kitsune",
+    "income": 230,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Gigaclops",
+    "income": 240,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Chainsawatron",
+    "income": 250,
+    "unit": "M"
+  }
+]);
+const levelCharacterSelect = document.getElementById('levelCharacterSelect');
+const levelCharacterList = document.getElementById('levelCharacterList');
+const levelIncomeForm = document.getElementById('levelIncomeForm');
+const levelIncomeResult = document.getElementById('levelIncomeResult');
+const levelIncomeLevelSelect = document.getElementById('levelIncomeLevel');
+const levelIncomeMultiplierInput = document.getElementById('levelIncomeMultiplier');
+const levelIncomeDataStatus = document.getElementById('levelIncomeDataStatus');
+const levelIncomeMultiplierList = document.getElementById('levelIncomeMultiplierList');
+const registeredLevelCount = Object.keys(MEASURED_LEVEL_MULTIPLIERS).length;
+
+function formatCharacterIncome(character) {
+  const amount = new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 2 }).format(character.income);
+  return character.unit === '1' ? amount + '/s' : amount + ' ' + character.unit + '/s';
+}
+
+function renderCharacterDatabase() {
+  const groups = new Map();
+  const rarityNames = { Ascended: 'アセンデッド', Forbidden: '禁止' };
+  GOUP_CHARACTERS.forEach((character, index) => {
+    if (!groups.has(character.rarity)) {
+      const group = document.createElement('optgroup');
+      group.label = rarityNames[character.rarity] || character.rarity;
+      groups.set(character.rarity, group);
+      levelCharacterSelect.appendChild(group);
+    }
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = character.name + ' — ' + formatCharacterIncome(character);
+    groups.get(character.rarity).appendChild(option);
+
+    const listItem = document.createElement('div');
+    listItem.className = 'level-character-entry';
+    const nameBox = document.createElement('div');
+    addText(nameBox, 'span', '', character.name);
+    addText(nameBox, 'span', 'character-meta', rarityNames[character.rarity] || character.rarity);
+    addText(listItem, 'strong', '', formatCharacterIncome(character));
+    listItem.insertBefore(nameBox, listItem.firstChild);
+    levelCharacterList.appendChild(listItem);
+  });
+}
+
+levelCharacterSelect.addEventListener('change', () => {
+  if (levelCharacterSelect.value === '') return;
+  const character = GOUP_CHARACTERS[Number(levelCharacterSelect.value)];
+  if (!character) return;
+  document.getElementById('levelCharacterName').value = character.name;
+  document.getElementById('levelBaseIncome').value = String(character.income);
+  document.getElementById('levelBaseUnit').value = character.unit;
+});
+
+for (let level = 1; level <= 400; level++) {
+  const option = document.createElement('option');
+  option.value = String(level);
+  option.textContent = 'レベル ' + level;
+  if (level === 1) option.selected = true;
+  levelIncomeLevelSelect.appendChild(option);
+}
+
+function formatMultiplierNumber(value) {
+  return new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 10 }).format(value);
+}
+
+function getSelectedLevelMultiplier() {
+  const level = Number(levelIncomeLevelSelect.value);
+  return Object.prototype.hasOwnProperty.call(LEVEL_INCOME_MULTIPLIERS, String(level))
+    ? LEVEL_INCOME_MULTIPLIERS[String(level)]
+    : null;
+}
+
+function updateLevelIncomeMultiplier(forceAutofill = true) {
+  const level = Number(levelIncomeLevelSelect.value);
+  const multiplier = LEVEL_INCOME_MULTIPLIERS[level];
+  const estimated = ESTIMATED_LEVELS.has(level);
+  if (forceAutofill) levelIncomeMultiplierInput.value = String(multiplier);
+  const entered = levelIncomeMultiplierInput.value.trim();
+  const customValue = entered !== '' && Number(entered) !== multiplier;
+  if (estimated) {
+    levelIncomeDataStatus.innerHTML = '<strong>推定値：</strong> レベル ' + level +
+      ' の倍率は約 ' + formatMultiplierNumber(multiplier) +
+      ' 倍です。前後の実測値から補間しています。ゲーム内で確認した正確な倍率があれば入力欄を修正してください。';
+  } else {
+    levelIncomeDataStatus.innerHTML = '<strong>実測データ：</strong> レベル ' + level +
+      ' の倍率は ' + formatMultiplierNumber(multiplier) + ' 倍です。';
+  }
+  if (customValue) {
+    levelIncomeDataStatus.insertAdjacentHTML('beforeend', ' <span>現在は入力欄に入力した倍率を使います。</span>');
+  }
+  levelIncomeDataStatus.insertAdjacentHTML('beforeend',
+    ' <span>（実測データ：' + registeredLevelCount + '/400 レベル、推定値：' + ESTIMATED_LEVELS.size + ' レベル）</span>');
+}
+
+function formatLevelIncome(value) {
+  if (!Number.isFinite(value)) return '計算範囲外';
+  if (value === 0) return '0 /s';
+  const abs = Math.abs(value);
+  const entries = Object.entries(UNIT_POWER).filter(([unit]) => unit !== '1').sort((a, b) => b[1] - a[1]);
+  for (const [unit, power] of entries) {
+    const scale = Math.pow(1000, power);
+    if (abs >= scale) {
+      const scaled = value / scale;
+      if (!Number.isFinite(scaled)) break;
+      return new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 5 }).format(scaled) + ' ' + unit + '/s';
+    }
+  }
+  if (abs >= 1000) return value.toExponential(6) + ' /s';
+  return new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 8 }).format(value) + ' /s';
+}
+
+function showLevelIncomeError(message, detail) {
+  levelIncomeResult.className = 'result show error';
+  levelIncomeResult.replaceChildren();
+  addText(levelIncomeResult, 'div', 'big', message);
+  addText(levelIncomeResult, 'p', '', detail);
+}
+
+function addLevelIncomeResultItem(parent, label, value, primary = false) {
+  const item = document.createElement('div');
+  item.className = 'level-income-result-item' + (primary ? ' primary-income' : '');
+  addText(item, 'span', 'label', label);
+  addText(item, 'span', 'value', value);
+  parent.appendChild(item);
+}
+
+function renderLevelIncomeMultiplierList() {
+  levelIncomeMultiplierList.replaceChildren();
+  for (let level = 1; level <= 400; level++) {
+    const item = document.createElement('div');
+    item.className = 'level-income-list-item';
+    addText(item, 'span', '', 'Lv.' + level);
+    addText(item, 'strong', '', formatMultiplierNumber(LEVEL_INCOME_MULTIPLIERS[level]) + ' 倍');
+    addText(item, 'span', 'level-income-state', ESTIMATED_LEVELS.has(level) ? '推定値' : '実測');
+    levelIncomeMultiplierList.appendChild(item);
+  }
+}
+
+levelIncomeLevelSelect.addEventListener('change', () => updateLevelIncomeMultiplier(true));
+levelIncomeMultiplierInput.addEventListener('input', () => updateLevelIncomeMultiplier(false));
+
+levelIncomeForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const baseText = document.getElementById('levelBaseIncome').value.trim();
+  const baseIncome = Number(baseText);
+  const baseUnit = document.getElementById('levelBaseUnit').value;
+  const level = Number(levelIncomeLevelSelect.value);
+  const levelMultiplierText = levelIncomeMultiplierInput.value.trim();
+  const levelMultiplier = Number(levelMultiplierText);
+  const mutationText = document.getElementById('levelMutationMultiplier').value.trim();
+  const mutationMultiplier = Number(mutationText);
+  const eventText = document.getElementById('levelEventMultiplier').value.trim();
+  const eventMultiplier = Number(eventText);
+  const characterName = document.getElementById('levelCharacterName').value.trim();
+
+  if (baseText === '' || !Number.isFinite(baseIncome) || baseIncome < 0) {
+    showLevelIncomeError('基礎収入を確認してください', '0以上の基礎収入を入力してください。');
+    return;
+  }
+  if (levelMultiplierText === '' || !Number.isFinite(levelMultiplier) || levelMultiplier <= 0) {
+    showLevelIncomeError('レベル倍率が必要です', '選択したレベルの倍率が未登録の場合は、ゲーム内で確認した倍率を入力してください。');
+    return;
+  }
+  if (mutationText === '' || !Number.isFinite(mutationMultiplier) || mutationMultiplier <= 0 ||
+      eventText === '' || !Number.isFinite(eventMultiplier) || eventMultiplier <= 0) {
+    showLevelIncomeError('変異・イベント倍率を確認してください', '倍率は0より大きい数値を入力してください。倍率がない場合は1を入力します。');
+    return;
+  }
+
+  const baseValue = toBase(baseIncome, baseUnit);
+  const totalMultiplier = levelMultiplier * mutationMultiplier * eventMultiplier;
+  const incomePerSecond = baseValue * totalMultiplier;
+  if (!Number.isFinite(incomePerSecond)) {
+    showLevelIncomeError('計算できる範囲を超えています', '入力された倍率の組み合わせが大きすぎます。倍率を確認してください。');
+    return;
+  }
+
+  levelIncomeResult.className = 'result show';
+  levelIncomeResult.replaceChildren();
+  addText(levelIncomeResult, 'div', 'big', '計算結果：' + formatLevelIncome(incomePerSecond));
+  if (characterName) addText(levelIncomeResult, 'p', '', 'キャラクター：' + characterName);
+  const grid = document.createElement('div');
+  grid.className = 'level-income-result-grid';
+  addLevelIncomeResultItem(grid, 'レベル', String(level));
+  addLevelIncomeResultItem(grid, 'レベル倍率', formatMultiplierNumber(levelMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '変異倍率', formatMultiplierNumber(mutationMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, 'イベント・その他倍率', formatMultiplierNumber(eventMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '合計倍率', formatMultiplierNumber(totalMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '計算に使った基礎収入', formatMultiplierNumber(baseIncome) + ' ' + baseUnit + '/s');
+  addLevelIncomeResultItem(grid, '毎秒の最終収入', formatLevelIncome(incomePerSecond), true);
+  levelIncomeResult.appendChild(grid);
+
+  const measured = Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level));
+  addText(levelIncomeResult, 'p', 'hint', measured
+    ? 'このレベルは実測倍率を基準に計算しました。入力欄を変更した場合は、その手入力値を使っています。'
+    : 'このレベルは補間した推定倍率を使っています。ゲーム内で確認できた倍率があれば、倍率欄を修正してください。');
+});
+
+levelIncomeForm.addEventListener('reset', () => {
+  window.setTimeout(() => {
+    levelIncomeResult.className = 'result';
+    levelIncomeResult.replaceChildren();
+    updateLevelIncomeMultiplier(true);
+  }, 0);
+});
+
+updateLevelIncomeMultiplier(true);
+renderLevelIncomeMultiplierList();
+renderCharacterDatabase();
+})();
 </script>
 </body>
 </html>
