@@ -31,7 +31,7 @@
     2: 1.30,
     3: 1.69,
     4: 2.20,
-    5: 2.66,
+    5: 2.86,
     6: 3.71,
     10: 10.6,
     13: 23.3,
@@ -137,6 +137,7 @@
     323: 174165824753.3,
     325: 179352212778.76,
     328: 187350785513.99,
+    330: 192880373223.52,
     331: 195677138635.26,
     332: 198514457145.47,
     334: 204313114067.3,
@@ -179,11 +180,10 @@
   };
 
   /*
-   * 400レベルを埋めるため、未確認のレベルは
-   * 前後の確認済み倍率を使って対数補間する。
-   *
-   * 補間値は実測値ではないので、画面に推定値と表示する。
+   * 未確認のレベルは、前後の確認済み倍率を使って対数補間する。
+   * 補間値は実測値ではないため、画面に「推定値」と表示する。
    */
+
   const LEVEL_MULTIPLIERS = {};
   const ESTIMATED_LEVELS = new Set();
 
@@ -208,6 +208,7 @@
 
     for (const knownLevel of knownLevels) {
       if (knownLevel < level) lowerLevel = knownLevel;
+
       if (knownLevel > level) {
         upperLevel = knownLevel;
         break;
@@ -217,8 +218,11 @@
     let estimatedValue;
 
     if (lowerLevel !== null && upperLevel !== null) {
-      const lowValue = MEASURED_LEVEL_MULTIPLIERS[lowerLevel];
-      const highValue = MEASURED_LEVEL_MULTIPLIERS[upperLevel];
+      const lowValue =
+        MEASURED_LEVEL_MULTIPLIERS[lowerLevel];
+
+      const highValue =
+        MEASURED_LEVEL_MULTIPLIERS[upperLevel];
 
       const fraction =
         (level - lowerLevel) / (upperLevel - lowerLevel);
@@ -322,7 +326,6 @@
     {rarity:"Ascended", name:"Drago Polpo", income:175, unit:"M"},
     {rarity:"Ascended", name:"Headless Pumpkin", income:180, unit:"M"},
     {rarity:"Ascended", name:"Klombo", income:185, unit:"M"},
-
     {rarity:"Forbidden", name:"Hydralitraktos Spidoro…", income:200, unit:"M"},
     {rarity:"Forbidden", name:"Chimera", income:210, unit:"M"},
     {rarity:"Forbidden", name:"Meowberus", income:215, unit:"M"},
@@ -988,12 +991,7 @@
     const grid = document.createElement("div");
     grid.className = "level-income-result-grid";
 
-    addResultItem(
-      grid,
-      "レベル",
-      String(level),
-      false
-    );
+    addResultItem(grid, "レベル", String(level), false);
 
     addResultItem(
       grid,
