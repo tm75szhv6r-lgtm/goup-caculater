@@ -2047,5 +2047,847 @@ if (multiplierActivationState && multiplierActivationState.startedAt + multiplie
 // ブラウザを再読み込みしても進行中の記録や最後の結果を復元する。
 renderIdleUI();
 </script>
+<script>
+(() => {
+  "use strict";
+
+  // 二重追加を防止
+  if (document.getElementById("levelincome")) {
+    alert("レベル収入計算はすでに追加されています。");
+    return;
+  }
+
+  // =============================================
+  // 1. 確認済みレベル倍率データ
+  // =============================================
+  const LEVEL_MULTIPLIERS = {
+    1: 1,
+    2: 1.30,
+    3: 1.69,
+    4: 2.20,
+    5: 2.66,
+    6: 3.71,
+    10: 10.6,
+    13: 23.3,
+    14: 30.29,
+    19: 112.46,
+    20: 146.19,
+    24: 417.54,
+    25: 542.8,
+    28: 1192.53,
+    35: 7482.97,
+    38: 16440.08,
+    39: 21372.11,
+    44: 79353.15,
+    45: 103159.09,
+    47: 174338.86,
+    50: 383022.48,
+    53: 661862.84,
+    56: 1141792.83,
+    60: 2351876.88,
+    63: 3993336.56,
+    64: 4764050.52,
+    66: 6723595.01,
+    69: 11131553.56,
+    70: 13168627.87,
+    72: 18026534.68,
+    75: 28871532.3,
+    81: 66946640.42,
+    85: 110318520.08,
+    88: 150467624.85,
+    91: 200046912.02,
+    94: 252702148.14,
+    97: 301171051.91,
+    100: 348643138.97,
+    103: 403598013.75,
+    110: 567686624.72,
+    113: 656548807.89,
+    116: 759017108.46,
+    119: 876775687.93,
+    122: 1011684659.56,
+    125: 1166706713.26,
+    128: 1342598273,
+    131: 1543665407.87,
+    135: 1855053719.86,
+    138: 2122581381.02,
+    141: 2425788151.59,
+    144: 2765684983.22,
+    147: 3144701517.28,
+    150: 3570833393.42,
+    153: 4036315193.23,
+    156: 4554810843.43,
+    157: 4736729988.51,
+    159: 5122656028.73,
+    161: 5529850414.76,
+    162: 5740150626.03,
+    163: 5958448554.34,
+    166: 6651138497.8,
+    175: 9041938050.68,
+    182: 11163218514.88,
+    186: 12469026152.32,
+    188: 13125332850.07,
+    191: 14134923594.94,
+    197: 16110729581.35,
+    200: 17096835117.57,
+    206: 19253813197.76,
+    207: 19638889461.71,
+    209: 20432300595.96,
+    213: 22116579267.86,
+    216: 23470290851.68,
+    219: 24906860414.13,
+    228: 29766003788.65,
+    231: 31587921348.54,
+    232: 32219679775.51,
+    234: 33521354838.44,
+    235: 34191781935.21,
+    238: 36284592523.9,
+    241: 38505499863.1,
+    244: 40862344498.73,
+    250: 46017636737.48,
+    253: 48834284246.91,
+    256: 51823333117.1,
+    257: 52859799779.44,
+    259: 54995335690.53,
+    260: 56095242404.34,
+    262: 58361490197.47,
+    263: 59528720001.42,
+    272: 71142330893.3,
+    278: 80117819470.88,
+    279: 81720175860.3,
+    281: 85021670965.05,
+    282: 86722104384.35,
+    287: 95748210663.87,
+    288: 97663174877.15,
+    294: 109984597292.65,
+    297: 116716534523.74,
+    300: 123860520168.87,
+    303: 129518267456.84,
+    306: 135433117117.51,
+    307: 137463259543.1,
+    309: 141615296072.37,
+    312: 148065086931.65,
+    313: 150277179330.41,
+    316: 157104442793.61,
+    323: 174165824753.3,
+    325: 179352212778.76,
+    328: 187350785513.99,
+    331: 195677138635.26,
+    332: 198514457145.47,
+    334: 204313114067.3,
+    337: 213254533401.29,
+    338: 216308338319.6,
+    340: 222547765836.07,
+    341: 225687914812.02,
+    347: 245370121150.41,
+    348: 248775858431.98,
+    350: 255729804025.79,
+    351: 259210286658.58,
+    353: 266314004727.17,
+    356: 277256919030.68,
+    357: 280949981192.17,
+    359: 288484335511.08,
+    360: 292326946860.08,
+    362: 299982773305.64,
+    363: 303885549186.35,
+    364: 307839100181.26,
+    365: 311844086874.62,
+    367: 319789960152.41,
+    368: 323838501047.94,
+    369: 327938296471.21,
+    371: 336171381346.83,
+    375: 353004730528.56,
+    376: 357198426727.24,
+    378: 365735874331.92,
+    381: 378765142581.52,
+    382: 383102003464.08,
+    384: 391925264973.81,
+    385: 396412809257.76,
+    387: 405181857011.36,
+    388: 409638857438.48,
+    390: 418700478603.88,
+    391: 423101020634,
+    393: 432041339868.78,
+    394: 436582094350.8,
+    396: 445582277884.05,
+    397: 450038100662.89
+  };
+
+  // =============================================
+  // 2. キャラクター名・基礎収入データ
+  // =============================================
+  // unit が "1" の場合は通常の数値/s、
+  // "M" の場合は M/s として扱う。
+  const CHARACTERS = [
+    {r:"Ascended",n:"Tung Tung Tung Asce…",v:67,u:"1"},
+    {r:"Ascended",n:"Mega Yachtadon",v:53,u:"M"},
+    {r:"Ascended",n:"Il Cannone Dominatore",v:55,u:"M"},
+    {r:"Ascended",n:"Horseidon",v:56,u:"M"},
+    {r:"Ascended",n:"Arcangelo Mantisio",v:58,u:"M"},
+    {r:"Ascended",n:"Gorgonzilla",v:60,u:"M"},
+    {r:"Ascended",n:"Pumpkinator",v:61,u:"M"},
+    {r:"Ascended",n:"Titanocchio",v:65,u:"M"},
+    {r:"Ascended",n:"Lionaldo",v:66,u:"M"},
+    {r:"Ascended",n:"Goatini Messini",v:66,u:"M"},
+    {r:"Ascended",n:"Wreckzilla 67",v:67,u:"M"},
+    {r:"Ascended",n:"Chronomondo",v:70,u:"M"},
+    {r:"Ascended",n:"King Kongini Bananini",v:71,u:"M"},
+    {r:"Ascended",n:"Chickeninio Paladino",v:72,u:"M"},
+    {r:"Ascended",n:"Sir Pegasusio",v:74,u:"M"},
+    {r:"Ascended",n:"Bearini Plammini Gua…",v:75,u:"M"},
+    {r:"Ascended",n:"Il Marionetto",v:77,u:"M"},
+    {r:"Ascended",n:"Triceradon",v:80,u:"M"},
+    {r:"Ascended",n:"La Catrina Mariposa",v:85,u:"M"},
+    {r:"Ascended",n:"Sunculus Ferris",v:90,u:"M"},
+    {r:"Ascended",n:"Servissimo",v:93,u:"M"},
+    {r:"Ascended",n:"Guro Guro",v:95,u:"M"},
+    {r:"Ascended",n:"Capitano Moby",v:100,u:"M"},
+    {r:"Ascended",n:"Doom Doom Doom Sa…",v:105,u:"M"},
+    {r:"Ascended",n:"Garbagzilla",v:110,u:"M"},
+    {r:"Ascended",n:"Il Demonico Maskino",v:115,u:"M"},
+    {r:"Ascended",n:"Demon Ship",v:117,u:"M"},
+    {r:"Ascended",n:"Cerberus",v:120,u:"M"},
+    {r:"Ascended",n:"Vulkarion",v:125,u:"M"},
+    {r:"Ascended",n:"Godgodzilla",v:127,u:"M"},
+    {r:"Ascended",n:"Bulzilla",v:130,u:"M"},
+    {r:"Ascended",n:"Witchantula",v:133,u:"M"},
+    {r:"Ascended",n:"Golemcoluss",v:135,u:"M"},
+    {r:"Ascended",n:"Kingorilla",v:140,u:"M"},
+    {r:"Ascended",n:"Fishini Mechinini",v:145,u:"M"},
+    {r:"Ascended",n:"Don Guitarion",v:147,u:"M"},
+    {r:"Ascended",n:"Ghost Cavallo Skeleto…",v:150,u:"M"},
+    {r:"Ascended",n:"Gargolini",v:153,u:"M"},
+    {r:"Ascended",n:"Cementzilla",v:155,u:"M"},
+    {r:"Ascended",n:"Triplelaledon",v:160,u:"M"},
+    {r:"Ascended",n:"Accordissimo",v:165,u:"M"},
+    {r:"Ascended",n:"Cavezilla",v:170,u:"M"},
+    {r:"Ascended",n:"Checkmate",v:173,u:"M"},
+    {r:"Ascended",n:"Drago Polpo",v:175,u:"M"},
+    {r:"Ascended",n:"Headless Pumpkin",v:180,u:"M"},
+    {r:"Ascended",n:"Klombo",v:185,u:"M"},
+
+    {r:"Forbidden",n:"Hydralitraktos Spidoro…",v:200,u:"M"},
+    {r:"Forbidden",n:"Chimera",v:210,u:"M"},
+    {r:"Forbidden",n:"Meowberus",v:215,u:"M"},
+    {r:"Forbidden",n:"Hydragoni Skeletoni",v:225,u:"M"},
+    {r:"Forbidden",n:"Kitsune",v:230,u:"M"},
+    {r:"Forbidden",n:"Gigaclops",v:240,u:"M"},
+    {r:"Forbidden",n:"Chainsawatron",v:250,u:"M"}
+  ];
+
+  // =============================================
+  // 3. デザイン
+  // =============================================
+  const style = document.createElement("style");
+  style.textContent = `
+    .level-income-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+    .level-income-grid .wide {
+      grid-column:1/-1;
+    }
+    .level-income-status {
+      margin-top:14px;
+      padding:12px 14px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:#ffffff05;
+      color:var(--muted);
+      overflow-wrap:anywhere;
+    }
+    .level-income-status strong {
+      color:var(--accent2);
+    }
+    .level-income-table {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+      gap:8px;
+      margin-top:12px;
+    }
+    .level-income-entry {
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width:0;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:10px;
+      background:#ffffff04;
+      overflow-wrap:anywhere;
+    }
+    .level-income-entry strong {
+      color:var(--accent2);
+    }
+    .level-income-result-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .level-income-result-item {
+      min-width:0;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      overflow-wrap:anywhere;
+    }
+    .level-income-result-item span {
+      display:block;
+    }
+    .level-income-result-item .label {
+      color:var(--muted);
+      font-size:.85rem;
+    }
+    .level-income-result-item .value {
+      font-weight:800;
+    }
+    .level-income-result-item.final {
+      grid-column:1/-1;
+      border-color:var(--accent2);
+    }
+    .level-income-result-item.final .value {
+      color:var(--accent2);
+      font-size:1.5rem;
+    }
+    .level-income-details {
+      margin-top:18px;
+      padding:13px;
+      border:1px solid var(--border);
+      border-radius:12px;
+    }
+    .level-income-details summary {
+      cursor:pointer;
+      font-weight:800;
+    }
+    @media(max-width:560px) {
+      .level-income-grid,
+      .level-income-result-grid {
+        grid-template-columns:1fr;
+      }
+      .level-income-grid .wide,
+      .level-income-result-item.final {
+        grid-column:auto;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // =============================================
+  // 4. 計算ページを作成
+  // =============================================
+  const section = document.createElement("section");
+  section.id = "levelincome";
+  section.className = "page";
+
+  section.innerHTML = `
+    <div class="card">
+      <h1>🧬 キャラクターのレベル収入計算</h1>
+      <p class="description">
+        キャラクターを選択して、レベル倍率・変異倍率・イベント倍率を適用した
+        毎秒の収入を計算します。
+      </p>
+
+      <form id="levelIncomeForm" novalidate>
+        <div class="level-income-grid">
+          <div class="field wide">
+            <label for="levelCharacterSelect">キャラクターを選択</label>
+            <select id="levelCharacterSelect">
+              <option value="">キャラクターを選択してください</option>
+            </select>
+            <p class="hint">選択すると基礎収入が自動入力されます。</p>
+          </div>
+
+          <div class="field">
+            <label for="levelCharacterName">キャラクター名</label>
+            <input id="levelCharacterName" type="text"
+              placeholder="キャラクター名">
+          </div>
+
+          <div class="field">
+            <label for="levelBaseIncome">基礎収入</label>
+            <input id="levelBaseIncome" type="number"
+              min="0" step="any" placeholder="例：53" required>
+          </div>
+
+          <div class="field">
+            <label for="levelBaseUnit">収入の単位</label>
+            <select id="levelBaseUnit">
+              <option value="No">No/s</option>
+              <option value="Oc">Oc/s</option>
+              <option value="Sp">Sp/s</option>
+              <option value="Sx">Sx/s</option>
+              <option value="Qi">Qi/s</option>
+              <option value="Qa">Qa/s</option>
+              <option value="T">T/s</option>
+              <option value="B">B/s</option>
+              <option value="M" selected>M/s</option>
+              <option value="K">K/s</option>
+              <option value="1">通常の数値/s</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="levelIncomeLevel">レベル（1〜400）</label>
+            <select id="levelIncomeLevel"></select>
+          </div>
+
+          <div class="field">
+            <label for="levelIncomeMultiplier">レベル倍率</label>
+            <input id="levelIncomeMultiplier" type="number"
+              min="0" step="any" required>
+            <p class="hint">未登録のレベルは実測倍率を入力してください。</p>
+          </div>
+
+          <div class="field">
+            <label for="levelMutationMultiplier">変異倍率</label>
+            <input id="levelMutationMultiplier" type="number"
+              min="0" step="any" value="1" required>
+            <p class="hint">変異がない場合は1。</p>
+          </div>
+
+          <div class="field">
+            <label for="levelEventMultiplier">イベント・その他倍率</label>
+            <input id="levelEventMultiplier" type="number"
+              min="0" step="any" value="1" required>
+            <p class="hint">追加倍率がない場合は1。</p>
+          </div>
+        </div>
+
+        <div id="levelIncomeStatus" class="level-income-status"
+          aria-live="polite"></div>
+
+        <div class="actions">
+          <button class="btn primary" type="submit">収入を計算</button>
+          <button class="btn" type="reset">リセット</button>
+        </div>
+      </form>
+
+      <div id="levelIncomeResult" class="result"
+        aria-live="polite"></div>
+
+      <div class="notice">
+        計算式：基礎収入 × レベル倍率 × 変異倍率 × イベント倍率。
+        未登録のレベルは推測で補完しません。
+      </div>
+
+      <details class="level-income-details">
+        <summary>登録済みのレベル倍率一覧</summary>
+        <p class="hint">確認済みのレベル倍率のみ表示します。</p>
+        <div id="levelMultiplierList" class="level-income-table"></div>
+      </details>
+
+      <details class="level-income-details">
+        <summary>キャラクター53体の一覧</summary>
+        <div id="levelCharacterList" class="level-income-table"></div>
+      </details>
+    </div>
+  `;
+
+  const main = document.querySelector("main");
+  if (!main) {
+    alert("サイトのmain要素が見つかりません。");
+    return;
+  }
+  main.appendChild(section);
+
+  // =============================================
+  // 5. サイドバー・ホームにリンクを追加
+  // =============================================
+  const sidebar = document.getElementById("appSidebar");
+
+  if (sidebar) {
+    const nav = document.createElement("button");
+    nav.type = "button";
+    nav.className = "sidebar-link";
+    nav.dataset.page = "levelincome";
+    nav.textContent = "🧬 レベル収入計算";
+    nav.addEventListener("click", () => window.showPage("levelincome"));
+    sidebar.appendChild(nav);
+  }
+
+  const homeTiles = document.querySelector("#home .tiles");
+
+  if (homeTiles) {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "tile";
+    tile.dataset.goto = "levelincome";
+    tile.innerHTML =
+      "<strong>🧬 レベル収入計算</strong>" +
+      "<span>キャラクターを選択し、レベル・変異・イベント倍率を適用します。</span>";
+    tile.addEventListener("click", () => window.showPage("levelincome"));
+    homeTiles.appendChild(tile);
+  }
+
+  // 既存ページ切り替えも、新しく追加したページに対応させる
+  window.showPage = function (id) {
+    document.querySelectorAll(".page").forEach(page => {
+      page.classList.toggle("active", page.id === id);
+    });
+
+    document.querySelectorAll(".sidebar-link").forEach(button => {
+      button.classList.toggle("active", button.dataset.page === id);
+    });
+
+    const currentSidebar = document.getElementById("appSidebar");
+    if (currentSidebar?.classList.contains("open")) {
+      document.getElementById("sidebarClose")?.click();
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // =============================================
+  // 6. 入力欄・キャラクター一覧を設定
+  // =============================================
+  const characterSelect = document.getElementById("levelCharacterSelect");
+  const levelSelect = document.getElementById("levelIncomeLevel");
+  const levelMultiplierInput =
+    document.getElementById("levelIncomeMultiplier");
+  const status = document.getElementById("levelIncomeStatus");
+  const result = document.getElementById("levelIncomeResult");
+  const form = document.getElementById("levelIncomeForm");
+
+  const rarityLabels = {
+    Ascended: "アセンデッド",
+    Forbidden: "禁止"
+  };
+
+  const groups = {};
+
+  CHARACTERS.forEach((character, index) => {
+    if (!groups[character.r]) {
+      groups[character.r] = document.createElement("optgroup");
+      groups[character.r].label = rarityLabels[character.r] || character.r;
+      characterSelect.appendChild(groups[character.r]);
+    }
+
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent =
+      character.n + " — " +
+      character.v.toLocaleString("ja-JP") + character.u + "/s";
+    groups[character.r].appendChild(option);
+  });
+
+  CHARACTERS.forEach(character => {
+    const item = document.createElement("div");
+    item.className = "level-income-entry";
+
+    const name = document.createElement("span");
+    name.textContent = character.n;
+
+    const income = document.createElement("strong");
+    income.textContent = character.v.toLocaleString("ja-JP") +
+      (character.u === "1" ? "/s" : character.u + "/s");
+
+    const rarity = document.createElement("span");
+    rarity.className = "hint";
+    rarity.textContent = rarityLabels[character.r] || character.r;
+
+    item.append(name, income, rarity);
+    document.getElementById("levelCharacterList").appendChild(item);
+  });
+
+  for (let level = 1; level <= 400; level++) {
+    const option = document.createElement("option");
+    option.value = String(level);
+    option.textContent = "レベル " + level;
+    levelSelect.appendChild(option);
+  }
+  levelSelect.value = "1";
+
+  function updateLevelMultiplier(resetValue) {
+    const level = Number(levelSelect.value);
+    const known = Object.prototype.hasOwnProperty.call(
+      LEVEL_MULTIPLIERS, String(level)
+    );
+
+    if (resetValue) {
+      levelMultiplierInput.value = known
+        ? String(LEVEL_MULTIPLIERS[level])
+        : "";
+    }
+
+    if (known) {
+      status.innerHTML =
+        "<strong>登録済み：</strong> レベル " + level + " は " +
+        LEVEL_MULTIPLIERS[level].toLocaleString("ja-JP") +
+        " 倍。登録済みの実測データを使用できます。";
+    } else {
+      status.innerHTML =
+        "<strong>未登録：</strong> レベル " + level +
+        " の倍率は未登録です。確認した倍率を手入力してください。";
+    }
+  }
+
+  characterSelect.addEventListener("change", () => {
+    const index = characterSelect.value;
+    if (index === "") return;
+
+    const character = CHARACTERS[Number(index)];
+    if (!character) return;
+
+    document.getElementById("levelCharacterName").value = character.n;
+    document.getElementById("levelBaseIncome").value = character.v;
+    document.getElementById("levelBaseUnit").value = character.u;
+  });
+
+  levelSelect.addEventListener("change", () => {
+    updateLevelMultiplier(true);
+  });
+
+  // =============================================
+  // 7. 金額の単位変換・表示
+  // =============================================
+  const unitPower = {
+    "1":0,
+    K:1,
+    M:2,
+    B:3,
+    T:4,
+    Qa:5,
+    Qi:6,
+    Sx:7,
+    Sp:8,
+    Oc:9,
+    No:10
+  };
+
+  function formatIncome(value) {
+    if (!Number.isFinite(value)) return "計算範囲外";
+    if (value === 0) return "0/s";
+
+    const units = [
+      ["No",10],
+      ["Oc",9],
+      ["Sp",8],
+      ["Sx",7],
+      ["Qi",6],
+      ["Qa",5],
+      ["T",4],
+      ["B",3],
+      ["M",2],
+      ["K",1]
+    ];
+
+    for (const [unit, power] of units) {
+      const scale = Math.pow(1000, power);
+
+      if (Math.abs(value) >= scale) {
+        return (value / scale).toLocaleString("ja-JP", {
+          maximumFractionDigits: 6
+        }) + " " + unit + "/s";
+      }
+    }
+
+    return value.toLocaleString("ja-JP", {
+      maximumFractionDigits: 8
+    }) + "/s";
+  }
+
+  function addResultItem(parent, label, value, finalItem) {
+    const box = document.createElement("div");
+    box.className = "level-income-result-item" +
+      (finalItem ? " final" : "");
+
+    const labelNode = document.createElement("span");
+    labelNode.className = "label";
+    labelNode.textContent = label;
+
+    const valueNode = document.createElement("span");
+    valueNode.className = "value";
+    valueNode.textContent = value;
+
+    box.append(labelNode, valueNode);
+    parent.appendChild(box);
+  }
+
+  // =============================================
+  // 8. 計算
+  // =============================================
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const baseText =
+      document.getElementById("levelBaseIncome").value.trim();
+    const baseIncome = Number(baseText);
+    const baseUnit = document.getElementById("levelBaseUnit").value;
+
+    const level = Number(levelSelect.value);
+    const levelMultiplierText = levelMultiplierInput.value.trim();
+    const levelMultiplier = Number(levelMultiplierText);
+
+    const mutationText =
+      document.getElementById("levelMutationMultiplier").value.trim();
+    const mutationMultiplier = Number(mutationText);
+
+    const eventText =
+      document.getElementById("levelEventMultiplier").value.trim();
+    const eventMultiplier = Number(eventText);
+
+    const characterName =
+      document.getElementById("levelCharacterName").value.trim();
+
+    function showError(message) {
+      result.className = "result show error";
+      result.replaceChildren();
+
+      const title = document.createElement("div");
+      title.className = "big";
+      title.textContent = message;
+      result.appendChild(title);
+    }
+
+    if (
+      baseText === "" ||
+      !Number.isFinite(baseIncome) ||
+      baseIncome < 0
+    ) {
+      showError("基礎収入を確認してください。");
+      return;
+    }
+
+    if (
+      levelMultiplierText === "" ||
+      !Number.isFinite(levelMultiplier) ||
+      levelMultiplier <= 0
+    ) {
+      showError("レベル倍率を入力してください。");
+      return;
+    }
+
+    if (
+      mutationText === "" ||
+      !Number.isFinite(mutationMultiplier) ||
+      mutationMultiplier <= 0 ||
+      eventText === "" ||
+      !Number.isFinite(eventMultiplier) ||
+      eventMultiplier <= 0
+    ) {
+      showError("変異・イベント倍率を確認してください。");
+      return;
+    }
+
+    const baseValue =
+      baseIncome * Math.pow(1000, unitPower[baseUnit] ?? 0);
+
+    const totalMultiplier =
+      levelMultiplier * mutationMultiplier * eventMultiplier;
+
+    const finalIncome = baseValue * totalMultiplier;
+
+    if (!Number.isFinite(finalIncome)) {
+      showError("計算範囲を超えています。入力値を確認してください。");
+      return;
+    }
+
+    result.className = "result show";
+    result.replaceChildren();
+
+    const title = document.createElement("div");
+    title.className = "big";
+    title.textContent = "計算結果：" + formatIncome(finalIncome);
+    result.appendChild(title);
+
+    if (characterName) {
+      const name = document.createElement("p");
+      name.textContent = "キャラクター：" + characterName;
+      result.appendChild(name);
+    }
+
+    const grid = document.createElement("div");
+    grid.className = "level-income-result-grid";
+
+    addResultItem(grid, "レベル", String(level), false);
+    addResultItem(
+      grid, "レベル倍率",
+      levelMultiplier.toLocaleString("ja-JP") + " 倍", false
+    );
+    addResultItem(
+      grid, "変異倍率",
+      mutationMultiplier.toLocaleString("ja-JP") + " 倍", false
+    );
+    addResultItem(
+      grid, "イベント・その他倍率",
+      eventMultiplier.toLocaleString("ja-JP") + " 倍", false
+    );
+    addResultItem(
+      grid, "合計倍率",
+      totalMultiplier.toLocaleString("ja-JP", {
+        maximumFractionDigits: 10
+      }) + " 倍", false
+    );
+    addResultItem(
+      grid, "基礎収入",
+      baseIncome.toLocaleString("ja-JP") +
+        (baseUnit === "1" ? "/s" : " " + baseUnit + "/s"),
+      false
+    );
+    addResultItem(
+      grid, "最終的な毎秒の収入",
+      formatIncome(finalIncome), true
+    );
+
+    result.appendChild(grid);
+
+    const note = document.createElement("p");
+    note.className = "hint";
+    note.textContent =
+      Object.prototype.hasOwnProperty.call(
+        LEVEL_MULTIPLIERS, String(level)
+      )
+      ? "登録済み倍率、または入力した倍率を使用しました。"
+      : "このレベルは未登録のため、入力された倍率を使用しました。";
+    result.appendChild(note);
+  });
+
+  form.addEventListener("reset", () => {
+    setTimeout(() => {
+      characterSelect.value = "";
+      levelSelect.value = "1";
+      result.className = "result";
+      result.replaceChildren();
+      updateLevelMultiplier(true);
+    }, 0);
+  });
+
+  // =============================================
+  // 9. 倍率一覧を表示
+  // =============================================
+  const multiplierList = document.getElementById("levelMultiplierList");
+
+  Object.entries(LEVEL_MULTIPLIERS)
+    .map(([level, multiplier]) => ({
+      level: Number(level),
+      multiplier
+    }))
+    .sort((a, b) => a.level - b.level)
+    .forEach(({level, multiplier}) => {
+      const item = document.createElement("div");
+      item.className = "level-income-entry";
+
+      const levelText = document.createElement("span");
+      levelText.textContent = "レベル " + level;
+
+      const multiplierText = document.createElement("strong");
+      multiplierText.textContent =
+        multiplier.toLocaleString("ja-JP") + " 倍";
+
+      item.append(levelText, multiplierText);
+      multiplierList.appendChild(item);
+    });
+
+  updateLevelMultiplier(true);
+
+  console.log(
+    "GOUP レベル収入計算を追加しました。",
+    "倍率データ:", Object.keys(LEVEL_MULTIPLIERS).length,
+    "レベル / 400",
+    "キャラクターデータ:", CHARACTERS.length, "体"
+  );
+})();
+</script>
 </body>
 </html>
