@@ -123,6 +123,20 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 @media(max-width:560px){.level-income-form-grid,.level-income-result-grid,.level-event-controls{grid-template-columns:1fr}.level-income-result-item.primary-income{grid-column:auto}.level-character-select-field,.level-event-settings-field{grid-column:auto}.level-trait-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .level-income-list-item .level-income-state{color:var(--muted);font-size:.78rem;min-width:48px;text-align:right}
 
+
+/* レベルアップ必要額計算 */
+.level-cost-card h2{margin-top:0}
+.level-cost-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.level-cost-wide{grid-column:1/-1}
+.level-cost-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.level-cost-summary-item{padding:13px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
+.level-cost-summary-item .label{display:block;color:var(--muted);font-size:.85rem}
+.level-cost-summary-item .value{display:block;font-weight:850;overflow-wrap:anywhere}
+.level-cost-summary-item.primary-cost{grid-column:1/-1;border-color:#5ce1c077;background:#5ce1c010}
+.level-cost-summary-item.primary-cost .value{font-size:1.65rem;color:var(--accent2)}
+.level-cost-result-note{font-size:.87rem;color:var(--muted);margin-top:12px}
+@media(max-width:560px){.level-cost-grid,.level-cost-summary-grid{grid-template-columns:1fr}.level-cost-wide,.level-cost-summary-item.primary-cost{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -344,7 +358,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
       <div class="field"><label for="levelCharacterName">キャラクター名（任意）</label><input id="levelCharacterName" type="text" maxlength="80" placeholder="例：キャラクター名"></div>
       <div class="field"><label for="levelBaseIncome">レベル1・変異なしの基礎収入</label><input id="levelBaseIncome" type="number" min="0" step="any" placeholder="例：53" required><p class="hint">ゲーム内で表示される毎秒の収入を入力します。</p></div>
       <div class="field"><label for="levelBaseUnit">基礎収入の単位</label><select id="levelBaseUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx">Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M" selected>M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
-      <div class="field"><label for="levelIncomeLevel">キャラクターレベル（1〜400）</label><select id="levelIncomeLevel" required></select><p class="hint">参照元JavaScriptの倍率計算式を使い、レベル1〜400を自動計算します。</p></div>
+      <div class="field"><label for="levelIncomeLevel">キャラクターレベル（1〜400）</label><select id="levelIncomeLevel" required></select><p class="hint">実測値があればそれを使い、未確認レベルは推定値を自動入力します。</p></div>
       <div class="field"><label>選択レベルの倍率</label><div id="levelIncomeMultiplierDisplay" class="level-income-data-status" style="margin-top:0" aria-live="polite">レベルを選択してください</div><p class="hint">選択したレベルから自動で適用されます。数値の手入力は不要です。</p></div>
       <div class="field level-event-settings-field">
         <label>イベント・その他の追加倍率</label>
@@ -403,8 +417,8 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
   <div id="levelIncomeResult" class="result" aria-live="polite"></div>
   <div class="notice">計算式：基礎収入 × レベル倍率 ×（イベント変異倍率 ＋ 選択した特性倍率の合計）× その他の追加倍率。例：基礎収入100M/s、レベル1（×1）、アステロイド（×3）、レインボー（×5）、その他×1なら、100M/s × 1 ×（3＋5）＝800M/s。</div>
   <details class="level-income-details">
-    <summary>レベル倍率一覧（参照元の計算式）を表示</summary>
-    <p class="hint">全400レベルの倍率を参照元JavaScriptの計算式で表示します。</p>
+    <summary>レベル倍率一覧（実測値・推定値）を表示</summary>
+    <p class="hint">全400レベルを表示し、実測値と推定値を区別します。</p>
     <div id="levelIncomeMultiplierList" class="level-income-list"></div>
   </details>
   <details class="level-income-details">
@@ -412,6 +426,33 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
     <p class="hint">画像から確認できたアセンデッド46体・禁止7体を登録。画面上で名前が省略されているものは、省略記号付きで表示します。</p>
     <div id="levelCharacterList" class="level-income-list"></div>
   </details>
+</div>
+<div class="card level-cost-card">
+  <h2>💰 目標レベルまでの費用計算</h2>
+  <p class="description">現在のレベルから目標レベルまで上げるために必要なお金を計算します。GO UPの元サイトにあるレベル費用計算式と、レベルごとの係数を使用します（レベル1〜400）。</p>
+  <form id="levelCostForm" novalidate>
+    <div class="level-cost-grid">
+      <div class="field">
+        <label for="levelCostCurrentLevel">現在のレベル</label>
+        <input id="levelCostCurrentLevel" type="number" min="1" max="400" step="1" value="1" required>
+      </div>
+      <div class="field">
+        <label for="levelCostTargetLevel">目標レベル</label>
+        <input id="levelCostTargetLevel" type="number" min="1" max="400" step="1" value="100" required>
+      </div>
+      <div class="field level-cost-wide">
+        <label for="levelCostMoney">現在の所持金（任意）</label>
+        <input id="levelCostMoney" type="text" inputmode="decimal" autocomplete="off" placeholder="例：250M、1.2Sp、空欄なら0">
+        <p class="hint">K・M・B・T・Qa・Qi・Sx・Sp・Oc・No・Dc に対応。単位は大文字・小文字どちらでも入力できます。</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="submit">必要額を計算</button>
+      <button class="btn" type="reset">リセット</button>
+    </div>
+  </form>
+  <div id="levelCostResult" class="result" aria-live="polite"></div>
+  <div class="notice">計算方法：目標レベルまでの累計費用 − 現在レベルまでの累計費用。所持金が必要額以上なら購入後の残額、足りなければ不足額を表示します。所持金を空欄にした場合は0として扱います。</div>
 </div></section>
 </main>
 <footer>GOUP Calculator · リバース費用は提供された表の数値を使用</footer>
@@ -2167,36 +2208,195 @@ renderIdleUI();
 (() => {
 "use strict";
 const UNIT_POWER = {'1':0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10};function toBase(value,unit){return value*Math.pow(1000,UNIT_POWER[unit]??0)}function addText(parent,tag,className,text){const el=document.createElement(tag);if(className)el.className=className;el.textContent=text;parent.appendChild(el);return el;}
-/* 参照元のJavaScriptから取得したレベル倍率計算式
-   レベル1〜50は1.3倍ずつ増加し、レベル51以降は5レベルごとの増加係数を適用する。 */
-const LEVEL_AFTER_50_RATES = Object.freeze([1.2,1.198,1.193,1.183,1.17,1.154,1.133,1.109,1.081,1.05,1.05,1.04992,1.04967,1.04925,1.04867,1.04792,1.04701,1.04593,1.04468,1.04327,1.04169,1.03994,1.03803,1.03596,1.03371,1.0313,1.02873,1.02598,1.02307,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.02,1.015,1.01499,1.01494,1.01488,1.01478,1.01465,1.0145,1.01432,1.01411,1.01388,1.01361,1.01332,1.01301,1.01266,1.01229,1.01188,1.01145,1.011,1.01051,1.01]);
+/* 実測データ：レベル1〜400のうち倍率を確認できたレベルのみ登録 */
+const MEASURED_LEVEL_MULTIPLIERS = Object.freeze({
+  "1": 1.0,
+  "3": 1.69,
+  "5": 2.86,
+  "6": 3.71,
+  "10": 10.6,
+  "13": 23.3,
+  "14": 30.29,
+  "19": 112.46,
+  "20": 146.19,
+  "24": 417.54,
+  "25": 542.8,
+  "28": 1192.53,
+  "35": 7482.97,
+  "38": 16440.08,
+  "39": 21372.11,
+  "44": 79353.15,
+  "45": 103159.09,
+  "47": 174338.86,
+  "50": 383022.48,
+  "53": 661862.84,
+  "56": 1141792.83,
+  "60": 2351876.88,
+  "63": 3993336.56,
+  "64": 4764050.52,
+  "66": 6723595.01,
+  "69": 11131553.56,
+  "70": 13168627.87,
+  "72": 18026534.68,
+  "75": 28871532.3,
+  "81": 66946640.42,
+  "85": 110318520.08,
+  "88": 150467624.85,
+  "91": 200046912.02,
+  "94": 252702148.14,
+  "97": 301171051.91,
+  "100": 348643138.97,
+  "103": 403598013.75,
+  "110": 567686624.72,
+  "113": 656548807.89,
+  "116": 759017108.46,
+  "119": 876775687.93,
+  "122": 1011684659.56,
+  "125": 1166706713.26,
+  "128": 1342598273.0,
+  "131": 1543665407.87,
+  "135": 1855053719.86,
+  "138": 2122581381.02,
+  "141": 2425788151.59,
+  "144": 2765684983.22,
+  "147": 3144701517.28,
+  "150": 3570833393.42,
+  "153": 4036315193.23,
+  "156": 4554810843.43,
+  "157": 4736729988.51,
+  "159": 5122656028.73,
+  "161": 5529850414.76,
+  "162": 5740150626.03,
+  "163": 5958448554.34,
+  "166": 6651138497.8,
+  "175": 9041938050.68,
+  "182": 11163218514.88,
+  "186": 12469026152.32,
+  "188": 13125332850.07,
+  "191": 14134923594.94,
+  "197": 16110729581.35,
+  "200": 17096835117.57,
+  "206": 19253813197.76,
+  "207": 19638889461.71,
+  "209": 20432300595.96,
+  "213": 22116579267.86,
+  "216": 23470290851.68,
+  "219": 24906860414.13,
+  "228": 29766003788.65,
+  "231": 31587921348.54,
+  "232": 32219679775.51,
+  "234": 33521354838.44,
+  "235": 34191781935.21,
+  "238": 36284592523.9,
+  "241": 38505499863.1,
+  "244": 40862344498.73,
+  "250": 46017636737.48,
+  "253": 48834284246.91,
+  "256": 51823333117.1,
+  "257": 52859799779.44,
+  "259": 54995335690.53,
+  "260": 56095242404.34,
+  "262": 58361490197.47,
+  "263": 59528720001.42,
+  "272": 71142330893.3,
+  "278": 80117819470.88,
+  "279": 81720175860.3,
+  "281": 85021670965.05,
+  "282": 86722104384.35,
+  "287": 95748210663.87,
+  "288": 97663174877.15,
+  "294": 109984597292.65,
+  "297": 116716534523.74,
+  "300": 123860520168.87,
+  "303": 129518267456.84,
+  "306": 135433117117.51,
+  "307": 137463259543.1,
+  "309": 141615296072.37,
+  "312": 148065086931.65,
+  "313": 150277179330.41,
+  "316": 157104442793.61,
+  "323": 174165824753.3,
+  "325": 179352212778.76,
+  "328": 187350785513.99,
+  "330": 192880373223.52,
+  "331": 195677138635.26,
+  "332": 198514457145.47,
+  "334": 204313114067.3,
+  "337": 213254533401.29,
+  "338": 216308338319.6,
+  "340": 222547765836.07,
+  "341": 225687914812.02,
+  "347": 245370121150.41,
+  "348": 248775858431.98,
+  "350": 255729804025.79,
+  "351": 259210286658.58,
+  "353": 266314004727.17,
+  "356": 277256919030.68,
+  "357": 280949981192.17,
+  "359": 288484335511.08,
+  "360": 292326946860.08,
+  "362": 299982773305.64,
+  "363": 303885549186.35,
+  "364": 307839100181.26,
+  "365": 311844086874.62,
+  "367": 319789960152.41,
+  "368": 323838501047.94,
+  "369": 327938296471.21,
+  "371": 336171381346.83,
+  "375": 353004730528.56,
+  "376": 357198426727.24,
+  "378": 365735874331.92,
+  "381": 378765142581.52,
+  "382": 383102003464.08,
+  "384": 391925264973.81,
+  "385": 396412809257.76,
+  "387": 405181857011.36,
+  "388": 409638857438.48,
+  "390": 418700478603.88,
+  "391": 423101020634.0,
+  "393": 432041339868.78,
+  "394": 436582094350.8,
+  "396": 445582277884.05,
+  "397": 450038100662.89
+});
+const LEVEL_INCOME_MULTIPLIERS = {};
+const ESTIMATED_LEVELS = new Set();
+const knownLevels = Object.keys(MEASURED_LEVEL_MULTIPLIERS).map(Number).sort((a, b) => a - b);
 
-function getPostLevel50Factor(offset) {
-  if (offset < 0) return 1;
-  let product = 1;
-  for (let index = 0; index < LEVEL_AFTER_50_RATES.length; index++) {
-    const remaining = offset - index * 5;
-    if (remaining < 0) break;
-    const repeats = Math.min(remaining, 4) + 1;
-    product *= Math.pow(LEVEL_AFTER_50_RATES[index], repeats);
-  }
-  const coveredOffset = LEVEL_AFTER_50_RATES.length * 5;
-  if (offset > coveredOffset) {
-    const lastRate = LEVEL_AFTER_50_RATES[LEVEL_AFTER_50_RATES.length - 1] || 1.01;
-    product *= Math.pow(lastRate, offset - coveredOffset);
-  }
-  return product;
-}
-
-function calculateLevelIncomeMultiplier(levelValue) {
-  const zeroBasedLevel = Math.max(0, Math.min(399, Math.floor(Number(levelValue)) - 1));
-  if (zeroBasedLevel < 50) return Math.pow(1.3, zeroBasedLevel);
-  return Math.pow(1.3, 49) * getPostLevel50Factor(zeroBasedLevel - 50);
-}
-
-const LEVEL_INCOME_MULTIPLIERS = Object.create(null);
+// Build values for levels 1–400. Missing levels are logarithmically interpolated
+// between nearest measured data points and clearly labeled as estimates.
 for (let level = 1; level <= 400; level++) {
-  LEVEL_INCOME_MULTIPLIERS[level] = calculateLevelIncomeMultiplier(level);
+  if (Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level))) {
+    LEVEL_INCOME_MULTIPLIERS[level] = MEASURED_LEVEL_MULTIPLIERS[level];
+    continue;
+  }
+  let lower = null;
+  let upper = null;
+  for (const knownLevel of knownLevels) {
+    if (knownLevel < level) lower = knownLevel;
+    if (knownLevel > level) { upper = knownLevel; break; }
+  }
+  let estimate;
+  if (lower !== null && upper !== null) {
+    const lowValue = MEASURED_LEVEL_MULTIPLIERS[lower];
+    const highValue = MEASURED_LEVEL_MULTIPLIERS[upper];
+    const fraction = (level - lower) / (upper - lower);
+    estimate = lowValue * Math.pow(highValue / lowValue, fraction);
+  } else if (lower !== null) {
+    const previous = [...knownLevels].reverse().find(value => value < lower);
+    if (previous !== undefined) {
+      const ratio = Math.pow(MEASURED_LEVEL_MULTIPLIERS[lower] / MEASURED_LEVEL_MULTIPLIERS[previous], 1 / (lower - previous));
+      estimate = MEASURED_LEVEL_MULTIPLIERS[lower] * Math.pow(ratio, level - lower);
+    } else {
+      estimate = MEASURED_LEVEL_MULTIPLIERS[lower];
+    }
+  } else if (upper !== null) {
+    estimate = MEASURED_LEVEL_MULTIPLIERS[upper];
+  } else {
+    estimate = 1;
+  }
+  LEVEL_INCOME_MULTIPLIERS[level] = estimate;
+  ESTIMATED_LEVELS.add(level);
 }
 
 /* 画像から読み取ったキャラクター名・基礎収入 */
@@ -2532,6 +2732,7 @@ const levelEventPresetSelect = document.getElementById('levelEventPreset');
 const levelEventOtherMultiplierInput = document.getElementById('levelEventMultiplier');
 const levelTraitCheckboxes = [...document.querySelectorAll('.level-trait-checkbox')];
 const levelEventTraitSummary = document.getElementById('levelEventTraitSummary');
+const registeredLevelCount = Object.keys(MEASURED_LEVEL_MULTIPLIERS).length;
 
 function formatCharacterIncome(character) {
   const amount = new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 2 }).format(character.income);
@@ -2595,14 +2796,19 @@ function getSelectedLevelMultiplier() {
 function updateLevelIncomeMultiplier() {
   const level = Number(levelIncomeLevelSelect.value);
   const multiplier = LEVEL_INCOME_MULTIPLIERS[level];
+  const estimated = ESTIMATED_LEVELS.has(level);
   levelIncomeMultiplierDisplay.textContent =
-    '×' + formatMultiplierNumber(multiplier) + '（参照式）';
-  levelIncomeDataStatus.innerHTML =
-    '<strong>参照元の計算式：</strong> レベル ' + level +
-    ' の倍率は ' + formatMultiplierNumber(multiplier) +
-    ' 倍です。参照元JavaScriptに含まれるレベル倍率の計算式を使用しています。';
+    '×' + formatMultiplierNumber(multiplier) + (estimated ? '（推定値）' : '（実測値）');
+  if (estimated) {
+    levelIncomeDataStatus.innerHTML = '<strong>推定値：</strong> レベル ' + level +
+      ' の倍率は約 ' + formatMultiplierNumber(multiplier) +
+      ' 倍です。前後の実測値から補間しています。';
+  } else {
+    levelIncomeDataStatus.innerHTML = '<strong>実測データ：</strong> レベル ' + level +
+      ' の倍率は ' + formatMultiplierNumber(multiplier) + ' 倍です。';
+  }
   levelIncomeDataStatus.insertAdjacentHTML('beforeend',
-    ' <span>（レベル1〜400を計算式から算出）</span>');
+    ' <span>（実測データ：' + registeredLevelCount + '/400 レベル、推定値：' + ESTIMATED_LEVELS.size + ' レベル）</span>');
 }
 
 function formatLevelIncome(value) {
@@ -2644,7 +2850,7 @@ function renderLevelIncomeMultiplierList() {
     item.className = 'level-income-list-item';
     addText(item, 'span', '', 'Lv.' + level);
     addText(item, 'strong', '', formatMultiplierNumber(LEVEL_INCOME_MULTIPLIERS[level]) + ' 倍');
-    addText(item, 'span', 'level-income-state', '参照式');
+    addText(item, 'span', 'level-income-state', ESTIMATED_LEVELS.has(level) ? '推定値' : '実測');
     levelIncomeMultiplierList.appendChild(item);
   }
 }
@@ -2746,7 +2952,8 @@ levelIncomeForm.addEventListener('submit', event => {
   grid.className = 'level-income-result-grid';
   addLevelIncomeResultItem(grid, '選択したレベル', String(level));
   addLevelIncomeResultItem(grid, 'レベル倍率（自動適用）', formatMultiplierNumber(levelMultiplier) + ' 倍');
-  addLevelIncomeResultItem(grid, '特性ボーナスの合計', '+' + formatMultiplierNumber(traitBonusTotal));
+  addLevelIncomeResultItem(grid, '選択した特性倍率の合計', '+' + formatMultiplierNumber(traitBonusTotal));
+  addLevelIncomeResultItem(grid, '特性倍率の合計', '+' + formatMultiplierNumber(traitBonusTotal));
   addLevelIncomeResultItem(grid, 'イベント変異：' + selectedEventName, formatMultiplierNumber(eventPresetMultiplier) + ' 倍');
   addLevelIncomeResultItem(grid, '特性＋イベントの合計倍率', formatMultiplierNumber(mutationCombined) + ' 倍');
   addLevelIncomeResultItem(grid, 'その他の追加倍率', formatMultiplierNumber(eventOtherMultiplier) + ' 倍');
@@ -2758,8 +2965,10 @@ levelIncomeForm.addEventListener('submit', event => {
     addText(levelIncomeResult, 'p', 'hint', '適用した特性：' + selectedTraits.map(trait => trait.name + ' ×' + formatMultiplierNumber(trait.bonus)).join('、'));
   }
   addText(levelIncomeResult, 'p', 'hint', '計算式：基礎収入 × レベル倍率 ×（特性倍率の合計 ＋ イベント変異倍率）× その他の追加倍率。特性倍率とイベント変異倍率は掛け算ではなく足し算で合算します。');
-  addText(levelIncomeResult, 'p', 'hint',
-    '参照元JavaScriptに含まれるレベル倍率の計算式を使用しました。');
+  const measured = Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level));
+  addText(levelIncomeResult, 'p', 'hint', measured
+    ? 'このレベルは実測倍率を自動適用しました。'
+    : 'このレベルは前後の実測値から補間した推定倍率を自動適用しました。');
 });
 
 levelIncomeForm.addEventListener('reset', () => {
@@ -2777,5 +2986,159 @@ renderLevelIncomeMultiplierList();
 renderCharacterDatabase();
 })();
 </script>
+
+<script>
+(() => {
+  "use strict";
+  const form = document.getElementById('levelCostForm');
+  const result = document.getElementById('levelCostResult');
+  if (!form || !result) return;
+
+  const MAX_LEVEL = 400;
+  // GO UP元ソースのレベル費用係数（5レベルごとに適用）
+  const growth = [
+    1.3,1.298,1.29,1.278,1.26,1.238,1.211,1.179,1.142,1.1,
+    1.08,1.07986,1.07945,1.07875,1.07778,1.07654,1.07501,1.07321,1.07114,1.06878,
+    1.06615,1.06324,1.06006,1.05659,1.05285,1.04884,1.04454,1.03997,1.03512,1.03,
+    1.025,1.02497,1.02489,1.02475,1.02456,1.02431,1.024,1.02364,1.02323,1.02276,
+    1.02223,1.02165,1.02101,1.02032,1.01957,1.01877,1.01791,1.01699,1.01602,1.015,
+    1.02,1.01997,1.01989,1.01975,1.01956,1.01931,1.019,1.01864,1.01823,1.01776,
+    1.01723,1.01665,1.01601,1.01532,1.01457,1.01377,1.01291,1.01199,1.01102,1.01
+  ];
+  const units = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+  const powers = {'':0,K:1,M:2,B:3,T:4,QA:5,QI:6,SX:7,SP:8,OC:9,NO:10,DC:11};
+
+  function additionalCumulativeCost(levels) {
+    if (levels <= 0) return 0;
+    let sum = 0;
+    let blockStartCost = 1;
+    const blockSize = 5;
+    for (let i = 0; i < growth.length; i++) {
+      const multiplier = growth[i];
+      const remaining = levels - i * blockSize;
+      if (remaining < 0) break;
+      const count = Math.min(remaining, blockSize - 1) + 1;
+      const blockSum = multiplier * (Math.pow(multiplier, count) - 1) / (multiplier - 1);
+      sum += blockStartCost * blockSum;
+      blockStartCost *= Math.pow(multiplier, blockSize);
+    }
+    return sum;
+  }
+
+  // 累計費用：レベル1〜50は1.5倍、51以降は元ソースのgrowth係数を使用
+  function cumulativeLevelCost(level) {
+    const n = Math.max(0, Math.min(MAX_LEVEL, Math.floor(level)));
+    if (n <= 50) return 2 * (Math.pow(1.5, n) - 1);
+    const first50 = 2 * (Math.pow(1.5, 50) - 1);
+    return first50 + Math.pow(1.5, 49) * additionalCumulativeCost(n - 50);
+  }
+
+  function parseMoney(input) {
+    const text = String(input || '').trim().replace(/,/g, '');
+    if (!text) return 0;
+    const match = text.match(/^([0-9]+(?:\.[0-9]+)?)\s*(Dc|No|Oc|Sp|Sx|Qi|Qa|T|B|M|K)?$/i);
+    if (!match) throw new Error('所持金は「250M」「1.2Sp」のように入力してください。');
+    const number = Number(match[1]);
+    const suffix = (match[2] || '').toUpperCase();
+    const power = powers[suffix];
+    if (!Number.isFinite(number) || number < 0 || power === undefined) {
+      throw new Error('所持金の数値または単位を確認してください。');
+    }
+    return number * Math.pow(1000, power);
+  }
+
+  function formatMoney(value) {
+    if (!Number.isFinite(value)) return '計算できません';
+    if (value === 0) return '0';
+    const abs = Math.abs(value);
+    const power = Math.max(0, Math.min(units.length - 1, Math.floor(Math.log10(abs) / 3)));
+    const scaled = value / Math.pow(1000, power);
+    const rounded = Number(scaled.toPrecision(4));
+    return rounded.toLocaleString('en-US', {maximumFractionDigits:3}) + units[power];
+  }
+
+  function addItem(parent, label, value, primary) {
+    const item = document.createElement('div');
+    item.className = 'level-cost-summary-item' + (primary ? ' primary-cost' : '');
+    const labelEl = document.createElement('span');
+    labelEl.className = 'label';
+    labelEl.textContent = label;
+    const valueEl = document.createElement('span');
+    valueEl.className = 'value';
+    valueEl.textContent = value;
+    item.append(labelEl, valueEl);
+    parent.appendChild(item);
+  }
+
+  function showError(message) {
+    result.replaceChildren();
+    result.className = 'result show error';
+    const big = document.createElement('div');
+    big.className = 'big';
+    big.textContent = message;
+    result.appendChild(big);
+  }
+
+  function calculate() {
+    const currentRaw = Number(document.getElementById('levelCostCurrentLevel').value);
+    const targetRaw = Number(document.getElementById('levelCostTargetLevel').value);
+    if (!Number.isInteger(currentRaw) || currentRaw < 1 || currentRaw > MAX_LEVEL ||
+        !Number.isInteger(targetRaw) || targetRaw < 1 || targetRaw > MAX_LEVEL) {
+      showError('現在のレベルと目標レベルは1〜400の整数で入力してください。');
+      return;
+    }
+    if (targetRaw < currentRaw) {
+      showError('目標レベルは現在のレベル以上にしてください。');
+      return;
+    }
+
+    let available;
+    try {
+      available = parseMoney(document.getElementById('levelCostMoney').value);
+    } catch (error) {
+      showError(error.message || '所持金の入力を確認してください。');
+      return;
+    }
+
+    const required = Math.max(0, cumulativeLevelCost(targetRaw) - cumulativeLevelCost(currentRaw));
+    const cumulativeTarget = cumulativeLevelCost(targetRaw);
+    const diff = available - required;
+
+    result.replaceChildren();
+    result.className = 'result show';
+    const grid = document.createElement('div');
+    grid.className = 'level-cost-summary-grid';
+    addItem(grid, '必要額（現在レベル → 目標レベル）', formatMoney(required), true);
+    addItem(grid, 'レベル1 → 目標レベルの累計費用', formatMoney(cumulativeTarget), false);
+    addItem(grid, '現在の所持金', formatMoney(available), false);
+    addItem(grid, diff >= 0 ? 'レベルアップ後に余る金額' : '不足額', formatMoney(Math.abs(diff)), false);
+    if (currentRaw < MAX_LEVEL) {
+      const nextLevelCost = cumulativeLevelCost(currentRaw + 1) - cumulativeLevelCost(currentRaw);
+      addItem(grid, '次の1レベルに必要な金額', formatMoney(nextLevelCost), false);
+    }
+    result.appendChild(grid);
+    const note = document.createElement('p');
+    note.className = 'level-cost-result-note';
+    note.textContent = '計算式：累計費用(' + targetRaw + ') − 累計費用(' + currentRaw + ')。元サイトのレベル費用係数を使用しています。';
+    result.appendChild(note);
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    calculate();
+  });
+  form.addEventListener('input', calculate);
+  form.addEventListener('change', calculate);
+  form.addEventListener('reset', () => {
+    window.setTimeout(() => {
+      result.className = 'result';
+      result.replaceChildren();
+    }, 0);
+  });
+
+  calculate();
+})();
+</script>
+
 </body>
 </html>
