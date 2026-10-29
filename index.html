@@ -1,37 +1,1420 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#10121b">
 <title>GOUP Calculator</title>
+<style>
+:root{color-scheme:dark;--bg:#10121b;--text:#f4f5fb;--muted:#a7aec4;--accent:#8b7cff;--accent2:#5ce1c0;--datetime:#c1d7a2;--border:#30364d;--danger:#ff8585}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#242444,var(--bg) 55%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6;min-height:100vh}
+header{padding:64px 16px 18px;text-align:center}.logo{font-size:clamp(1.8rem,5vw,2.7rem);font-weight:850}.logo span{color:var(--accent2)}
+.sidebar-toggle{position:fixed;top:14px;left:14px;z-index:1200;width:46px;height:46px;border:1px solid var(--border);border-radius:13px;background:#202437;color:var(--text);display:grid;place-items:center;font-size:1.45rem;box-shadow:0 8px 24px #0004}
+.sidebar{position:fixed;top:0;bottom:0;left:0;z-index:1300;width:min(300px,86vw);padding:20px;background:#151827;border-right:1px solid var(--border);box-shadow:18px 0 45px #0004;transform:translateX(-105%);visibility:hidden;transition:transform .22s ease,visibility .22s ease;display:flex;flex-direction:column;gap:10px}
+.sidebar.open{transform:translateX(0);visibility:visible}
+.sidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 18px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sidebar-title{font-size:1.15rem;font-weight:850}
+.sidebar-close{width:40px;height:40px;border:1px solid var(--border);border-radius:10px;background:#202437;color:var(--text);font-size:1.3rem}
+.sidebar-link{width:100%;text-align:left;padding:13px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);font:inherit;font-weight:750}
+.sidebar-link:hover{background:#ffffff0b}
+.sidebar-link.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.sidebar-overlay{position:fixed;inset:0;z-index:1250;border:0;border-radius:0;padding:0;background:#050710b8;opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s ease}
+.sidebar-overlay.open{opacity:1;visibility:visible}
+body.menu-open{overflow:hidden}
+header p,.description,.hint{color:var(--muted)}
+nav{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:0 12px 22px}
+button{cursor:pointer;font:inherit;font-weight:700}.btn{border:1px solid var(--border);border-radius:12px;padding:10px 15px;background:#202437;color:var(--text);transition:background .2s,transform .2s}.btn:hover{transform:translateY(-1px)}.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+main{width:min(880px,calc(100% - 28px));margin:0 auto 42px}.page{display:none}.page.active{display:block}
+.card{background:rgba(25,28,41,.96);border:1px solid var(--border);border-radius:20px;padding:clamp(18px,4vw,28px);margin-bottom:16px;box-shadow:0 14px 35px #0002}
+  h1{font-size:1.55rem;line-height:1.3}h2{font-size:1.2rem}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:6px}label{font-weight:700;font-size:.93rem}
+input,select{width:100%;min-width:0;padding:12px 13px;border:1px solid var(--border);border-radius:11px;background:#101321;color:var(--text);font:inherit}input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.hint{font-size:.82rem;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.result{display:none;margin-top:18px;padding:17px;border-radius:14px;background:#111625;border:1px solid var(--border);overflow-wrap:anywhere}.result.show{display:block}.result .big{font-size:1.7rem;font-weight:850;color:var(--accent2);line-height:1.5}.result .result-datetime{font-size:1.7rem;color:#c1d7a2;font-weight:850;line-height:1.5;margin-top:8px}.result .current-time{font-size:1.1rem;color:var(--muted);font-weight:700;margin-top:6px;line-height:1.5}.result.error .big{color:var(--danger);font-size:1.1rem}
+.tiles{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}.tile{display:block;width:100%;padding:16px;border:1px solid var(--border);border-radius:15px;background:#ffffff05;color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}.tile:hover{background:#ffffff0d;border-color:#8b7cff99;transform:translateY(-1px)}.tile:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.tile strong{display:block;font-size:1.1rem;font-weight:800}.tile span{display:block;color:var(--muted);font-size:.9rem}
+.notice{border-left:3px solid var(--accent2);padding:10px 13px;background:#5ce1c00d;border-radius:0 10px 10px 0;color:var(--muted);font-size:.9rem;margin-top:18px}
+.summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.summary-item{border:1px solid var(--border);border-radius:12px;padding:13px;background:#ffffff04}.summary-item .label{color:var(--muted);font-size:.85rem}.summary-item .value{font-weight:800;font-size:1.08rem;overflow-wrap:anywhere}.time-forecast{margin-top:14px;padding:15px;border:1px solid var(--border);border-radius:14px;background:#ffffff04}.time-forecast h2{margin:0 0 8px;font-size:1.05rem}.time-forecast .forecast-line{margin:5px 0}.time-forecast .forecast-date{font-size:1.7rem;color:#c1d7a2;font-weight:850;overflow-wrap:anywhere}.time-forecast .forecast-label{color:var(--muted);font-size:.9rem}.breakdown{margin-top:14px;padding:13px;border-radius:12px;background:#ffffff04;border:1px solid var(--border)}.breakdown summary{cursor:pointer;font-weight:700}.breakdown ol{padding-left:1.5rem}.breakdown li{margin:5px 0}.money{color:var(--datetime);font-weight:800}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:10px 18px 28px}
+.jump-input-row{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:12px;align-items:center;margin-top:6px}
+  .jump-input-row input[type="range"]{width:100%;padding:0;border:0;background:transparent;accent-color:var(--accent2);cursor:pointer}
+.jump-input-row input[type="number"]{text-align:center;font-weight:800}
+.jump-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.jump-result-item{border:1px solid var(--border);border-radius:13px;padding:14px;background:#ffffff05;min-width:0}
+.jump-result-item .label{display:block;color:var(--muted);font-size:.85rem;margin-bottom:5px}
+.jump-result-item .value{font-size:1.25rem;font-weight:850;overflow-wrap:anywhere;color:var(--accent2)}
+.jump-result-item.primary-value{border-color:#5ce1c066;background:#5ce1c00b}
+.jump-result-item.primary-value .value{font-size:1.55rem}
+.rarity-audio-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.rarity-audio-card{border:1px solid var(--border);border-radius:16px;background:linear-gradient(150deg,#ffffff0a,#ffffff02);padding:18px;min-width:0}
+.rarity-audio-card h2{margin:8px 0;font-size:1.2rem}
+.rarity-audio-card p{color:var(--muted);font-size:.9rem;min-height:2.8em}
+.rarity-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;padding:5px 10px;font-size:.78rem;font-weight:800;letter-spacing:.04em}
+.rarity-badge.divine{color:#c8baff;border-color:#8b7cff66;background:#8b7cff14}
+.rarity-badge.ascended{color:#ffdca0;border-color:#ffc56a66;background:#ffc56a12}
+.rarity-badge.forbidden{color:#ff9cba;border-color:#ff659866;background:#ff659812}
+.rarity-audio-card audio{display:block;width:100%;margin-top:14px}
+
+/* 放置収入計算：左に収入記録、右に倍率スケジュール */
+main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
+.idle-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,350px);gap:16px;align-items:start}
+.idle-main-card,.idle-multiplier-card{min-width:0;margin-bottom:16px}
+.idle-main-card h1{margin-top:0}
+.idle-multiplier-card{padding:18px;position:relative}
+.idle-multiplier-card h2{margin:0 0 8px}
+.idle-multiplier-card .description{font-size:.9rem;margin:0 0 12px}
+.multiplier-start-field{margin:12px 0 14px}
+.multiplier-start-field label{font-size:.84rem}
+.multiplier-start-field input{padding:9px;font-size:.9rem}
+.multiplier-rows{display:grid;gap:8px;margin-top:14px}
+.multiplier-row{display:grid;grid-template-columns:auto auto minmax(75px,1fr);gap:8px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:12px;background:#ffffff05;min-width:0}
+.multiplier-row.is-active{border-color:var(--accent2);background:#5ce1c010;box-shadow:0 0 0 1px #5ce1c022}.multiplier-row.is-finished{border-color:#65708a66}
+.multiplier-activate{padding:7px 9px;font-size:.82rem;white-space:nowrap;border-radius:10px}
+.multiplier-activate.is-running{background:var(--accent);border-color:var(--accent);color:white}
+.multiplier-badge{display:inline-flex;justify-content:center;align-items:center;min-width:56px;padding:5px 8px;border-radius:9px;background:var(--accent2);color:#10201d;font-weight:850;white-space:nowrap}
+  .multiplier-row input{padding:7px 8px;font-size:.88rem;min-width:0}
+.multiplier-activation-status{margin:12px 0 14px;padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:#111625;font-size:.9rem}
+.multiplier-activation-status .activation-title{font-weight:850;color:var(--accent2);font-size:1rem}.multiplier-activation-status .big{font-size:1.35rem;font-weight:900;color:var(--accent2);line-height:1.45}
+.multiplier-activation-status .activation-time{color:var(--muted);font-size:.82rem}
+.multiplier-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+.multiplier-actions .btn{width:100%;padding:9px 10px;font-size:.88rem}
+.multiplier-legend{font-size:.8rem;color:var(--muted);margin:10px 0 0}
+.update-interval-field{margin:16px 0;padding:13px;border:1px solid var(--border);border-radius:13px;background:#ffffff04}
+.update-interval-control{display:grid;grid-template-columns:minmax(100px,180px) minmax(0,1fr);gap:12px;align-items:center}
+.update-interval-display{font-weight:800;color:var(--accent2);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:420px){.update-interval-control{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1000px){.idle-layout{grid-template-columns:minmax(0,1fr) minmax(270px,310px)}}
+@media(max-width:760px){main:has(#idle.active){width:min(880px,calc(100% - 20px))}.idle-layout{grid-template-columns:minmax(0,1fr)}.idle-multiplier-card{order:2}.idle-main-card{order:1}.multiplier-rows{grid-template-columns:repeat(2,minmax(0,1fr))}.multiplier-row{grid-template-columns:auto auto;grid-template-rows:auto auto}.multiplier-activate{grid-column:1}.multiplier-badge{grid-column:2}.multiplier-row input{grid-column:1/-1}}
+@media(max-width:420px){.multiplier-rows{grid-template-columns:1fr}.multiplier-row{grid-template-columns:auto auto minmax(75px,1fr);grid-template-rows:auto}.multiplier-activate,.multiplier-badge,.multiplier-row input{grid-column:auto}}
+@media(max-width:700px){.rarity-audio-grid{grid-template-columns:1fr}.rarity-audio-card p{min-height:0}}
+@media(max-width:560px){.jump-input-row{grid-template-columns:minmax(0,1fr) 94px}.jump-result-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.grid,.summary-grid{grid-template-columns:1fr}.card{border-radius:16px}.result .result-datetime{font-size:1.7rem}.sidebar-toggle{top:10px;left:10px}}
+/* レベル別キャラクター収入計算 */
+.level-income-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.level-income-data-status{margin-top:14px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;color:var(--muted);font-size:.9rem}
+.level-income-data-status strong{color:var(--accent2)}
+.level-income-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.level-income-result-item{padding:13px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
+.level-income-result-item .label{display:block;color:var(--muted);font-size:.85rem}
+  .level-income-result-item .value{display:block;font-weight:850;overflow-wrap:anywhere}
+.level-income-result-item.primary-income{grid-column:1/-1;border-color:#5ce1c077;background:#5ce1c010}
+.level-income-result-item.primary-income .value{font-size:1.6rem;color:var(--accent2)}
+.level-income-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:7px;margin-top:12px}
+.level-income-list-item{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#ffffff04;font-size:.88rem;display:flex;justify-content:space-between;gap:10px}
+.level-income-list-item strong{color:var(--accent2);text-align:right;overflow-wrap:anywhere}
+.level-income-details{margin-top:18px;padding:13px;border:1px solid var(--border);border-radius:12px}
+.level-income-details summary{cursor:pointer;font-weight:800}
+.level-character-select-field{grid-column:1/-1}
+.level-character-entry{padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#ffffff04;font-size:.88rem;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.level-character-entry .character-meta{display:block;color:var(--muted);font-size:.78rem}
+.level-character-entry strong{color:var(--accent2);text-align:right;white-space:nowrap}
+.level-event-settings-field{grid-column:1/-1;border:1px solid var(--border);border-radius:14px;padding:14px;background:#ffffff03}
+.level-event-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px}
+.level-trait-fieldset{margin:14px 0 0;padding:12px;border:1px solid var(--border);border-radius:12px;min-width:0}
+.level-trait-fieldset legend{padding:0 6px;font-weight:800;font-size:.92rem}
+.level-trait-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.level-trait-option{display:flex;align-items:center;gap:8px;min-width:0;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#ffffff05;cursor:pointer}
+.level-trait-option input{width:18px;height:18px;flex:0 0 auto;margin:0;accent-color:var(--accent2)}
+.level-trait-option span{display:flex;justify-content:space-between;align-items:center;gap:4px;min-width:0;width:100%;font-size:.88rem;overflow-wrap:anywhere}
+.level-trait-option strong{color:var(--accent2);white-space:nowrap}
+.level-trait-option:has(input:checked){border-color:var(--accent2);background:#5ce1c010}
+.level-event-trait-summary{margin-top:12px;padding:10px 12px;background:#111625;border-radius:10px;border:1px solid var(--border);font-size:.88rem;color:var(--muted);overflow-wrap:anywhere}
+.level-event-trait-summary strong{color:var(--accent2)}
+@media(max-width:560px){.level-income-form-grid,.level-income-result-grid,.level-event-controls{grid-template-columns:1fr}.level-income-result-item.primary-income{grid-column:auto}.level-character-select-field,.level-event-settings-field{grid-column:auto}.level-trait-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.level-income-list-item .level-income-state{color:var(--muted);font-size:.78rem;min-width:48px;text-align:right}
+
+
+/* レベルアップ必要額計算 */
+.level-cost-card h2{margin-top:0}
+  .level-cost-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.level-cost-wide{grid-column:1/-1}
+.level-cost-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.level-cost-summary-item{padding:13px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
+.level-cost-summary-item .label{display:block;color:var(--muted);font-size:.85rem}
+.level-cost-summary-item .value{display:block;font-weight:850;overflow-wrap:anywhere}
+.level-cost-summary-item.primary-cost{grid-column:1/-1;border-color:#5ce1c077;background:#5ce1c010}
+.level-cost-summary-item.primary-cost .value{font-size:1.65rem;color:var(--accent2)}
+.level-cost-result-note{font-size:.87rem;color:var(--muted);margin-top:12px}
+@media(max-width:560px){.level-cost-grid,.level-cost-summary-grid{grid-template-columns:1fr}.level-cost-wide,.level-cost-summary-item.primary-cost{grid-column:auto}}
+
+</style>
 </head>
 <body>
+<button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="メニューを開く" aria-controls="appSidebar" aria-expanded="false">☰</button>
+<button id="sidebarOverlay" class="sidebar-overlay" type="button" aria-label="メニューを閉じる" tabindex="-1"></button>
+<aside id="appSidebar" class="sidebar" aria-label="メインメニュー" aria-hidden="true" inert>
+  <div class="sidebar-head">
+    <div class="sidebar-title">GOUP メニュー</div>
+    <button id="sidebarClose" class="sidebar-close" type="button" aria-label="メニューを閉じる">×</button>
+  </div>
+  <button class="sidebar-link active" data-page="home" type="button">🏠 ホーム</button>
+  <button class="sidebar-link" data-page="saving" type="button">💰 貯金時間計算</button>
+  <button class="sidebar-link" data-page="idle" type="button">⏳ 放置収入計算</button>
+  <button class="sidebar-link" data-page="forecast" type="button">🌙 放置後の所持金予測</button>
+  <button class="sidebar-link" data-page="jumpcalc" type="button">🦘 ジャンプ計算機</button>
+  <button class="sidebar-link" data-page="levelincome" type="button">🧬 レベル収入計算</button>
+  <button class="sidebar-link" data-page="rebirth" type="button">🔄 リバース計算</button>
+  <button class="sidebar-link" data-page="raritysounds" type="button">🔊 レアリティの音</button>
+</aside>
+<header><div class="logo">GOUP <span>Calculator</span></div><p>ゲーム内のお金・リバース計画を計算</p></header>
+<main>
+<section id="home" class="page active"><div class="card">
+  <h1>GOUP Calculatorへようこそ！</h1>
+  <p class="description">放置で増えるお金、指定日時までの所持金予測、目標金額までの時間、目標リバースに必要なお金・ジャンプ数を計算できます。</p>
+  <div class="tiles">
+    <button class="tile" data-goto="saving" type="button"><strong>💰 貯金時間計算</strong><span>増加速度・所持金・目標金額から、必要時間と到達予定日時を計算します。</span></button>
+    <button class="tile" data-goto="idle" type="button"><strong>⏳ 放置収入計算</strong><span>現在の収入（毎秒いくら増えるか）と放置時間から、増えるお金と放置後の所持金を計算します。</span></button>
+    <button class="tile" data-goto="forecast" type="button"><strong>🌙 放置後の所持金予測</strong><span>指定日時までに、24時間ずっと稼ぐ場合と1日の起動時間を指定する場合を計算します。</span></button>
+        <button class="tile" data-goto="jumpcalc" type="button"><strong>🦘 ジャンプ計算機</strong><span>スライダーまたは数値入力でジャンプ数を選び、ジャンプ1〜750の累計Costと必要な追加Costを計算します。</span></button>
+    <button class="tile" data-goto="raritysounds" type="button"><strong>🔊 レアリティの音</strong><span>Divine・Ascended・Forbiddenの音をプレイヤーで再生できます。</span></button>
+    <button class="tile" data-goto="levelincome" type="button"><strong>🧬 レベル収入計算</strong><span>キャラクター・レベル・変異・イベント倍率から毎秒の収入を計算します。</span></button>
+    <button class="tile" data-goto="rebirth" type="button"><strong>🔄 リバース計算</strong><span>現在のリバースと目標リバースから、必要な費用の合計とリバースでリセットされるジャンプ数を計算します。</span></button>
+  </div>
+</div></section>
+
+<section id="saving" class="page"><div class="card">
+  <h1>💰 貯金時間計算</h1>
+  <p class="description">目標金額を入力してください。増加速度は任意で入力できます。未入力の場合は必要な金額だけを計算し、所要時間は表示しません。所持金を空欄にすると、0から計算します。</p>
+  <form id="savingForm" novalidate>
+    <div class="grid">
+      <div class="field"><label for="rate">増加速度（毎秒・任意）</label><input id="rate" type="number" min="0" step="any" placeholder="例：1"><p class="hint">例：1 Sx/sなら「1」。倍率イベント予測では、この値を1倍時の基準にします。</p></div>
+      <div class="field"><label for="dailyHours">1日の起動時間（任意・時間）</label><input id="dailyHours" type="number" min="0.1" max="24" step="0.1" placeholder="例：10"><p class="hint">空欄なら24時間起動。例：8なら毎日0:00〜8:00に起動し、翌日も0:00から再開します。</p></div>
+        <div class="field"><label for="rateUnit">増加速度の単位</label><select id="rateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="held">現在の所持金</label><input id="held" type="number" min="0" step="any" placeholder="例：1"><p class="hint">空欄の場合は0として計算します。</p></div>
+      <div class="field"><label for="heldUnit">所持金の単位</label><select id="heldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp" selected>Sp</option><option value="Sx">Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+      <div class="field"><label for="goal">目標金額</label><input id="goal" type="number" min="0" step="any" placeholder="例：10"><p class="hint">例：10 Ocを目標にするなら「10」</p></div>
+      <div class="field"><label for="goalUnit">目標金額の単位</label><select id="goalUnit"><option value="Oc" selected>Oc</option><option value="No">No</option><option value="Sp">Sp</option><option value="Sx">Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">計算する</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+    <div id="savingResult" class="result" aria-live="polite"></div>
+</div></section>
+
+<section id="idle" class="page">
+  <div class="idle-layout">
+    <div class="card idle-main-card">
+      <h1>⏳ 放置収入・時間記録</h1>
+      <p class="description">収入速度・開始時の所持金・目標金額を入力して「記録開始」を押してください。倍率を発動すると、その時間は倍率を適用して記録の増加額・所持金・目標到達予定を計算します。「記録終了して計算」を押すと記録結果を表示します。記録はこのブラウザに保存されます。</p>
+      <div class="field update-interval-field">
+        <label for="updateIntervalSeconds">計算の更新間隔（秒・0.01秒刻み）</label>
+        <div class="update-interval-control">
+          <input id="updateIntervalSeconds" type="number" min="0.01" max="60" step="0.01" value="0.05" inputmode="decimal">
+          <span id="updateIntervalDisplay" class="update-interval-display" aria-live="polite">0.05秒（50ms）</span>
+        </div>
+        <p class="hint">0.01秒＝10ミリ秒です。放置収入のライブ表示と倍率カウントダウンに適用されます。ブラウザの負荷やバックグラウンド動作により、実際の更新間隔は設定値より長くなる場合があります。</p>
+      </div>
+      <form id="idleForm" novalidate>
+        <div class="grid">
+          <div class="field"><label for="idleRate">収入速度（毎秒・1倍時の基準）</label><input id="idleRate" type="number" min="0" step="any" placeholder="例：1" required><p class="hint">例：1 Sx/sなら「1」。倍率イベントの収入予測では1倍時の基準として使います。</p></div>
+          <div class="field"><label for="idleRateUnit">収入の単位</label><select id="idleRateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+          <div class="field"><label for="idleHeld">記録開始時の所持金（任意）</label><input id="idleHeld" type="number" min="0" step="any" placeholder="例：20"><p class="hint">入力すると記録終了後の合計も計算します。</p></div>
+          <div class="field"><label for="idleHeldUnit">所持金の単位</label><select id="idleHeldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+          <div class="field"><label for="idleGoal">目標金額</label><input id="idleGoal" type="number" min="0" step="any" placeholder="例：100" required><p class="hint">到達したい所持金を入力</p></div>
+          <div class="field"><label for="idleGoalUnit">目標金額の単位</label><select id="idleGoalUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+        </div>
+        <div class="actions">
+                    <button id="idleStartButton" class="btn primary" type="button">▶ 記録開始</button>
+          <button id="idleStopButton" class="btn" type="button" disabled>■ 記録終了して計算</button>
+          <button id="idleResetButton" class="btn" type="button">記録をリセット</button>
+        </div>
+      </form>
+      <div id="idleStatus" class="result show" aria-live="polite"><div class="big">未記録</div><p>収入速度などを入力して「記録開始」を押してください。</p></div>
+      <div id="idleResult" class="result" aria-live="polite"></div>
+      <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。目標到達時間も同じ収入が続く前提で計算します。ゲーム内の収入倍率が変わった場合や、実際に収入が発生していない時間がある場合は差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
+    </div>
+
+    <aside class="card idle-multiplier-card" aria-label="倍率時間計算">
+      <h2>⚡ 倍率時間・発動管理</h2>
+      <p class="description">各倍率が続く時間を入力して、実際に倍率が発動したときは「発動」を押してください。記録中なら、その時点から記録の収入に倍率が適用されます。残り時間と終了予定時刻も表示します。</p>
+      <div class="field multiplier-start-field">
+        <label for="multiplierStartAt">予定を計算する開始時刻</label>
+        <input id="multiplierStartAt" type="datetime-local">
+      </div>
+      <div id="multiplierActivationStatus" class="multiplier-activation-status" aria-live="polite">
+        <div class="activation-title">まだ倍率は発動していません</div>
+        <div class="activation-time">継続時間を入力して「発動」を押してください。</div>
+      </div>
+      <div id="multiplierRows" class="multiplier-rows" aria-label="1倍から12倍までの継続時間"></div>
+      <div class="multiplier-actions">
+        <button id="calculateMultiplierTime" class="btn primary" type="button">時間・収入を計算</button>
+        <button id="resetMultiplierTime" class="btn" type="button">倍率時間をクリア</button>
+      </div>
+      <p class="multiplier-legend">入力時間は分単位。発動ボタンは、その倍率が実際に始まったタイミングで押してね。記録中はこのページを開いておくと残り時間が更新されます。</p>
+      <div id="multiplierResult" class="result" aria-live="polite"></div>
+    </aside>
+  </div>
+</section>
+
+<section id="forecast" class="page"><div class="card">
+  <h1>🌙 放置後の所持金予測</h1>
+  <p class="description">今から指定した日時までに増える金額を予測します。①は24時間ずっと収入が発生、②は毎日の起動時間を指定して計算します。</p>
+  <form id="forecastForm" novalidate>
+    <div class="grid">
+      <div class="field"><label for="forecastEnd">いつまで予測する？</label><input id="forecastEnd" type="datetime-local" required><p class="hint">日本時間で日時を選んでください。</p></div>
+      <div class="field"><label for="forecastRate">収入（毎秒）</label><input id="forecastRate" type="number" min="0" step="any" placeholder="例：192" required></div>
+      <div class="field"><label for="forecastRateUnit">収入の単位</label><select id="forecastRateUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx" selected>Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="forecastHeld">今の所持金（任意）</label><input id="forecastHeld" type="number" min="0" step="any" placeholder="空欄なら0"></div>
+            <div class="field"><label for="forecastHeldUnit">所持金の単位</label><select id="forecastHeldUnit"><option value="No">No</option><option value="Oc">Oc</option><option value="Sp">Sp</option><option value="Sx" selected>Sx</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+      <div class="field"><label for="forecastMode">増え方の設定</label><select id="forecastMode"><option value="continuous" selected>① 24時間ずっと稼ぐ</option><option value="daily">② 1日の起動時間を指定</option></select></div>
+      <div id="forecastDailyHoursField" class="field" hidden><label for="forecastDailyHours">1日の起動時間（時間）</label><input id="forecastDailyHours" type="number" min="0.1" max="24" step="0.1" value="8"><p class="hint">毎日0:00〜指定時間だけ稼ぐ想定です。例：8なら0:00〜8:00。</p></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">指定日時までの金額を計算</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="forecastResult" class="result" aria-live="polite"></div>
+  <div class="notice">②は毎日0:00から指定した時間だけ収入が発生する想定です。実際の起動時間やゲーム内倍率が違う場合は誤差が出ます。ゲーム画面の所持金を自動で読み取る機能ではありません。</div>
+</div></section>
+
+
+
+<section id="jumpcalc" class="page"><div class="card">
+  <h1>🦘 ジャンプ計算機</h1>
+  <p class="description">ジャンプ数をスライダーまたは数値入力で選択できます。動画で確認したジャンプ0〜750の累計Costデータを使い、現在のジャンプから目標ジャンプまでに必要な追加Costを計算します。</p>
+  <div class="grid">
+    <div class="field">
+      <label for="jumpCurrentNumber">現在のジャンプ数（0〜750）</label>
+      <div class="jump-input-row">
+        <input id="jumpCurrentSlider" type="range" min="0" max="750" step="1" value="0" aria-label="現在のジャンプ数スライダー">
+        <input id="jumpCurrentNumber" type="number" min="0" max="750" step="1" value="0" inputmode="numeric" aria-label="現在のジャンプ数を数字で入力">
+      </div>
+      <p class="hint">今いるジャンプ数を設定。リセット直後なら0。</p>
+    </div>
+    <div class="field">
+      <label for="jumpTargetNumber">目標のジャンプ数（0〜750）</label>
+      <div class="jump-input-row">
+        <input id="jumpTargetSlider" type="range" min="0" max="750" step="1" value="100" aria-label="目標ジャンプ数スライダー">
+        <input id="jumpTargetNumber" type="number" min="0" max="750" step="1" value="100" inputmode="numeric" aria-label="目標ジャンプ数を数字で入力">
+      </div>
+      <p class="hint">スライダーを動かすか、右の欄に数値を直接入力してね。</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="jumpResetButton" class="btn" type="button">0 → 100 にリセット</button>
+  </div>
+  <div id="jumpCalcResult" class="result show" aria-live="polite">
+    <div class="big">必要な追加Cost：計算中…</div>
+  </div>
+  <div class="notice">Costは各ジャンプまでの累計表示値です。「必要な追加Cost」は目標ジャンプの累計Costから現在のジャンプの累計Costを引いて計算します。動画上のCost表示は丸められているため、ゲーム内部の丸め前の値とは差が出る場合があります。</div>
+</div></section>
+
+<section id="raritysounds" class="page"><div class="card">
+  <h1>🔊 レアリティの音</h1>
+  <p class="description">各レアリティの音をここで再生できます。再生ボタンを押すと音が流れます。</p>
+  <div class="rarity-audio-grid">
+    <article class="rarity-audio-card">
+      <span class="rarity-badge divine">✦ DIVINE</span>
+      <h2>Divine</h2>
+      <p>Divine レアリティの音</p>
+            <audio controls preload="metadata" aria-label="Divineの音">
+        <source src="audio/divine.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+    <article class="rarity-audio-card">
+      <span class="rarity-badge ascended">✧ ASCENDED</span>
+      <h2>Ascended</h2>
+      <p>Ascended レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Ascendedの音">
+        <source src="audio/ascended.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+    <article class="rarity-audio-card">
+      <span class="rarity-badge forbidden">⟡ FORBIDDEN</span>
+      <h2>Forbidden</h2>
+      <p>Forbidden レアリティの音</p>
+      <audio controls preload="metadata" aria-label="Forbiddenの音">
+        <source src="audio/forbidden.mp3" type="audio/mpeg">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    </article>
+  </div>
+</div></section>
+
+<section id="rebirth" class="page"><div class="card">
+  <h1>🔄 リバース費用計算</h1>
+  <p class="description">現在のリバースと目標リバースを入力すると、各リバースに必要なジャンプ数と、そのジャンプに必要な追加金額を計算します。すでに目標ジャンプ数を満たしている段階の追加金額は0です。リバース後はジャンプが0に戻ります。</p>
+  <form id="rebirthForm" novalidate>
+    <div class="grid">
+      <div class="field"><label for="currentRebirth">現在のリバース番号</label><input id="currentRebirth" type="number" min="1" max="75" step="1" value="1"><p class="hint">1〜75の範囲で現在のリバース番号を入力</p></div>
+      <div class="field"><label for="targetRebirth">目標のリバース番号</label><input id="targetRebirth" type="number" min="1" max="75" step="1" value="10"><p class="hint">表にある#1〜#75から指定</p></div>
+      <div class="field"><label for="currentJump">現在のジャンプ数</label><input id="currentJump" type="number" min="0" step="1" value="0"><p class="hint">リバース直後なら0。今のジャンプ数が分かる場合は入力</p></div>
+      <div class="field"><label for="rebirthCashRate">お金の増加速度（毎秒・任意）</label><input id="rebirthCashRate" type="number" min="0" step="any" placeholder="例：1"><p class="hint">時間予測に使用（任意）。例：1 Sx/s</p></div>
+      <div class="field"><label for="rebirthDailyHours">1日の起動時間（任意・時間）</label><input id="rebirthDailyHours" type="number" min="0.1" max="24" step="0.1" placeholder="例：10"><p class="hint">空欄なら24時間起動。例：8なら毎日0:00〜8:00に起動し、翌日も0:00から再開します。</p></div>
+        <div class="field"><label for="rebirthCashRateUnit">増加速度の単位</label><select id="rebirthCashRateUnit"><option value="Sx" selected>Sx/s</option><option value="Sp">Sp/s</option><option value="Oc">Oc/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M">M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="rebirthHeldCash">現在の所持金</label><input id="rebirthHeldCash" type="number" min="0" step="any" placeholder="空欄なら0"><p class="hint">目標までに必要な費用から差し引きます。</p></div>
+            <div class="field"><label for="rebirthHeldCashUnit">所持金の単位</label><select id="rebirthHeldCashUnit"><option value="Sp" selected>Sp</option><option value="Sx">Sx</option><option value="Oc">Oc</option><option value="Qi">Qi</option><option value="Qa">Qa</option><option value="T">T</option><option value="B">B</option><option value="M">M</option><option value="K">K</option><option value="1">通常の数値</option></select></div>
+    </div>
+    <div class="actions"><button class="btn primary" type="submit">必要な費用を計算</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="rebirthResult" class="result" aria-live="polite"></div>
+  <div class="notice">表のCostは「ジャンプ0からそのJumpに到達するまでの累計費用」として扱います。現在のジャンプが最初の目標ジャンプ以上なら、その段階に必要な追加金額は0です。リバース後はジャンプが0に戻るため、次の段階からは各目標Jumpまでの累計費用が必要です。表にない途中のジャンプ数は、10ジャンプ刻みのCostから線形補間で概算します。</div>
+</div></section>
+<section id="levelincome" class="page"><div class="card">
+  <h1>🧬 キャラクターのレベル収入計算</h1>
+  <p class="description">選択したレベル倍率を適用し、特性ボーナスとイベント変異倍率は足し合わせてから基礎収入に適用します。その他の追加倍率は最後に掛けます。レベル倍率はレベル選択から自動で適用されます。</p>
+  <form id="levelIncomeForm" novalidate>
+    <div class="level-income-form-grid">
+      <div class="field level-character-select-field"><label for="levelCharacterSelect">キャラクターを選択</label><select id="levelCharacterSelect"><option value="">手動入力（キャラクターを選ばない）</option></select><p class="hint">一覧から選ぶと、キャラ名・基礎収入・単位が自動入力されます。画像上で名前が切れている場合は「…」を付けています。</p></div>
+      <div class="field"><label for="levelCharacterName">キャラクター名（任意）</label><input id="levelCharacterName" type="text" maxlength="80" placeholder="例：キャラクター名"></div>
+      <div class="field"><label for="levelBaseIncome">レベル1・変異なしの基礎収入</label><input id="levelBaseIncome" type="number" min="0" step="any" placeholder="例：53" required><p class="hint">ゲーム内で表示される毎秒の収入を入力します。</p></div>
+      <div class="field"><label for="levelBaseUnit">基礎収入の単位</label><select id="levelBaseUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx">Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M" selected>M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
+      <div class="field"><label for="levelIncomeLevel">キャラクターレベル（1〜400）</label><select id="levelIncomeLevel" required></select><p class="hint">実測値があればそれを使い、未確認レベルは推定値を自動入力します。</p></div>
+      <div class="field"><label>選択レベルの倍率</label><div id="levelIncomeMultiplierDisplay" class="level-income-data-status" style="margin-top:0" aria-live="polite">レベルを選択してください</div><p class="hint">選択したレベルから自動で適用されます。数値の手入力は不要です。</p></div>
+      <div class="field level-event-settings-field">
+        <label>イベント・その他の追加倍率</label>
+        <p class="hint">特性倍率（例：アステロイド ×3）とイベント変異倍率（例：レインボー ×5）は足し算します。基礎収入100M/s・レベル1なら、×3 と ×5 を合計した ×8 で800M/sです。その他の追加倍率は別途掛けます。</p>
+        <div class="level-event-controls">
+          <div class="field">
+            <label for="levelEventPreset">イベント変異（1つ選択）</label>
+            <select id="levelEventPreset">
+              <option value="1" data-event-name="デフォルト">デフォルト ×1</option>
+              <option value="1.25" data-event-name="シルバー">シルバー ×1.25</option>
+                            <option value="1.5" data-event-name="ゴールド">ゴールド ×1.5</option>
+              <option value="5" data-event-name="レインボー">レインボー ×5</option>
+              <option value="3" data-event-name="クリスタル">クリスタル ×3</option>
+              <option value="4" data-event-name="ブラッドムーン">ブラッドムーン ×4</option>
+              <option value="6" data-event-name="キャンディ">キャンディ ×6</option>
+              <option value="6.5" data-event-name="サイバー">サイバー ×6.5</option>
+              <option value="7" data-event-name="パーティー">パーティー ×7</option>
+              <option value="7.5" data-event-name="白黒">白黒 ×7.5</option>
+              <option value="8" data-event-name="アクア">アクア ×8</option>
+              <option value="8.5" data-event-name="マグマ">マグマ ×8.5</option>
+              <option value="9" data-event-name="フットボール">フットボール ×9</option>
+              <option value="9.5" data-event-name="サマー">サマー ×9.5</option>
+              <option value="10" data-event-name="ドリーミー">ドリーミー ×10</option>
+              <option value="10.5" data-event-name="ギャラクシー">ギャラクシー ×10.5</option>
+              <option value="11" data-event-name="放射能">放射能 ×11</option>
+              <option value="12" data-event-name="ハロウィン">ハロウィン ×12</option>
+              <option value="12" data-event-name="Dia de Muertos">Dia de Muertos ×12</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="levelEventMultiplier">その他の追加倍率</label>
+            <input id="levelEventMultiplier" type="number" min="0" step="any" value="1" required>
+            <p class="hint">イベント以外の追加倍率。なければ1です。</p>
+          </div>
+        </div>
+        <fieldset class="level-trait-fieldset">
+          <legend>特性（イベント変異倍率に加算）</legend>
+          <div class="level-trait-grid">
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="3" data-trait-name="アステロイド"><span>☄️ アステロイド <strong>×3</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2" data-trait-name="雷"><span>⚡ 雷 <strong>×2</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2" data-trait-name="火"><span>🔥 火 <strong>×2</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2" data-trait-name="波"><span>🌊 波 <strong>×2</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="2.5" data-trait-name="マグマ"><span>🌋 マグマ <strong>×2.5</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="1.5" data-trait-name="雨"><span>🌧️ 雨 <strong>×1.5</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="3.5" data-trait-name="ハッカー"><span>🎭 ハッカー <strong>×3.5</strong></span></label>
+                        <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="4" data-trait-name="Ghost"><span>👻 Ghost <strong>×4</strong></span></label>
+            <label class="level-trait-option"><input class="level-trait-checkbox" type="checkbox" value="4" data-trait-name="Pumpkin"><span>🎃 Pumpkin <strong>×4</strong></span></label>
+          </div>
+        </fieldset>
+        <div id="levelEventTraitSummary" class="level-event-trait-summary" aria-live="polite"></div>
+      </div>
+    </div>
+    <div id="levelIncomeDataStatus" class="level-income-data-status" aria-live="polite"></div>
+    <div class="actions"><button class="btn primary" type="submit">収入を計算</button><button class="btn" type="reset">リセット</button></div>
+  </form>
+  <div id="levelIncomeResult" class="result" aria-live="polite"></div>
+  <div class="notice">計算式：基礎収入 × レベル倍率 ×（イベント変異倍率 ＋ 選択した特性倍率の合計）× その他の追加倍率。例：基礎収入100M/s、レベル1（×1）、アステロイド（×3）、レインボー（×5）、その他×1なら、100M/s × 1 ×（3＋5）＝800M/s。</div>
+  <details class="level-income-details">
+    <summary>レベル倍率一覧（実測値・推定値）を表示</summary>
+    <p class="hint">全400レベルを表示し、実測値と推定値を区別します。</p>
+    <div id="levelIncomeMultiplierList" class="level-income-list"></div>
+  </details>
+  <details class="level-income-details">
+    <summary>読み取ったキャラクター53体と基礎収入の一覧</summary>
+    <p class="hint">画像から確認できたアセンデッド46体・禁止7体を登録。画面上で名前が省略されているものは、省略記号付きで表示します。</p>
+    <div id="levelCharacterList" class="level-income-list"></div>
+  </details>
+</div>
+<div class="card level-cost-card">
+  <h2>💰 目標レベルまでの費用計算</h2>
+  <p class="description">上の「レベル1・変異なしの基礎収入」と単位を使って、現在のレベルから目標レベルまで上げる費用を計算します。例：基礎収入585M/s・レベル1→100なら約60.6Sxです。</p>
+  <form id="levelCostForm" novalidate>
+    <div class="level-cost-grid">
+      <div class="field">
+        <label for="levelCostCurrentLevel">現在のレベル</label>
+        <input id="levelCostCurrentLevel" type="number" min="1" max="400" step="1" value="1" required>
+      </div>
+      <div class="field">
+        <label for="levelCostTargetLevel">目標レベル</label>
+        <input id="levelCostTargetLevel" type="number" min="1" max="400" step="1" value="100" required>
+      </div>
+      <div class="field level-cost-wide">
+        <label for="levelCostMoney">現在の所持金（任意）</label>
+        <input id="levelCostMoney" type="text" inputmode="decimal" autocomplete="off" placeholder="例：250M、1.2Sp、空欄なら0">
+        <p class="hint">K・M・B・T・Qa・Qi・Sx・Sp・Oc・No・Dc に対応。単位は大文字・小文字どちらでも入力できます。</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" type="submit">必要額を計算</button>
+      <button class="btn" type="reset">リセット</button>
+    </div>
+  </form>
+  <div id="levelCostResult" class="result" aria-live="polite"></div>
+  <div class="notice">計算方法：目標レベルまでの累計費用 − 現在レベルまでの累計費用。所持金が必要額以上なら購入後の残額、足りなければ不足額を表示します。所持金を空欄にした場合は0として扱います。</div>
+</div></section>
+</main>
+<footer>GOUP Calculator · リバース費用は提供された表の数値を使用</footer>
+
+
+
 <script>
-(async () => {
-  try {
-    // 完成版の全HTMLを圧縮データとして内蔵し、ブラウザ内で元のHTMLに展開します。
-    const encoded = [
-      "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"
-    ].join("");
+(() => {
+"use strict";
+  const UNIT_POWER = {'1':0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10};function toBase(value,unit){return value*Math.pow(1000,UNIT_POWER[unit]??0)}function addText(parent,tag,className,text){const el=document.createElement(tag);if(className)el.className=className;el.textContent=text;parent.appendChild(el);return el;}
+/* 実測データ：レベル1〜400のうち倍率を確認できたレベルのみ登録 */
+const MEASURED_LEVEL_MULTIPLIERS = Object.freeze({
+  "1": 1.0,
+  "3": 1.69,
+  "5": 2.86,
+  "6": 3.71,
+  "10": 10.6,
+  "13": 23.3,
+  "14": 30.29,
+  "19": 112.46,
+  "20": 146.19,
+  "24": 417.54,
+  "25": 542.8,
+  "28": 1192.53,
+  "35": 7482.97,
+  "38": 16440.08,
+  "39": 21372.11,
+  "44": 79353.15,
+  "45": 103159.09,
+  "47": 174338.86,
+  "50": 383022.48,
+  "53": 661862.84,
+  "56": 1141792.83,
+  "60": 2351876.88,
+  "63": 3993336.56,
+  "64": 4764050.52,
+  "66": 6723595.01,
+  "69": 11131553.56,
+  "70": 13168627.87,
+  "72": 18026534.68,
+  "75": 28871532.3,
+  "81": 66946640.42,
+  "85": 110318520.08,
+  "88": 150467624.85,
+  "91": 200046912.02,
+  "94": 252702148.14,
+  "97": 301171051.91,
+  "100": 348643138.97,
+  "103": 403598013.75,
+  "110": 567686624.72,
+  "113": 656548807.89,
+  "116": 759017108.46,
+  "119": 876775687.93,
+  "122": 1011684659.56,
+  "125": 1166706713.26,
+  "128": 1342598273.0,
+  "131": 1543665407.87,
+  "135": 1855053719.86,
+  "138": 2122581381.02,
+  "141": 2425788151.59,
+  "144": 2765684983.22,
+  "147": 3144701517.28,
+  "150": 3570833393.42,
+  "153": 4036315193.23,
+  "156": 4554810843.43,
+  "157": 4736729988.51,
+  "159": 5122656028.73,
+  "161": 5529850414.76,
+  "162": 5740150626.03,
+  "163": 5958448554.34,
+  "166": 6651138497.8,
+  "175": 9041938050.68,
+  "182": 11163218514.88,
+  "186": 12469026152.32,
+  "188": 13125332850.07,
+  "191": 14134923594.94,
+  "197": 16110729581.35,
+  "200": 17096835117.57,
+  "206": 19253813197.76,
+  "207": 19638889461.71,
+  "209": 20432300595.96,
+  "213": 22116579267.86,
+  "216": 23470290851.68,
+  "219": 24906860414.13,
+  "228": 29766003788.65,
+  "231": 31587921348.54,
+  "232": 32219679775.51,
+  "234": 33521354838.44,
+  "235": 34191781935.21,
+  "238": 36284592523.9,
+  "241": 38505499863.1,
+  "244": 40862344498.73,
+  "250": 46017636737.48,
+  "253": 48834284246.91,
+  "256": 51823333117.1,
+  "257": 52859799779.44,
+  "259": 54995335690.53,
+  "260": 56095242404.34,
+  "262": 58361490197.47,
+  "263": 59528720001.42,
+  "272": 71142330893.3,
+  "278": 80117819470.88,
+  "279": 81720175860.3,
+  "281": 85021670965.05,
+  "282": 86722104384.35,
+  "287": 95748210663.87,
+  "288": 97663174877.15,
+  "294": 109984597292.65,
+  "297": 116716534523.74,
+  "300": 123860520168.87,
+  "303": 129518267456.84,
+  "306": 135433117117.51,
+  "307": 137463259543.1,
+  "309": 141615296072.37,
+  "312": 148065086931.65,
+  "313": 150277179330.41,
+  "316": 157104442793.61,
+  "323": 174165824753.3,
+  "325": 179352212778.76,
+  "328": 187350785513.99,
+  "330": 192880373223.52,
+  "331": 195677138635.26,
+  "332": 198514457145.47,
+  "334": 204313114067.3,
+  "337": 213254533401.29,
+  "338": 216308338319.6,
+  "340": 222547765836.07,
+  "341": 225687914812.02,
+  "347": 245370121150.41,
+  "348": 248775858431.98,
+  "350": 255729804025.79,
+  "351": 259210286658.58,
+  "353": 266314004727.17,
+  "356": 277256919030.68,
+  "357": 280949981192.17,
+    "359": 288484335511.08,
+  "360": 292326946860.08,
+  "362": 299982773305.64,
+  "363": 303885549186.35,
+  "364": 307839100181.26,
+  "365": 311844086874.62,
+  "367": 319789960152.41,
+  "368": 323838501047.94,
+  "369": 327938296471.21,
+  "371": 336171381346.83,
+  "375": 353004730528.56,
+  "376": 357198426727.24,
+  "378": 365735874331.92,
+  "381": 378765142581.52,
+  "382": 383102003464.08,
+  "384": 391925264973.81,
+  "385": 396412809257.76,
+  "387": 405181857011.36,
+  "388": 409638857438.48,
+  "390": 418700478603.88,
+  "391": 423101020634.0,
+  "393": 432041339868.78,
+  "394": 436582094350.8,
+  "396": 445582277884.05,
+  "397": 450038100662.89
+});
+const LEVEL_INCOME_MULTIPLIERS = {};
+const ESTIMATED_LEVELS = new Set();
+const knownLevels = Object.keys(MEASURED_LEVEL_MULTIPLIERS).map(Number).sort((a, b) => a - b);
 
-    const binary = atob(encoded);
-    const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
-    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-    const html = await new Response(stream).text();
-
-    document.open();
-    document.write(html);
-    document.close();
-  } catch (error) {
-    console.error("GOUP Calculator loading failed:", error);
-    document.body.textContent = "読み込みに失敗しました。ChromeやSafariなどの最新ブラウザで開いてください。";
+// Build values for levels 1–400. Missing levels are logarithmically interpolated
+// between nearest measured data points and clearly labeled as estimates.
+for (let level = 1; level <= 400; level++) {
+  if (Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level))) {
+    LEVEL_INCOME_MULTIPLIERS[level] = MEASURED_LEVEL_MULTIPLIERS[level];
+    continue;
   }
+  let lower = null;
+  let upper = null;
+  for (const knownLevel of knownLevels) {
+    if (knownLevel < level) lower = knownLevel;
+    if (knownLevel > level) { upper = knownLevel; break; }
+  }
+  let estimate;
+  if (lower !== null && upper !== null) {
+    const lowValue = MEASURED_LEVEL_MULTIPLIERS[lower];
+    const highValue = MEASURED_LEVEL_MULTIPLIERS[upper];
+    const fraction = (level - lower) / (upper - lower);
+    estimate = lowValue * Math.pow(highValue / lowValue, fraction);
+  } else if (lower !== null) {
+    const previous = [...knownLevels].reverse().find(value => value < lower);
+    if (previous !== undefined) {
+      const ratio = Math.pow(MEASURED_LEVEL_MULTIPLIERS[lower] / MEASURED_LEVEL_MULTIPLIERS[previous], 1 / (lower - previous));
+      estimate = MEASURED_LEVEL_MULTIPLIERS[lower] * Math.pow(ratio, level - lower);
+    } else {
+      estimate = MEASURED_LEVEL_MULTIPLIERS[lower];
+    }
+  } else if (upper !== null) {
+    estimate = MEASURED_LEVEL_MULTIPLIERS[upper];
+  } else {
+    estimate = 1;
+  }
+  LEVEL_INCOME_MULTIPLIERS[level] = estimate;
+  ESTIMATED_LEVELS.add(level);
+}
+
+/* 画像から読み取ったキャラクター名・基礎収入 */
+const GOUP_CHARACTERS = Object.freeze([
+  {
+    "rarity": "Ascended",
+    "name": "Tung Tung Tung Asce…",
+    "income": 67,
+    "unit": "1"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Mega Yachtadon",
+    "income": 53,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Il Cannone Dominatore",
+    "income": 55,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Horseidon",
+    "income": 56,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Arcangelo Mantisio",
+    "income": 58,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Gorgonzilla",
+    "income": 60,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Pumpkinator",
+        "income": 61,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Titanocchio",
+    "income": 65,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Lionaldo",
+    "income": 66,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Goatini Messini",
+    "income": 66,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Wreckzilla 67",
+    "income": 67,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Chronomondo",
+    "income": 70,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "King Kongini Bananini",
+    "income": 71,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Chickeninio Paladino",
+    "income": 72,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Sir Pegasusio",
+    "income": 74,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Bearini Plammini Gua…",
+    "income": 75,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Il Marionetto",
+    "income": 77,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Triceradon",
+    "income": 80,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "La Catrina Mariposa",
+    "income": 85,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Sunculus Ferris",
+    "income": 90,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Servissimo",
+    "income": 93,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Guro Guro",
+    "income": 95,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Capitano Moby",
+    "income": 100,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Doom Doom Doom Sa…",
+    "income": 105,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Garbagzilla",
+    "income": 110,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Il Demonico Maskino",
+    "income": 115,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Demon Ship",
+    "income": 117,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Cerberus",
+    "income": 120,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Vulkarion",
+    "income": 125,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Godgodzilla",
+    "income": 127,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Bulzilla",
+    "income": 130,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Witchantula",
+    "income": 133,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Golemcoluss",
+    "income": 135,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Kingorilla",
+    "income": 140,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Fishini Mechinini",
+    "income": 145,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Don Guitarion",
+    "income": 147,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Ghost Cavallo Skeleto…",
+    "income": 150,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+        "name": "Gargolini",
+    "income": 153,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Cementzilla",
+    "income": 155,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Triplelaledon",
+    "income": 160,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Accordissimo",
+    "income": 165,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Cavezilla",
+    "income": 170,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Checkmate",
+    "income": 173,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Drago Polpo",
+    "income": 175,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Headless Pumpkin",
+    "income": 180,
+    "unit": "M"
+  },
+  {
+    "rarity": "Ascended",
+    "name": "Klombo",
+    "income": 185,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Hydralitraktos Spidoro…",
+    "income": 200,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Chimera",
+    "income": 210,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Meowberus",
+    "income": 215,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Hydragoni Skeletoni",
+    "income": 225,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Kitsune",
+    "income": 230,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Gigaclops",
+    "income": 240,
+    "unit": "M"
+  },
+  {
+    "rarity": "Forbidden",
+    "name": "Chainsawatron",
+    "income": 250,
+    "unit": "M"
+  }
+]);
+const levelCharacterSelect = document.getElementById('levelCharacterSelect');
+const levelCharacterList = document.getElementById('levelCharacterList');
+const levelIncomeForm = document.getElementById('levelIncomeForm');
+const levelIncomeResult = document.getElementById('levelIncomeResult');
+const levelIncomeLevelSelect = document.getElementById('levelIncomeLevel');
+const levelIncomeMultiplierDisplay = document.getElementById('levelIncomeMultiplierDisplay');
+const levelIncomeDataStatus = document.getElementById('levelIncomeDataStatus');
+const levelIncomeMultiplierList = document.getElementById('levelIncomeMultiplierList');
+const levelEventPresetSelect = document.getElementById('levelEventPreset');
+const levelEventOtherMultiplierInput = document.getElementById('levelEventMultiplier');
+const levelTraitCheckboxes = [...document.querySelectorAll('.level-trait-checkbox')];
+const levelEventTraitSummary = document.getElementById('levelEventTraitSummary');
+const registeredLevelCount = Object.keys(MEASURED_LEVEL_MULTIPLIERS).length;
+
+function formatCharacterIncome(character) {
+  const amount = new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 2 }).format(character.income);
+  return character.unit === '1' ? amount + '/s' : amount + ' ' + character.unit + '/s';
+}
+
+function renderCharacterDatabase() {
+  const groups = new Map();
+  const rarityNames = { Ascended: 'アセンデッド', Forbidden: '禁止' };
+  GOUP_CHARACTERS.forEach((character, index) => {
+    if (!groups.has(character.rarity)) {
+            const group = document.createElement('optgroup');
+      group.label = rarityNames[character.rarity] || character.rarity;
+      groups.set(character.rarity, group);
+      levelCharacterSelect.appendChild(group);
+    }
+    const option = document.createElement('option');
+    option.value = String(index);
+    option.textContent = character.name + ' — ' + formatCharacterIncome(character);
+    groups.get(character.rarity).appendChild(option);
+
+    const listItem = document.createElement('div');
+    listItem.className = 'level-character-entry';
+    const nameBox = document.createElement('div');
+    addText(nameBox, 'span', '', character.name);
+    addText(nameBox, 'span', 'character-meta', rarityNames[character.rarity] || character.rarity);
+    addText(listItem, 'strong', '', formatCharacterIncome(character));
+    listItem.insertBefore(nameBox, listItem.firstChild);
+    levelCharacterList.appendChild(listItem);
+  });
+}
+
+levelCharacterSelect.addEventListener('change', () => {
+  if (levelCharacterSelect.value === '') return;
+  const character = GOUP_CHARACTERS[Number(levelCharacterSelect.value)];
+  if (!character) return;
+  document.getElementById('levelCharacterName').value = character.name;
+  document.getElementById('levelBaseIncome').value = String(character.income);
+  document.getElementById('levelBaseUnit').value = character.unit;
+});
+
+for (let level = 1; level <= 400; level++) {
+  const option = document.createElement('option');
+  option.value = String(level);
+  option.textContent = 'レベル ' + level;
+  if (level === 1) option.selected = true;
+  levelIncomeLevelSelect.appendChild(option);
+}
+
+function formatMultiplierNumber(value) {
+  return new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 10 }).format(value);
+}
+
+function getSelectedLevelMultiplier() {
+  const level = Number(levelIncomeLevelSelect.value);
+  return Object.prototype.hasOwnProperty.call(LEVEL_INCOME_MULTIPLIERS, String(level))
+    ? LEVEL_INCOME_MULTIPLIERS[String(level)]
+    : null;
+}
+
+function updateLevelIncomeMultiplier() {
+  const level = Number(levelIncomeLevelSelect.value);
+  const multiplier = LEVEL_INCOME_MULTIPLIERS[level];
+  const estimated = ESTIMATED_LEVELS.has(level);
+  levelIncomeMultiplierDisplay.textContent =
+    '×' + formatMultiplierNumber(multiplier) + (estimated ? '（推定値）' : '（実測値）');
+  if (estimated) {
+    levelIncomeDataStatus.innerHTML = '<strong>推定値：</strong> レベル ' + level +
+      ' の倍率は約 ' + formatMultiplierNumber(multiplier) +
+      ' 倍です。前後の実測値から補間しています。';
+  } else {
+    levelIncomeDataStatus.innerHTML = '<strong>実測データ：</strong> レベル ' + level +
+      ' の倍率は ' + formatMultiplierNumber(multiplier) + ' 倍です。';
+  }
+  levelIncomeDataStatus.insertAdjacentHTML('beforeend',
+    ' <span>（実測データ：' + registeredLevelCount + '/400 レベル、推定値：' + ESTIMATED_LEVELS.size + ' レベル）</span>');
+}
+
+function formatLevelIncome(value) {
+  if (!Number.isFinite(value)) return '計算範囲外';
+  if (value === 0) return '0 /s';
+  const abs = Math.abs(value);
+    const entries = Object.entries(UNIT_POWER).filter(([unit]) => unit !== '1').sort((a, b) => b[1] - a[1]);
+  for (const [unit, power] of entries) {
+    const scale = Math.pow(1000, power);
+    if (abs >= scale) {
+      const scaled = value / scale;
+      if (!Number.isFinite(scaled)) break;
+      return new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 5 }).format(scaled) + ' ' + unit + '/s';
+    }
+  }
+  if (abs >= 1000) return value.toExponential(6) + ' /s';
+  return new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 8 }).format(value) + ' /s';
+}
+
+function showLevelIncomeError(message, detail) {
+  levelIncomeResult.className = 'result show error';
+  levelIncomeResult.replaceChildren();
+  addText(levelIncomeResult, 'div', 'big', message);
+  addText(levelIncomeResult, 'p', '', detail);
+}
+
+function addLevelIncomeResultItem(parent, label, value, primary = false) {
+  const item = document.createElement('div');
+  item.className = 'level-income-result-item' + (primary ? ' primary-income' : '');
+  addText(item, 'span', 'label', label);
+  addText(item, 'span', 'value', value);
+  parent.appendChild(item);
+}
+
+function renderLevelIncomeMultiplierList() {
+  levelIncomeMultiplierList.replaceChildren();
+  for (let level = 1; level <= 400; level++) {
+    const item = document.createElement('div');
+    item.className = 'level-income-list-item';
+    addText(item, 'span', '', 'Lv.' + level);
+    addText(item, 'strong', '', formatMultiplierNumber(LEVEL_INCOME_MULTIPLIERS[level]) + ' 倍');
+    addText(item, 'span', 'level-income-state', ESTIMATED_LEVELS.has(level) ? '推定値' : '実測');
+    levelIncomeMultiplierList.appendChild(item);
+  }
+}
+
+levelIncomeLevelSelect.addEventListener('change', updateLevelIncomeMultiplier);
+
+function getSelectedTraitBonuses() {
+  return levelTraitCheckboxes
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => ({
+      name: checkbox.dataset.traitName || '',
+      bonus: Number(checkbox.value) || 0
+    }));
+}
+
+function getTraitBonusTotal() {
+  return getSelectedTraitBonuses().reduce((sum, trait) => sum + trait.bonus, 0);
+}
+
+function getSelectedEventMultiplier() {
+  const value = Number(levelEventPresetSelect.value);
+  return Number.isFinite(value) && value > 0 ? value : 1;
+}
+
+function updateEventTraitSummary() {
+  const traitBonus = getTraitBonusTotal();
+  const chosenEventOption = levelEventPresetSelect.selectedOptions[0];
+  const eventName = chosenEventOption?.dataset.eventName || 'デフォルト';
+  const eventPresetMultiplier = getSelectedEventMultiplier();
+  const otherText = levelEventOtherMultiplierInput.value.trim();
+  const otherMultiplier = otherText === '' ? 1 : Number(otherText);
+  const mutationCombined = Number.isFinite(eventPresetMultiplier) ? eventPresetMultiplier + traitBonus : NaN;
+  const eventCombined = Number.isFinite(otherMultiplier) ? mutationCombined * otherMultiplier : NaN;
+  const totalMultiplier = getSelectedLevelMultiplier() * eventCombined;
+  const traitNames = getSelectedTraitBonuses().map(trait => trait.name);
+  const traitText = traitNames.length ? traitNames.join('、') : 'なし';
+    const fmt = value => Number.isFinite(value)
+    ? new Intl.NumberFormat('ja-JP', { maximumFractionDigits: 6 }).format(value)
+    : '入力を確認';
+
+  levelEventTraitSummary.innerHTML =
+    '<strong>選択内容：</strong> 特性 ' + traitText +
+    '（倍率 ×' + fmt(traitBonus) + '）／イベント ' + eventName +
+    '（×' + fmt(eventPresetMultiplier) + '）→ 特性＋イベント合計 ×' + fmt(mutationCombined) +
+    ' × その他倍率（×' + fmt(otherMultiplier) + '）' +
+    '。レベル倍率 ×' + fmt(getSelectedLevelMultiplier()) + ' を別に適用。全体の合計倍率 ×' + fmt(totalMultiplier) + '。';
+}
+
+levelEventPresetSelect.addEventListener('change', updateEventTraitSummary);
+levelEventOtherMultiplierInput.addEventListener('input', updateEventTraitSummary);
+levelTraitCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updateEventTraitSummary));
+
+levelIncomeForm.addEventListener('submit', event => {
+  event.preventDefault();
+  const baseText = document.getElementById('levelBaseIncome').value.trim();
+  const baseIncome = Number(baseText);
+  const baseUnit = document.getElementById('levelBaseUnit').value;
+  const level = Number(levelIncomeLevelSelect.value);
+  const levelMultiplier = getSelectedLevelMultiplier();
+  const traitBonusTotal = getTraitBonusTotal();
+  const mutationCombined = getSelectedEventMultiplier() + traitBonusTotal;
+  const eventText = levelEventOtherMultiplierInput.value.trim();
+  const eventOtherMultiplier = eventText === '' ? 1 : Number(eventText);
+  const eventPresetMultiplier = getSelectedEventMultiplier();
+  const selectedEventName = levelEventPresetSelect.selectedOptions[0]?.dataset.eventName || 'デフォルト';
+  const eventMultiplier = eventPresetMultiplier * eventOtherMultiplier;
+  const selectedTraits = getSelectedTraitBonuses();
+  const characterName = document.getElementById('levelCharacterName').value.trim();
+
+  if (baseText === '' || !Number.isFinite(baseIncome) || baseIncome < 0) {
+    showLevelIncomeError('基礎収入を確認してください', '0以上の基礎収入を入力してください。');
+    return;
+  }
+  if (!Number.isFinite(levelMultiplier) || levelMultiplier <= 0) {
+    showLevelIncomeError('レベルを確認してください', '選択したレベルの倍率を取得できませんでした。');
+    return;
+  }
+  if (eventText !== '' && (!Number.isFinite(eventOtherMultiplier) || eventOtherMultiplier <= 0) ||
+      !Number.isFinite(eventPresetMultiplier) || eventPresetMultiplier <= 0 ||
+      !Number.isFinite(mutationCombined) || mutationCombined <= 0 ||
+      !Number.isFinite(eventMultiplier) || eventMultiplier <= 0) {
+    showLevelIncomeError('倍率を確認してください', 'その他の追加倍率には0より大きい数値を入力してください。倍率がない場合は1を入力します。');
+    return;
+  }
+
+  const baseValue = toBase(baseIncome, baseUnit);
+  const totalMultiplier = levelMultiplier * mutationCombined * eventOtherMultiplier;
+  const incomePerSecond = baseValue * totalMultiplier;
+  if (!Number.isFinite(incomePerSecond)) {
+    showLevelIncomeError('計算できる範囲を超えています', '入力された倍率の組み合わせが大きすぎます。倍率を確認してください。');
+    return;
+  }
+
+  levelIncomeResult.className = 'result show';
+  levelIncomeResult.replaceChildren();
+  addText(levelIncomeResult, 'div', 'big', '計算結果：' + formatLevelIncome(incomePerSecond));
+    if (characterName) addText(levelIncomeResult, 'p', '', 'キャラクター：' + characterName);
+  const grid = document.createElement('div');
+  grid.className = 'level-income-result-grid';
+  addLevelIncomeResultItem(grid, '選択したレベル', String(level));
+  addLevelIncomeResultItem(grid, 'レベル倍率（自動適用）', formatMultiplierNumber(levelMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '選択した特性倍率の合計', '+' + formatMultiplierNumber(traitBonusTotal));
+  addLevelIncomeResultItem(grid, '特性倍率の合計', '+' + formatMultiplierNumber(traitBonusTotal));
+  addLevelIncomeResultItem(grid, 'イベント変異：' + selectedEventName, formatMultiplierNumber(eventPresetMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '特性＋イベントの合計倍率', formatMultiplierNumber(mutationCombined) + ' 倍');
+  addLevelIncomeResultItem(grid, 'その他の追加倍率', formatMultiplierNumber(eventOtherMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '最終的な合計倍率', formatMultiplierNumber(totalMultiplier) + ' 倍');
+  addLevelIncomeResultItem(grid, '計算に使った基礎収入', formatMultiplierNumber(baseIncome) + ' ' + baseUnit + '/s');
+  addLevelIncomeResultItem(grid, '毎秒の最終収入', formatLevelIncome(incomePerSecond), true);
+  levelIncomeResult.appendChild(grid);
+  if (selectedTraits.length) {
+    addText(levelIncomeResult, 'p', 'hint', '適用した特性：' + selectedTraits.map(trait => trait.name + ' ×' + formatMultiplierNumber(trait.bonus)).join('、'));
+  }
+  addText(levelIncomeResult, 'p', 'hint', '計算式：基礎収入 × レベル倍率 ×（特性倍率の合計 ＋ イベント変異倍率）× その他の追加倍率。特性倍率とイベント変異倍率は掛け算ではなく足し算で合算します。');
+  const measured = Object.prototype.hasOwnProperty.call(MEASURED_LEVEL_MULTIPLIERS, String(level));
+  addText(levelIncomeResult, 'p', 'hint', measured
+    ? 'このレベルは実測倍率を自動適用しました。'
+    : 'このレベルは前後の実測値から補間した推定倍率を自動適用しました。');
+});
+
+levelIncomeForm.addEventListener('reset', () => {
+  window.setTimeout(() => {
+    levelIncomeResult.className = 'result';
+    levelIncomeResult.replaceChildren();
+    updateLevelIncomeMultiplier();
+    updateEventTraitSummary();
+  }, 0);
+});
+
+updateLevelIncomeMultiplier();
+updateEventTraitSummary();
+renderLevelIncomeMultiplierList();
+renderCharacterDatabase();
 })();
 </script>
+
+<script>
+(() => {
+  "use strict";
+  const form = document.getElementById('levelCostForm');
+  const result = document.getElementById('levelCostResult');
+  const baseIncomeInput = document.getElementById('levelBaseIncome');
+  const baseUnitInput = document.getElementById('levelBaseUnit');
+  const characterSelectInput = document.getElementById('levelCharacterSelect');
+  if (!form || !result || !baseIncomeInput || !baseUnitInput) return;
+
+  const MAX_LEVEL = 400;
+  // GO UP元ソースのレベル費用係数（5レベルごとに適用）
+  const a5 = [
+    1.3,1.298,1.29,1.278,1.26,1.238,1.211,1.179,1.142,1.1,
+    1.08,1.07986,1.07945,1.07875,1.07778,1.07654,1.07501,1.07321,1.07114,1.06878,
+    1.06615,1.06324,1.06006,1.05659,1.05285,1.04884,1.04454,1.03997,1.03512,1.03,
+    1.025,1.02497,1.02489,1.02475,1.02456,1.02431,1.024,1.02364,1.02323,1.02276,
+    1.02223,1.02165,1.02101,1.02032,1.01957,1.01877,1.01791,1.01699,1.01602,1.015,
+        1.01723,1.01665,1.01601,1.01532,1.01457,1.01377,1.01291,1.01199,1.01102,1.01
+  ];
+  const units = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+  const unitPowers = {
+    '':0, '1':0, K:1, M:2, B:3, T:4, QA:5, QI:6,
+    SX:7, SP:8, OC:9, NO:10, DC:11
+  };
+
+  // 元サイトのs5(n)と同一の計算
+  function s5(n) {
+    if (n <= 0) return 0;
+    let total = 0;
+    let blockMultiplier = 1;
+    const blockSize = 5;
+    for (let i = 0; i < a5.length; i++) {
+      const multiplier = a5[i];
+      const remaining = n - i * blockSize;
+      if (remaining < 0) break;
+      const count = Math.min(remaining, blockSize - 1) + 1;
+      const powered = Math.pow(multiplier, count);
+      total += blockMultiplier * multiplier * (powered - 1) / (multiplier - 1);
+      blockMultiplier *= Math.pow(multiplier, blockSize);
+    }
+    return total;
+  }
+
+  // 元サイトのr5(n)：レベルn分までの累計費用係数
+  function r5(levelCount) {
+    const n = Math.max(0, Math.min(MAX_LEVEL, Math.floor(levelCount)));
+    if (n <= 50) return 2 * (Math.pow(1.5, n) - 1);
+    const first50 = 2 * (Math.pow(1.5, 50) - 1);
+    return first50 + Math.pow(1.5, 49) * s5(n - 50);
+  }
+
+  function parseBaseIncome() {
+    const raw = String(baseIncomeInput.value || '').trim();
+    const amount = Number(raw);
+    if (raw === '' || !Number.isFinite(amount) || amount <= 0) {
+      throw new Error('上の「レベル1・変異なしの基礎収入」を入力してください。585M/sなら数値に585、単位にM/sを選びます。');
+    }
+    const unit = String(baseUnitInput.value || '').toUpperCase();
+    const power = unitPowers[unit];
+    if (power === undefined) throw new Error('基礎収入の単位を確認してください。');
+    return amount * Math.pow(1000, power);
+  }
+
+  function parseMoney(input) {
+    const text = String(input || '').trim().replace(/,/g, '');
+    if (!text) return 0;
+    const match = text.match(/^([0-9]+(?:\.[0-9]+)?)\s*(Dc|No|Oc|Sp|Sx|Qi|Qa|T|B|M|K)?$/i);
+    if (!match) throw new Error('所持金は「250M」「1.2Sp」のように入力してください。');
+    const amount = Number(match[1]);
+    const suffix = (match[2] || '').toUpperCase();
+    const power = unitPowers[suffix];
+    if (!Number.isFinite(amount) || amount < 0 || power === undefined) {
+      throw new Error('所持金の数値または単位を確認してください。');
+    }
+    return amount * Math.pow(1000, power);
+  }
+
+  function formatMoney(value) {
+    if (!Number.isFinite(value)) return '計算できません';
+    if (value === 0) return '0';
+    const absolute = Math.abs(value);
+    const power = Math.max(0, Math.min(units.length - 1, Math.floor(Math.log10(absolute) / 3)));
+    const scaled = value / Math.pow(1000, power);
+    return Number(scaled.toPrecision(4)).toLocaleString('en-US', { maximumFractionDigits: 3 }) + units[power];
+  }
+
+  function addItem(parent, label, value, primary = false) {
+    const item = document.createElement('div');
+    item.className = 'level-cost-summary-item' + (primary ? ' primary-cost' : '');
+    const labelElement = document.createElement('span');
+    labelElement.className = 'label';
+    labelElement.textContent = label;
+    const valueElement = document.createElement('span');
+    valueElement.className = 'value';
+        valueElement.textContent = value;
+    item.append(labelElement, valueElement);
+    parent.appendChild(item);
+  }
+
+  function showError(message) {
+    result.replaceChildren();
+    result.className = 'result show error';
+    const messageElement = document.createElement('div');
+    messageElement.className = 'big';
+    messageElement.textContent = message;
+    result.appendChild(messageElement);
+  }
+
+  function calculate() {
+    const currentLevel = Number(document.getElementById('levelCostCurrentLevel').value);
+    const targetLevel = Number(document.getElementById('levelCostTargetLevel').value);
+    if (!Number.isInteger(currentLevel) || currentLevel < 1 || currentLevel > MAX_LEVEL ||
+        !Number.isInteger(targetLevel) || targetLevel < 1 || targetLevel > MAX_LEVEL) {
+      showError('現在のレベルと目標レベルは1〜400の整数で入力してください。');
+      return;
+    }
+    if (targetLevel < currentLevel) {
+      showError('目標レベルは現在のレベル以上にしてください。');
+      return;
+    }
+
+    let baseIncome;
+    let availableMoney;
+    try {
+      baseIncome = parseBaseIncome();
+      availableMoney = parseMoney(document.getElementById('levelCostMoney').value);
+    } catch (error) {
+      showError(error.message || '入力内容を確認してください。');
+      return;
+    }
+
+    // 「1→100」は99回のレベルアップ：585M × r5(99) ≒ 60.6Sx。
+    // 現在レベルが1より高い場合、その前までの費用係数を差し引く。
+    const required = Math.max(0, baseIncome * (r5(targetLevel - 1) - r5(currentLevel - 1)));
+    const cumulativeTarget = baseIncome * r5(targetLevel - 1);
+    const difference = availableMoney - required;
+
+    result.replaceChildren();
+    result.className = 'result show';
+    const grid = document.createElement('div');
+    grid.className = 'level-cost-summary-grid';
+    addItem(grid, '必要額（現在レベル → 目標レベル）', formatMoney(required), true);
+    addItem(grid, 'レベル1 → 目標レベルの累計費用', formatMoney(cumulativeTarget));
+    addItem(grid, '使用中のキャラクター基礎収入', formatMoney(baseIncome) + '/s');
+    addItem(grid, difference >= 0 ? 'レベルアップ後に余る金額' : '不足額', formatMoney(Math.abs(difference)));
+    if (currentLevel < MAX_LEVEL) {
+      const nextLevelCost = baseIncome * (r5(currentLevel) - r5(currentLevel - 1));
+      addItem(grid, '次の1レベルに必要な金額', formatMoney(nextLevelCost));
+    }
+    result.appendChild(grid);
+    const note = document.createElement('p');
+    note.className = 'level-cost-result-note';
+    note.textContent = '計算式：基礎収入 ×（r5(' + (targetLevel - 1) + ') − r5(' + (currentLevel - 1) + ')）。';
+    result.appendChild(note);
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    calculate();
+  });
+  form.addEventListener('input', calculate);
+  form.addEventListener('change', calculate);
+  baseIncomeInput.addEventListener('input', calculate);
+  baseIncomeInput.addEventListener('change', calculate);
+  baseUnitInput.addEventListener('change', calculate);
+  if (characterSelectInput) {
+    characterSelectInput.addEventListener('change', () => window.setTimeout(calculate, 0));
+  }
+  form.addEventListener('reset', () => window.setTimeout(calculate, 0));
+  calculate();
+})();
+</script>
+
 </body>
 </html>
