@@ -2995,6 +2995,10 @@ renderCharacterDatabase();
   const baseIncomeInput = document.getElementById('levelBaseIncome');
   const baseUnitInput = document.getElementById('levelBaseUnit');
   const characterSelectInput = document.getElementById('levelCharacterSelect');
+  // レベル収入計算で選択されているイベント・特性・追加倍率を費用にも反映する。
+  const eventPresetInput = document.getElementById('levelEventPreset');
+  const eventOtherMultiplierInput = document.getElementById('levelEventMultiplier');
+  const traitInputs = [...document.querySelectorAll('.level-trait-checkbox')];
   if (!form || !result || !baseIncomeInput || !baseUnitInput) return;
 
   const MAX_LEVEL = 400;
@@ -3050,6 +3054,42 @@ renderCharacterDatabase();
     const power = unitPowers[unit];
     if (power === undefined) throw new Error('基礎収入の単位を確認してください。');
     return amount * Math.pow(1000, power);
+  }
+
+  function parseAppliedModifiers() {
+    const eventMultiplier = eventPresetInput ? Number(eventPresetInput.value) : 1;
+    const traitBonus = traitInputs
+      .filter(input => input.checked)
+      .reduce((sum, input) => sum + Number(input.value || 0), 0);
+    const otherText = eventOtherMultiplierInput ? eventOtherMultiplierInput.value.trim() : '';
+    const otherMultiplier = otherText === '' ? 1 : Number(otherText);
+    const eventName = eventPresetInput?.selectedOptions?.[0]?.dataset?.eventName || 'デフォルト';
+    const selectedTraits = traitInputs
+      .filter(input => input.checked)
+      .map(input => input.dataset.traitName || input.value);
+
+    if (!Number.isFinite(eventMultiplier) || eventMultiplier <= 0) {
+      throw new Error('イベント変異倍率を確認してください。');
+    }
+    if (!Number.isFinite(traitBonus) || traitBonus < 0) {
+      throw new Error('特性倍率を確認してください。');
+    }
+    if (!Number.isFinite(otherMultiplier) || otherMultiplier <= 0) {
+      throw new Error('その他の追加倍率には0より大きい数値を入力してください。倍率がなければ1です。');
+    }
+
+    // イベント変異倍率と選択特性の数値を加算し、その後で追加倍率を掛ける。
+    // 例：レインボー×5 + アステロイド×3 = 合計×8。
+    const additiveMultiplier = eventMultiplier + traitBonus;
+    return {
+      eventMultiplier,
+      eventName,
+      traitBonus,
+      selectedTraits,
+      additiveMultiplier,
+      otherMultiplier,
+      totalMultiplier: additiveMultiplier * otherMultiplier
+    };
   }
 
   function parseMoney(input) {
@@ -3112,18 +3152,22 @@ renderCharacterDatabase();
 
     let baseIncome;
     let availableMoney;
+    let modifiers;
     try {
       baseIncome = parseBaseIncome();
       availableMoney = parseMoney(document.getElementById('levelCostMoney').value);
+      modifiers = parseAppliedModifiers();
     } catch (error) {
       showError(error.message || '入力内容を確認してください。');
       return;
     }
 
-    // 「1→100」は99回のレベルアップ：585M × r5(99) ≒ 60.6Sx。
-    // 現在レベルが1より高い場合、その前までの費用係数を差し引く。
-    const required = Math.max(0, baseIncome * (r5(targetLevel - 1) - r5(currentLevel - 1)));
-    const cumulativeTarget = baseIncome * r5(targetLevel - 1);
+    // 費用の基準収入にイベント＋特性の合計倍率と追加倍率を反映する。
+    // レベル倍率そのものは費用のr5進行式に含まれているため、ここでは二重に掛けない。
+    const effectiveBaseIncome = baseIncome * modifiers.totalMultiplier;
+    // 「1→100」は99回のレベルアップ。倍率なしの基準式は585M/sなら約60.66Sx。
+    const required = Math.max(0, effectiveBaseIncome * (r5(targetLevel - 1) - r5(currentLevel - 1)));
+    const cumulativeTarget = effectiveBaseIncome * r5(targetLevel - 1);
     const difference = availableMoney - required;
 
     result.replaceChildren();
@@ -3132,16 +3176,22 @@ renderCharacterDatabase();
     grid.className = 'level-cost-summary-grid';
     addItem(grid, '必要額（現在レベル → 目標レベル）', formatMoney(required), true);
     addItem(grid, 'レベル1 → 目標レベルの累計費用', formatMoney(cumulativeTarget));
-    addItem(grid, '使用中のキャラクター基礎収入', formatMoney(baseIncome) + '/s');
+    addItem(grid, '変異なしの基礎収入', formatMoney(baseIncome) + '/s');
+    addItem(grid, 'イベント：' + modifiers.eventName, '×' + modifiers.eventMultiplier);
+    addItem(grid, '選択した特性倍率の合計', '+' + modifiers.traitBonus + (modifiers.selectedTraits.length ? '（' + modifiers.selectedTraits.join('、') + '）' : '（なし）'));
+    addItem(grid, 'イベント＋特性の合計倍率', '×' + modifiers.additiveMultiplier);
+    addItem(grid, 'その他の追加倍率', '×' + modifiers.otherMultiplier);
+    addItem(grid, '費用計算に適用する合計倍率', '×' + modifiers.totalMultiplier);
+    addItem(grid, '倍率適用後の基準収入', formatMoney(effectiveBaseIncome) + '/s');
     addItem(grid, difference >= 0 ? 'レベルアップ後に余る金額' : '不足額', formatMoney(Math.abs(difference)));
     if (currentLevel < MAX_LEVEL) {
-      const nextLevelCost = baseIncome * (r5(currentLevel) - r5(currentLevel - 1));
+      const nextLevelCost = effectiveBaseIncome * (r5(currentLevel) - r5(currentLevel - 1));
       addItem(grid, '次の1レベルに必要な金額', formatMoney(nextLevelCost));
     }
     result.appendChild(grid);
     const note = document.createElement('p');
     note.className = 'level-cost-result-note';
-    note.textContent = '計算式：基礎収入 ×（r5(' + (targetLevel - 1) + ') − r5(' + (currentLevel - 1) + ')）。';
+    note.textContent = '計算式：基礎収入 ×（イベント倍率 ' + modifiers.eventMultiplier + ' ＋ 特性ボーナス ' + modifiers.traitBonus + '）× その他倍率 ' + modifiers.otherMultiplier + ' ×（r5(' + (targetLevel - 1) + ') − r5(' + (currentLevel - 1) + ')）。イベント倍率と特性ボーナスを加算してから、その他倍率を掛けています。';
     result.appendChild(note);
   }
 
@@ -3157,6 +3207,19 @@ renderCharacterDatabase();
   if (characterSelectInput) {
     characterSelectInput.addEventListener('change', () => window.setTimeout(calculate, 0));
   }
+  // 費用計算カード以外のイベント・特性変更でも費用を自動更新。
+  if (eventPresetInput) {
+    eventPresetInput.addEventListener('input', calculate);
+    eventPresetInput.addEventListener('change', calculate);
+  }
+  if (eventOtherMultiplierInput) {
+    eventOtherMultiplierInput.addEventListener('input', calculate);
+    eventOtherMultiplierInput.addEventListener('change', calculate);
+  }
+  traitInputs.forEach(input => {
+    input.addEventListener('input', calculate);
+    input.addEventListener('change', calculate);
+  });
   form.addEventListener('reset', () => window.setTimeout(calculate, 0));
   calculate();
 })();
