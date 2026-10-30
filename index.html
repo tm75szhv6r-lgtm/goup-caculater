@@ -140,11 +140,25 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 /* 放置収入と連動するキャラクターレベル上げ計画 */
 .level-plan{margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#ffffff03}
 .level-plan h2{margin:0 0 8px}
-.level-plan-rows{display:grid;gap:10px;margin:14px 0}
-.level-plan-row{display:grid;grid-template-columns:minmax(190px,2fr) minmax(95px,.8fr) minmax(95px,.8fr) auto;gap:9px;align-items:end;padding:12px;border:1px solid var(--border);border-radius:12px;background:#ffffff04}
+.level-plan-rows{display:grid;gap:12px;margin:14px 0}
+.level-plan-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
+.plan-main-fields{display:grid;grid-template-columns:minmax(190px,2fr) minmax(95px,.8fr) minmax(95px,.8fr) auto;gap:9px;align-items:end;min-width:0}
 .level-plan-row .field{margin:0;min-width:0}
 .level-plan-row label{font-size:.82rem}
 .level-plan-row select,.level-plan-row input{width:100%;min-width:0}
+.plan-modifier-panel{padding:12px;border:1px solid var(--border);border-radius:11px;background:#ffffff03;min-width:0}
+.plan-modifier-title{display:block;margin-bottom:10px;font-size:.92rem;font-weight:850}
+.plan-modifier-top{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(120px,.7fr);gap:12px;align-items:start}
+.plan-modifier-top .hint{margin-top:4px}
+.plan-trait-fieldset{margin:12px 0 0;padding:11px;border:1px solid var(--border);border-radius:10px;min-width:0}
+.plan-trait-fieldset legend{padding:0 5px;font-size:.83rem;font-weight:800}
+.plan-trait-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.plan-trait-option{display:flex;align-items:center;gap:7px;min-width:0;padding:8px;border:1px solid var(--border);border-radius:9px;background:#ffffff05;cursor:pointer}
+.plan-trait-option input{width:17px;height:17px;flex:0 0 auto;margin:0;accent-color:var(--accent2)}
+.plan-trait-option span{display:block;min-width:0;font-size:.82rem;overflow-wrap:anywhere}
+.plan-trait-option strong{color:var(--accent2);white-space:nowrap}
+.plan-trait-option:has(input:checked){border-color:var(--accent2);background:#5ce1c010}
+.plan-modifier-summary{margin-top:9px;color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
 .level-plan-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .level-plan-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
 .level-plan-item{padding:12px;border:1px solid var(--border);border-radius:10px;min-width:0}
@@ -156,7 +170,9 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan-step strong{display:block;margin-bottom:6px}
 .level-plan-step p{margin:4px 0;color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
 .level-plan-note{margin-top:12px;color:var(--muted);font-size:.86rem}
-@media(max-width:700px){.level-plan-row{grid-template-columns:1fr 1fr}.level-plan-row .char-field{grid-column:1/-1}.level-plan-summary{grid-template-columns:1fr}.level-plan-item.primary{grid-column:auto}}
+@media(max-width:760px){.plan-main-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.plan-main-fields .char-field{grid-column:1/-1}.plan-modifier-top{grid-template-columns:1fr}.plan-trait-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.level-plan-summary{grid-template-columns:1fr}.level-plan-item.primary{grid-column:auto}}
+@media(max-width:420px){.plan-main-fields{grid-template-columns:1fr}.plan-main-fields .char-field{grid-column:auto}.plan-trait-grid{grid-template-columns:1fr}}
 
 
 /* クラウド同期 */
@@ -172,6 +188,9 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .cloud-sync-panel .hint{margin-top:8px}
 @media(max-width:560px){.cloud-sync-grid{grid-template-columns:1fr}}
 
+
+/* Keep backend connection settings out of the visible UI. */
+#cloudSyncUrl, #cloudSyncPublicKey { display: none !important; visibility: hidden !important; }
 </style>
 </head>
 <body>
@@ -235,8 +254,9 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
         <h2 id="cloudSyncTitle">☁️ デバイス間クラウド同期</h2>
         <p class="description">同じSupabaseプロジェクトと同じアカウントでログインした端末同士で、計算設定・放置記録・倍率設定・レベル上げ計画を共有します。</p>
         <div class="cloud-sync-grid">
-          <div class="field"><label for="cloudSyncUrl">Supabase Project URL</label><input id="cloudSyncUrl" type="url" autocomplete="url" placeholder="https://xxxx.supabase.co"></div>
-          <div class="field"><label for="cloudSyncPublicKey">Publishable key（公開キー）</label><input id="cloudSyncPublicKey" type="text" autocomplete="off" placeholder="sb_publishable_..."><p class="hint">ブラウザ用の公開キーを入力します。secret / service_roleキーは絶対に入力しないでください。</p></div>
+          <!-- Supabase接続情報は自動設定。通常の利用画面には表示しない -->
+          <input id="cloudSyncUrl" type="hidden" aria-hidden="true" tabindex="-1" value="https://jueyqqefolmvcigacolh.supabase.co">
+          <input id="cloudSyncPublicKey" type="hidden" aria-hidden="true" tabindex="-1" value="sb_publishable_e84iThbcsnEIk0SEgXk1lw_0nZFB7VX">
           <div class="field"><label for="cloudSyncEmail">メールアドレス</label><input id="cloudSyncEmail" type="email" autocomplete="username" placeholder="アカウントのメールアドレス"></div>
           <div class="field"><label for="cloudSyncPassword">パスワード</label><input id="cloudSyncPassword" type="password" autocomplete="current-password" placeholder="パスワード（保存されません）"></div>
         </div>
@@ -248,7 +268,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
           <button id="cloudSyncPush" class="btn" type="button">⬆️ この端末をクラウドに保存</button>
         </div>
         <div id="cloudSyncStatus" class="cloud-sync-status" role="status" aria-live="polite">未接続：Supabase接続情報は設定済みです。アカウント登録またはログインしてください。</div>
-        <p class="hint">SupabaseのURL・公開キーはこのファイルに設定済みです。初回は「アカウント登録」、別端末では同じメールアドレスとパスワードで「ログイン」してください。ログイン後は設定・記録が自動同期されます。既存データがクラウドにある場合、ログイン時に「読み込む」か「この端末で上書きする」か選べます。同時に複数端末で編集した場合は、最後に保存した内容が優先されます。</p>
+        <p class="hint">Supabase接続情報は自動設定されています。初回は「アカウント登録」、別端末では同じメールアドレスとパスワードで「ログイン」してください。ログイン後は設定・記録が自動同期されます。既存データがクラウドにある場合、ログイン時に「読み込む」か「この端末で上書きする」か選べます。同時に複数端末で編集した場合は、最後に保存した内容が優先されます。</p>
       </section>
 
       <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
@@ -257,7 +277,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
         <div id="levelPlanRows" class="level-plan-rows"></div>
         <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button></div>
         <div id="levelPlanResult" class="result" aria-live="polite"></div>
-        <p class="level-plan-note">費用には「レベル収入計算」で選択中のイベント・特性・追加倍率を適用します。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存されます。</p>
+        <p class="level-plan-note">各キャラクターの欄でイベント変異・特性・その他の追加倍率を個別に設定できます。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存され、ログイン中はクラウド同期されます。</p>
       </section>
       <div class="field update-interval-field">
         <label for="updateIntervalSeconds">計算の更新間隔（秒・0.01秒刻み）</label>
@@ -420,7 +440,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
   <p class="description">選択したレベル倍率を適用し、特性ボーナスとイベント変異倍率は足し合わせてから基礎収入に適用します。その他の追加倍率は最後に掛けます。レベル倍率はレベル選択から自動で適用されます。</p>
   <form id="levelIncomeForm" novalidate>
     <div class="level-income-form-grid">
-      <div class="field level-character-select-field"><label for="levelCharacterSelect">キャラクターを選択</label><select id="levelCharacterSelect"><option value="">手動入力（キャラクターを選ばない）</option></select><p class="hint">一覧から選ぶと、キャラ名・基礎収入・単位が自動入力されます。画像上で名前が切れている場合は「…」を付けています。</p></div>
+      <div class="field level-character-select-field"><label for="levelCharacterSelect">キャラクターを選択</label><select id="levelCharacterSelect"><option value="">手動入力（キャラクターを選ばない）</option></select><p class="hint">一覧は毎秒の収入が高い順です。名前の後ろにレアリティを表示します。選ぶとキャラ名・基礎収入・単位が自動入力されます。</p></div>
       <div class="field"><label for="levelCharacterName">キャラクター名（任意）</label><input id="levelCharacterName" type="text" maxlength="80" placeholder="例：キャラクター名"></div>
       <div class="field"><label for="levelBaseIncome">レベル1・変異なしの基礎収入</label><input id="levelBaseIncome" type="number" min="0" step="any" placeholder="例：53" required><p class="hint">ゲーム内で表示される毎秒の収入を入力します。</p></div>
       <div class="field"><label for="levelBaseUnit">基礎収入の単位</label><select id="levelBaseUnit"><option value="No">No/s</option><option value="Oc">Oc/s</option><option value="Sp">Sp/s</option><option value="Sx">Sx/s</option><option value="Qi">Qi/s</option><option value="Qa">Qa/s</option><option value="T">T/s</option><option value="B">B/s</option><option value="M" selected>M/s</option><option value="K">K/s</option><option value="1">通常の数値/s</option></select></div>
@@ -2487,6 +2507,312 @@ for (let level = 1; level <= 400; level++) {
 /* 画像から読み取ったキャラクター名・基礎収入 */
 const GOUP_CHARACTERS = Object.freeze([
   {
+    "rarity": "Divine",
+    "name": "Alligarto Alligarto",
+    "income": 12.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Tictac Tictac Sahur",
+    "income": 13.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Tractoro Dinosauro",
+    "income": 20.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Chimpanzini Kingini",
+    "income": 25.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Canneloni Dragoni",
+    "income": 16.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Tralaledon",
+    "income": 35.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Strawberry Elephant",
+    "income": 22.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "La Grande Combinacion",
+    "income": 14.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Gigalitraktos Spidorobos",
+    "income": 45.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Los Esok Sekolitos",
+    "income": 17.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Los Crocodillitos",
+    "income": 15.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Los 67",
+    "income": 21.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Bulbito Bandito Traktorito",
+    "income": 23.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Tiramisubmarini",
+    "income": 40.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Bunnibattini",
+    "income": 19.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Easternita Dragonita",
+    "income": 27.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Chickarito Mecharito",
+    "income": 30.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Vulturino Skeletono",
+    "income": 33.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Los Arigato Arigatos",
+    "income": 24.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "McPenne Dougal",
+    "income": 29.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Meccavallo",
+    "income": 42.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Pitiata Baem",
+    "income": 38.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Pippi Poppa Pippo Peppe",
+    "income": 31.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Capanna Distruttore",
+    "income": 47.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "BRR ES TEH PATIPUM",
+    "income": 28.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Tralalero Kingala",
+    "income": 39.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Miskin Makaroni",
+    "income": 43.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Lionelli Helicopterini",
+    "income": 18.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Hipopotamino Supermarketino",
+    "income": 41.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Ketchupini Nuggetini",
+    "income": 26.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Turtellini Submarino",
+    "income": 23.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Sealini Jetskini",
+    "income": 28.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Yetini Fridgeloni",
+    "income": 22.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Salsicino Furiosino",
+    "income": 28.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Dinosaurus",
+    "income": 34.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Supernovus Maximus",
+    "income": 39.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Cobrannini Kinginni",
+    "income": 48.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Cannonubis",
+    "income": 40.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Llamadona Primadona",
+    "income": 44.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "El Crunchador",
+    "income": 32.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Pandanini Cloudini",
+    "income": 37.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Croissantini et Caffettino",
+    "income": 42.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Dragolaso",
+    "income": 38.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Jaguarzinio",
+    "income": 48.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Glovtopus",
+    "income": 23.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Referendi Cardini",
+    "income": 27.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Bootini Stingini",
+    "income": 33.5,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Moonrini Astrini",
+    "income": 46.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Crabello Castelo",
+    "income": 46.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Rosamorte",
+    "income": 36.0,
+    "unit": "M"
+  },
+  {
+    "rarity": "Divine",
+    "name": "Pumpkinstein",
+    "income": 48.0,
+    "unit": "M"
+  },
+  {
     "rarity": "Ascended",
     "name": "Tung Tung Tung Asce…",
     "income": 67,
@@ -2825,19 +3151,22 @@ function formatCharacterIncome(character) {
 }
 
 function renderCharacterDatabase() {
-  const groups = new Map();
-  const rarityNames = { Ascended: 'アセンデッド', Forbidden: '禁止' };
-  GOUP_CHARACTERS.forEach((character, index) => {
-    if (!groups.has(character.rarity)) {
-      const group = document.createElement('optgroup');
-      group.label = rarityNames[character.rarity] || character.rarity;
-      groups.set(character.rarity, group);
-      levelCharacterSelect.appendChild(group);
-    }
+  const rarityNames = { Divine: 'Divine', Ascended: 'アセンデッド', Forbidden: 'Forbidden' };
+  // Sort every character by actual per-second income, comparing units as well as numbers.
+  // Keep the original array index as the option value so the existing selection logic remains correct.
+  const sortedCharacters = GOUP_CHARACTERS
+    .map((character, index) => ({ character, index, incomeValue: toBase(character.income, character.unit) }))
+    .sort((a, b) => (b.incomeValue - a.incomeValue) || a.character.name.localeCompare(b.character.name, 'en'));
+
+  const sortedGroup = document.createElement('optgroup');
+  sortedGroup.label = '収入が高い順';
+  levelCharacterSelect.appendChild(sortedGroup);
+
+  sortedCharacters.forEach(({ character, index }) => {
     const option = document.createElement('option');
     option.value = String(index);
-    option.textContent = character.name + ' — ' + formatCharacterIncome(character);
-    groups.get(character.rarity).appendChild(option);
+    option.textContent = character.name + ' — ' + formatCharacterIncome(character) + '（' + (rarityNames[character.rarity] || character.rarity) + '）';
+    sortedGroup.appendChild(option);
 
     const listItem = document.createElement('div');
     listItem.className = 'level-character-entry';
@@ -3318,10 +3647,13 @@ renderCharacterDatabase();
   const root = document.getElementById("levelPlanRows");
   const output = document.getElementById("levelPlanResult");
   const sourceSelect = document.getElementById("levelCharacterSelect");
+  const sourceEventSelect = document.getElementById("levelEventPreset");
+  const sourceOtherMultiplier = document.getElementById("levelEventMultiplier");
   const storageKey = "goupCalculatorLevelPlanV1";
   const powers = {"1":0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10,Dc:11};
   const labels = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
-  if (!root || !output || !sourceSelect) return;
+  const sourceTraits = [...document.querySelectorAll(".level-trait-checkbox")];
+  if (!root || !output || !sourceSelect || !sourceEventSelect) return;
 
   function money(n) {
     if (!Number.isFinite(n)) return "計算範囲外";
@@ -3343,6 +3675,25 @@ renderCharacterDatabase();
   function tokyo(timestamp) {
     return new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(timestamp));
   }
+  function globalModifierDefaults() {
+    const other = Number(sourceOtherMultiplier?.value ?? 1);
+    return {
+      eventValue: Number(sourceEventSelect.value) || 1,
+      otherMultiplier: Number.isFinite(other) && other > 0 ? other : 1,
+      traits: sourceTraits.filter(t=>t.checked).map(t=>t.dataset.traitName).filter(Boolean)
+    };
+  }
+  function modifierSettings(data) {
+    const defaults = globalModifierDefaults();
+    const d = data || {};
+    const ev = Number(d.eventValue ?? defaults.eventValue);
+    const other = Number(d.otherMultiplier ?? defaults.otherMultiplier);
+    return {
+      eventValue: Number.isFinite(ev) && ev > 0 ? ev : defaults.eventValue,
+      otherMultiplier: Number.isFinite(other) && other > 0 ? other : defaults.otherMultiplier,
+      traits: Array.isArray(d.traits) ? d.traits.filter(v=>typeof v === "string") : defaults.traits.slice()
+    };
+  }
   function addSelect(name) {
     const s=document.createElement("select"); s.className="plan-character"; s.setAttribute("aria-label","キャラクター");
     Array.from(sourceSelect.children).forEach(group => {
@@ -3358,23 +3709,98 @@ renderCharacterDatabase();
     if(match)s.value=match.value;
     return s;
   }
+  function createField(labelText, control, className) {
+    const f=document.createElement("div"); f.className="field"+(className?" "+className:"");
+    const l=document.createElement("label"); l.textContent=labelText;
+    l.appendChild(control); f.appendChild(l); return f;
+  }
+  function numberControl(className, value, min, max, step) {
+    const input=document.createElement("input"); input.type="number"; input.className=className;
+    input.min=String(min); if(max!==null)input.max=String(max); input.step=String(step); input.value=String(value);
+    return input;
+  }
+  function createEventSelect(value) {
+    const select=document.createElement("select"); select.className="plan-event"; select.setAttribute("aria-label","このキャラクターのイベント変異");
+    Array.from(sourceEventSelect.options).forEach(sourceOption=>{
+      const option=document.createElement("option"); option.value=sourceOption.value; option.textContent=sourceOption.textContent;
+      option.dataset.eventName=sourceOption.dataset.eventName || sourceOption.textContent;
+      select.appendChild(option);
+    });
+    if(Array.from(select.options).some(o=>o.value===String(value)))select.value=String(value);
+    return select;
+  }
   function addRow(data) {
-    const d=data||{}, row=document.createElement("div"); row.className="level-plan-row";
-    const cf=document.createElement("div"); cf.className="field char-field";
-    const cl=document.createElement("label"); cl.textContent="キャラクター"; cl.appendChild(addSelect(d.name||"")); cf.appendChild(cl);
-    function numberField(labelText,cls,value) {
-      const f=document.createElement("div");f.className="field";const l=document.createElement("label");l.textContent=labelText;
-      const i=document.createElement("input");i.type="number";i.min="1";i.max="400";i.step="1";i.value=String(value);i.className=cls;l.appendChild(i);f.appendChild(l);return f;
-    }
+    const d=data||{}, settings=modifierSettings(d), row=document.createElement("div"); row.className="level-plan-row";
+    const main=document.createElement("div"); main.className="plan-main-fields";
+    const characterField=createField("キャラクター",addSelect(d.name||""),"char-field");
+    const current=numberControl("plan-current",d.currentLevel??1,1,400,1);
+    const target=numberControl("plan-target",d.targetLevel??340,1,400,1);
+    const currentField=createField("現在レベル",current);
+    const targetField=createField("目標レベル",target);
     const remove=document.createElement("button");remove.type="button";remove.className="btn plan-remove";remove.textContent="削除";
-    row.append(cf,numberField("現在レベル","plan-current",d.currentLevel??1),numberField("目標レベル","plan-target",d.targetLevel??340),remove);
-    root.appendChild(row);
+    remove.setAttribute("aria-label","このキャラクターを計画から削除");
+    main.append(characterField,currentField,targetField,remove);
+
+    const panel=document.createElement("div");panel.className="plan-modifier-panel";
+    const panelTitle=document.createElement("strong");panelTitle.className="plan-modifier-title";panelTitle.textContent="イベント・変異設定";panel.appendChild(panelTitle);
+    const top=document.createElement("div");top.className="plan-modifier-top";
+    const eventSelect=createEventSelect(settings.eventValue);
+    top.appendChild(createField("イベント変異（1つ選択）",eventSelect));
+    const otherInput=numberControl("plan-other-multiplier",settings.otherMultiplier,0.000001,null,"any");
+    otherInput.setAttribute("aria-label","このキャラクターのその他の追加倍率");
+    const otherField=createField("その他の追加倍率",otherInput);
+    const otherHint=document.createElement("p");otherHint.className="hint";otherHint.textContent="追加倍率がなければ1です。";otherField.appendChild(otherHint);
+    top.appendChild(otherField);panel.appendChild(top);
+
+    const fieldset=document.createElement("fieldset");fieldset.className="plan-trait-fieldset";
+    const legend=document.createElement("legend");legend.textContent="変異・特性（イベント変異倍率に加算）";fieldset.appendChild(legend);
+    const traitGrid=document.createElement("div");traitGrid.className="plan-trait-grid";
+    sourceTraits.forEach(sourceTrait=>{
+      const traitName=sourceTrait.dataset.traitName;
+      if(!traitName)return;
+      const label=document.createElement("label");label.className="plan-trait-option";
+      const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.className="plan-trait-checkbox";
+      checkbox.value=sourceTrait.value;checkbox.dataset.traitName=traitName;checkbox.checked=settings.traits.includes(traitName);
+      const sourceText=sourceTrait.closest("label")?.querySelector("span");
+      const span=document.createElement("span");if(sourceText)span.innerHTML=sourceText.innerHTML;else span.textContent=traitName+" ×"+sourceTrait.value;
+      label.append(checkbox,span);traitGrid.appendChild(label);
+    });
+    fieldset.appendChild(traitGrid);panel.appendChild(fieldset);
+    const summary=document.createElement("div");summary.className="plan-modifier-summary";summary.setAttribute("aria-live","polite");panel.appendChild(summary);
+    row.append(main,panel);root.appendChild(row);
+    updateModifierSummary(row);
+  }
+  function readRowModifiers(row) {
+    const eventInput=row.querySelector(".plan-event");
+    const eventMultiplier=Number(eventInput?.value);
+    const otherMultiplier=Number(row.querySelector(".plan-other-multiplier")?.value);
+    if(!Number.isFinite(eventMultiplier)||eventMultiplier<=0)throw new Error("イベント変異の倍率を確認してください。");
+    if(!Number.isFinite(otherMultiplier)||otherMultiplier<=0)throw new Error("その他の追加倍率は0より大きい数値にしてください。");
+    const selected=[...row.querySelectorAll(".plan-trait-checkbox:checked")].map(t=>({name:t.dataset.traitName,value:Number(t.value)}));
+    const traitBonus=selected.reduce((sum,t)=>sum+(Number.isFinite(t.value)?t.value:0),0);
+    const additiveMultiplier=eventMultiplier+traitBonus;
+    return {
+      eventName:eventInput.selectedOptions[0]?.dataset.eventName || eventInput.selectedOptions[0]?.textContent || "イベント",
+      eventMultiplier, otherMultiplier, selectedTraits:selected.map(t=>t.name), traitBonus,
+      additiveMultiplier,totalMultiplier:additiveMultiplier*otherMultiplier
+    };
+  }
+  function updateModifierSummary(row) {
+    const box=row.querySelector(".plan-modifier-summary");if(!box)return;
+    try{
+      const m=readRowModifiers(row);
+      box.textContent="適用倍率：("+m.eventMultiplier+" ＋ 特性 "+m.traitBonus+") × "+m.otherMultiplier+" ＝ ×"+Number(m.totalMultiplier.toPrecision(6))+"　｜ 選択した特性："+(m.selectedTraits.join("、")||"なし");
+      box.style.color="";
+    }catch(e){box.textContent=e.message;box.style.color="var(--danger)";}
   }
   function save() {
     const data=Array.from(root.querySelectorAll(".level-plan-row")).map(r=>({
       name:r.querySelector(".plan-character").selectedOptions[0]?.textContent.split(" — ")[0]||"",
       currentLevel:Number(r.querySelector(".plan-current").value),
-      targetLevel:Number(r.querySelector(".plan-target").value)
+      targetLevel:Number(r.querySelector(".plan-target").value),
+      eventValue:Number(r.querySelector(".plan-event").value),
+      otherMultiplier:Number(r.querySelector(".plan-other-multiplier").value),
+      traits:[...r.querySelectorAll(".plan-trait-checkbox:checked")].map(t=>t.dataset.traitName)
     }));
     try{localStorage.setItem(storageKey,JSON.stringify(data));}catch(_){}
   }
@@ -3415,7 +3841,6 @@ renderCharacterDatabase();
       let cash=heldRaw===""?0:Number(heldRaw)*Math.pow(1000,powers[heldUnit]??0);
       if(rate!==null&&(!Number.isFinite(rate)||rate<0))throw new Error("毎秒収入を確認してください。");
       if(!Number.isFinite(cash)||cash<0)throw new Error("開始所持金を確認してください。");
-      const mod=helpers.parseAppliedModifiers().totalMultiplier;
       const lm=multiplierMap();
       if(lm.size<400)throw new Error("レベル倍率一覧がまだ準備できていません。再読み込みしてください。");
       let currentRate=rate,totalCost=0,totalGain=0,totalWait=0,impossible=false;
@@ -3424,8 +3849,9 @@ renderCharacterDatabase();
         const c=charData(r.querySelector(".plan-character"));
         const cur=Number(r.querySelector(".plan-current").value),target=Number(r.querySelector(".plan-target").value);
         if(!Number.isInteger(cur)||cur<1||cur>400||!Number.isInteger(target)||target<cur||target>400)throw new Error((index+1)+"行目：レベルは1〜400で、目標は現在レベル以上にしてください。");
-        const cost=Math.max(0,c.base*mod*(helpers.r5(target-1)-helpers.r5(cur-1)));
-        const gain=Math.max(0,c.base*mod*((lm.get(target)||0)-(lm.get(cur)||0)));
+        const modifiers=readRowModifiers(r);
+        const cost=Math.max(0,c.base*modifiers.totalMultiplier*(helpers.r5(target-1)-helpers.r5(cur-1)));
+        const gain=Math.max(0,c.base*modifiers.totalMultiplier*((lm.get(target)||0)-(lm.get(cur)||0)));
         let wait=null;
         if(currentRate!==null){
           const deficit=Math.max(0,cost-cash);
@@ -3438,7 +3864,7 @@ renderCharacterDatabase();
           if(!Number.isFinite(currentRate))throw new Error("レベルアップ後の収入が計算範囲を超えました。");
         } else cash=Math.max(0,cash-cost);
         totalCost+=cost;totalGain+=gain;
-        steps.push({index:index+1,name:c.name,cur,target,cost,gain,wait});
+        steps.push({index:index+1,name:c.name,cur,target,cost,gain,wait,modifiers});
       });
       const summary=document.createElement("div");summary.className="level-plan-summary";
       card(summary,"必要な合計金額",money(totalCost),true);
@@ -3452,23 +3878,24 @@ renderCharacterDatabase();
       steps.forEach(s=>{
         const d=document.createElement("div");d.className="level-plan-step";
         const h=document.createElement("strong");h.textContent=s.index+". "+s.name+"：Lv."+s.cur+" → Lv."+s.target;d.appendChild(h);
-        [["必要費用",money(s.cost)],["この段階で待つ時間",rate===null?"毎秒収入を入力してください":s.wait===null?"収入が0のため算出できません":duration(s.wait)],["完了後に増える収入（推定）",money(s.gain)+"/s"]].forEach(pair=>{const p=document.createElement("p");p.textContent=pair[0]+"："+pair[1];d.appendChild(p);});
+        const traitText=s.modifiers.selectedTraits.length?s.modifiers.selectedTraits.join("、"):"なし";
+        const modText="イベント："+s.modifiers.eventName+" ×"+s.modifiers.eventMultiplier+"／特性："+traitText+"（合計＋"+s.modifiers.traitBonus+"）／その他：×"+s.modifiers.otherMultiplier+"／適用倍率：×"+Number(s.modifiers.totalMultiplier.toPrecision(6));
+        [["必要費用",money(s.cost)],["この段階で待つ時間",rate===null?"毎秒収入を入力してください":s.wait===null?"収入が0のため算出できません":duration(s.wait)],["完了後に増える収入（推定）",money(s.gain)+"/s"],["適用したイベント・変異",modText]].forEach(pair=>{const p=document.createElement("p");p.textContent=pair[0]+"："+pair[1];d.appendChild(p);});
         output.appendChild(d);
       });
-      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各段階の費用を所持金から支払い、前のキャラクターのレベルアップ後の収入増加を次の待ち時間に反映しています。";output.appendChild(note);
+      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各キャラクターに設定したイベント変異倍率と特性倍率を加算し、その後でその他の追加倍率を掛けています。各段階の費用を所持金から支払い、前のキャラクターのレベルアップ後の収入増加を次の待ち時間に反映します。";output.appendChild(note);
     } catch(e) {
       output.className="result show error";const msg=document.createElement("div");msg.className="big";msg.textContent=e.message||"入力を確認してください。";output.appendChild(msg);
     }
   }
-  root.addEventListener("input",()=>{save();calculate();});
-  root.addEventListener("change",()=>{save();calculate();});
+  root.addEventListener("input",e=>{const row=e.target.closest(".level-plan-row");if(row)updateModifierSummary(row);save();calculate();});
+  root.addEventListener("change",e=>{const row=e.target.closest(".level-plan-row");if(row)updateModifierSummary(row);save();calculate();});
   root.addEventListener("click",e=>{const b=e.target.closest(".plan-remove");if(b){b.closest(".level-plan-row").remove();save();calculate();}});
   document.getElementById("levelPlanAdd").addEventListener("click",()=>{addRow({currentLevel:1,targetLevel:340});save();calculate();});
   document.getElementById("levelPlanCalculate").addEventListener("click",calculate);
-  ["idleRate","idleRateUnit","idleHeld","idleHeldUnit","levelEventPreset","levelEventMultiplier"].forEach(id=>{
+  ["idleRate","idleRateUnit","idleHeld","idleHeldUnit"].forEach(id=>{
     const e=document.getElementById(id);if(e){e.addEventListener("input",calculate);e.addEventListener("change",calculate);}
   });
-  document.querySelectorAll(".level-trait-checkbox").forEach(e=>{e.addEventListener("change",calculate);e.addEventListener("input",calculate);});
   let restored=false;
   try{const saved=localStorage.getItem(storageKey);if(saved!==null){const parsed=JSON.parse(saved);if(Array.isArray(parsed)){restored=true;parsed.forEach(addRow);}}}catch(_){}
   if(!restored){addRow({name:"Gorgonzilla",currentLevel:1,targetLevel:340});addRow({name:"Chronomondo",currentLevel:1,targetLevel:340});save();}
@@ -3534,14 +3961,11 @@ renderCharacterDatabase();
     try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (_) {}
   }
   function loadConfig() {
-    try {
-      const cfg = JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}");
-      urlInput.value = typeof cfg.url === "string" && cfg.url.trim() ? cfg.url : DEFAULT_SUPABASE_URL;
-      keyInput.value = typeof cfg.key === "string" && cfg.key.trim() ? cfg.key : DEFAULT_SUPABASE_PUBLISHABLE_KEY;
-    } catch (_) {
-      urlInput.value = DEFAULT_SUPABASE_URL;
-      keyInput.value = DEFAULT_SUPABASE_PUBLISHABLE_KEY;
-    }
+    // Public version: keep the project connection fixed and hide editable fields from the UI.
+    // These are browser-safe URL/publishable-key values, not secret credentials.
+    urlInput.value = DEFAULT_SUPABASE_URL;
+    keyInput.value = DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+    saveConfig();
   }
   function makeClient() {
     if (!window.supabase || typeof window.supabase.createClient !== "function") {
