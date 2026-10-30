@@ -137,6 +137,27 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-cost-result-note{font-size:.87rem;color:var(--muted);margin-top:12px}
 @media(max-width:560px){.level-cost-grid,.level-cost-summary-grid{grid-template-columns:1fr}.level-cost-wide,.level-cost-summary-item.primary-cost{grid-column:auto}}
 
+/* 放置収入と連動するキャラクターレベル上げ計画 */
+.level-plan{margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#ffffff03}
+.level-plan h2{margin:0 0 8px}
+.level-plan-rows{display:grid;gap:10px;margin:14px 0}
+.level-plan-row{display:grid;grid-template-columns:minmax(190px,2fr) minmax(95px,.8fr) minmax(95px,.8fr) auto;gap:9px;align-items:end;padding:12px;border:1px solid var(--border);border-radius:12px;background:#ffffff04}
+.level-plan-row .field{margin:0;min-width:0}
+.level-plan-row label{font-size:.82rem}
+.level-plan-row select,.level-plan-row input{width:100%;min-width:0}
+.level-plan-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.level-plan-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.level-plan-item{padding:12px;border:1px solid var(--border);border-radius:10px;min-width:0}
+.level-plan-item .label{display:block;color:var(--muted);font-size:.84rem}
+.level-plan-item .value{display:block;font-weight:850;overflow-wrap:anywhere}
+.level-plan-item.primary{grid-column:1/-1;border-color:#5ce1c077;background:#5ce1c010}
+.level-plan-item.primary .value{font-size:1.35rem;color:var(--accent2)}
+.level-plan-step{padding:12px;margin-top:9px;border:1px solid var(--border);border-radius:10px;background:#ffffff04}
+.level-plan-step strong{display:block;margin-bottom:6px}
+.level-plan-step p{margin:4px 0;color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
+.level-plan-note{margin-top:12px;color:var(--muted);font-size:.86rem}
+@media(max-width:700px){.level-plan-row{grid-template-columns:1fr 1fr}.level-plan-row .char-field{grid-column:1/-1}.level-plan-summary{grid-template-columns:1fr}.level-plan-item.primary{grid-column:auto}}
+
 </style>
 </head>
 <body>
@@ -219,6 +240,15 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
         </div>
       </form>
       <div id="idleStatus" class="result show" aria-live="polite"><div class="big">未記録</div><p>収入速度などを入力して「記録開始」を押してください。</p></div>
+      <div id="idleResult" class="result" aria-live="polite"></div>
+      <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
+        <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
+        <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
+        <div id="levelPlanRows" class="level-plan-rows"></div>
+        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button></div>
+        <div id="levelPlanResult" class="result" aria-live="polite"></div>
+        <p class="level-plan-note">費用には「レベル収入計算」で選択中のイベント・特性・追加倍率を適用します。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存されます。</p>
+      </section>
       <div id="idleResult" class="result" aria-live="polite"></div>
       <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。目標到達時間も同じ収入が続く前提で計算します。ゲーム内の収入倍率が変わった場合や、実際に収入が発生していない時間がある場合は差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
     </div>
@@ -3092,6 +3122,8 @@ renderCharacterDatabase();
     };
   }
 
+  window.goupLevelCostHelpers = { r5, parseAppliedModifiers };
+
   function parseMoney(input) {
     const text = String(input || '').trim().replace(/,/g, '');
     if (!text) return 0;
@@ -3221,6 +3253,170 @@ renderCharacterDatabase();
     input.addEventListener('change', calculate);
   });
   form.addEventListener('reset', () => window.setTimeout(calculate, 0));
+  calculate();
+})();
+</script>
+
+<script>
+(() => {
+  "use strict";
+  const root = document.getElementById("levelPlanRows");
+  const output = document.getElementById("levelPlanResult");
+  const sourceSelect = document.getElementById("levelCharacterSelect");
+  const storageKey = "goupCalculatorLevelPlanV1";
+  const powers = {"1":0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10,Dc:11};
+  const labels = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
+  if (!root || !output || !sourceSelect) return;
+
+  function money(n) {
+    if (!Number.isFinite(n)) return "計算範囲外";
+    if (n === 0) return "0";
+    const p = Math.floor(Math.log10(Math.abs(n))/3);
+    if (p > 11) return n.toExponential(4);
+    const q = Math.max(0,p);
+    return new Intl.NumberFormat("ja-JP",{maximumSignificantDigits:5}).format(n/Math.pow(1000,q)) + (labels[q] ? " "+labels[q] : "");
+  }
+  function duration(s) {
+    if (!Number.isFinite(s) || s < 0) return "算出できません";
+    if (s === 0) return "0秒（所持金で購入可能）";
+    if (s > 1e15) return "非常に長い時間";
+    let n=Math.ceil(s), d=Math.floor(n/86400); n%=86400;
+    const h=Math.floor(n/3600); n%=3600; const m=Math.floor(n/60); const sec=n%60;
+    const a=[]; if(d)a.push(d+"日"); if(h)a.push(h+"時間"); if(m)a.push(m+"分"); if(sec||!a.length)a.push(sec+"秒");
+    return a.join(" ");
+  }
+  function tokyo(timestamp) {
+    return new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(timestamp));
+  }
+  function addSelect(name) {
+    const s=document.createElement("select"); s.className="plan-character"; s.setAttribute("aria-label","キャラクター");
+    Array.from(sourceSelect.children).forEach(group => {
+      if(group.tagName==="OPTGROUP"){
+        const g=document.createElement("optgroup"); g.label=group.label;
+        Array.from(group.children).forEach(o=>{if(o.value){const c=document.createElement("option");c.value=o.value;c.textContent=o.textContent;g.appendChild(c);}});
+        if(g.children.length)s.appendChild(g);
+      } else if(group.tagName==="OPTION" && group.value) {
+        const c=document.createElement("option");c.value=group.value;c.textContent=group.textContent;s.appendChild(c);
+      }
+    });
+    const match=Array.from(s.options).find(o=>o.textContent.split(" — ")[0]===name);
+    if(match)s.value=match.value;
+    return s;
+  }
+  function addRow(data) {
+    const d=data||{}, row=document.createElement("div"); row.className="level-plan-row";
+    const cf=document.createElement("div"); cf.className="field char-field";
+    const cl=document.createElement("label"); cl.textContent="キャラクター"; cl.appendChild(addSelect(d.name||"")); cf.appendChild(cl);
+    function numberField(labelText,cls,value) {
+      const f=document.createElement("div");f.className="field";const l=document.createElement("label");l.textContent=labelText;
+      const i=document.createElement("input");i.type="number";i.min="1";i.max="400";i.step="1";i.value=String(value);i.className=cls;l.appendChild(i);f.appendChild(l);return f;
+    }
+    const remove=document.createElement("button");remove.type="button";remove.className="btn plan-remove";remove.textContent="削除";
+    row.append(cf,numberField("現在レベル","plan-current",d.currentLevel??1),numberField("目標レベル","plan-target",d.targetLevel??340),remove);
+    root.appendChild(row);
+  }
+  function save() {
+    const data=Array.from(root.querySelectorAll(".level-plan-row")).map(r=>({
+      name:r.querySelector(".plan-character").selectedOptions[0]?.textContent.split(" — ")[0]||"",
+      currentLevel:Number(r.querySelector(".plan-current").value),
+      targetLevel:Number(r.querySelector(".plan-target").value)
+    }));
+    try{localStorage.setItem(storageKey,JSON.stringify(data));}catch(_){}
+  }
+  function card(parent,label,value,primary) {
+    const d=document.createElement("div");d.className="level-plan-item"+(primary?" primary":"");
+    const l=document.createElement("span");l.className="label";l.textContent=label;
+    const v=document.createElement("span");v.className="value";v.textContent=value;d.append(l,v);parent.appendChild(d);
+  }
+  function charData(select) {
+    const o=select.selectedOptions[0]; if(!o)throw new Error("キャラクターを選んでください。");
+    const part=o.textContent.split(" — ");const name=part[0],m=(part.slice(1).join(" — ")).trim().match(/^([\d,.]+)\s*(No|Oc|Sp|Sx|Qi|Qa|T|B|M|K)?\/s$/i);
+    if(!m)throw new Error(name+" の基礎収入を読み取れません。");
+    const n=Number(m[1].replace(/,/g,"")),unit=m[2]||"1",p=powers[unit]??powers[unit.toUpperCase()];
+    if(!Number.isFinite(n)||p===undefined)throw new Error(name+" の収入単位を読み取れません。");
+    return {name,base:n*Math.pow(1000,p)};
+  }
+  function multiplierMap() {
+    const m=new Map();
+    document.querySelectorAll("#levelIncomeMultiplierList .level-income-list-item").forEach(i=>{
+      const a=(i.children[0]?.textContent||"").match(/(\d+)/);
+      const b=(i.children[1]?.textContent||"").match(/[0-9][0-9,.]*(?:e[+-]?\d+)?/i);
+      if(a&&b)m.set(Number(a[1]),Number(b[0].replace(/,/g,"")));
+    });
+    return m;
+  }
+  function calculate() {
+    output.replaceChildren();output.className="result show";
+    try {
+      const helpers=window.goupLevelCostHelpers;
+      if(!helpers)throw new Error("費用計算の準備ができていません。ページを再読み込みしてください。");
+      const rows=Array.from(root.querySelectorAll(".level-plan-row"));
+      if(!rows.length)throw new Error("計画が空です。キャラクターを追加してください。");
+      const rateRaw=document.getElementById("idleRate").value.trim();
+      const rateUnit=document.getElementById("idleRateUnit").value;
+      const heldRaw=document.getElementById("idleHeld").value.trim();
+      const heldUnit=document.getElementById("idleHeldUnit").value;
+      const rate=rateRaw===""?null:Number(rateRaw)*Math.pow(1000,powers[rateUnit]??0);
+      let cash=heldRaw===""?0:Number(heldRaw)*Math.pow(1000,powers[heldUnit]??0);
+      if(rate!==null&&(!Number.isFinite(rate)||rate<0))throw new Error("毎秒収入を確認してください。");
+      if(!Number.isFinite(cash)||cash<0)throw new Error("開始所持金を確認してください。");
+      const mod=helpers.parseAppliedModifiers().totalMultiplier;
+      const lm=multiplierMap();
+      if(lm.size<400)throw new Error("レベル倍率一覧がまだ準備できていません。再読み込みしてください。");
+      let currentRate=rate,totalCost=0,totalGain=0,totalWait=0,impossible=false;
+      const steps=[];
+      rows.forEach((r,index)=>{
+        const c=charData(r.querySelector(".plan-character"));
+        const cur=Number(r.querySelector(".plan-current").value),target=Number(r.querySelector(".plan-target").value);
+        if(!Number.isInteger(cur)||cur<1||cur>400||!Number.isInteger(target)||target<cur||target>400)throw new Error((index+1)+"行目：レベルは1〜400で、目標は現在レベル以上にしてください。");
+        const cost=Math.max(0,c.base*mod*(helpers.r5(target-1)-helpers.r5(cur-1)));
+        const gain=Math.max(0,c.base*mod*((lm.get(target)||0)-(lm.get(cur)||0)));
+        let wait=null;
+        if(currentRate!==null){
+          const deficit=Math.max(0,cost-cash);
+          if(deficit===0)wait=0;
+          else if(currentRate>0)wait=deficit/currentRate;
+          else impossible=true;
+          if(wait===null)cash=0;
+          else {totalWait+=wait;cash=Math.max(0,cash-cost);}
+          currentRate+=gain;
+          if(!Number.isFinite(currentRate))throw new Error("レベルアップ後の収入が計算範囲を超えました。");
+        } else cash=Math.max(0,cash-cost);
+        totalCost+=cost;totalGain+=gain;
+        steps.push({index:index+1,name:c.name,cur,target,cost,gain,wait});
+      });
+      const summary=document.createElement("div");summary.className="level-plan-summary";
+      card(summary,"必要な合計金額",money(totalCost),true);
+      card(summary,"現在の所持金",money(heldRaw===""?0:Number(heldRaw)*Math.pow(1000,powers[heldUnit]??0)),false);
+      card(summary,"レベル上げ後の収入増加（合計）",money(totalGain)+"/s",false);
+      card(summary,"すべて完了した後の収入予測",currentRate===null?"毎秒収入を入力してください":money(currentRate)+"/s",false);
+      if(rate===null)card(summary,"完了までの時間","毎秒収入を入力すると計算できます",true);
+      else if(impossible)card(summary,"完了までの時間","収入が0のため、一部の待ち時間を計算できません",true);
+      else {card(summary,"完了までの時間",duration(totalWait),true);if(totalWait<86400*365*100)card(summary,"完了予定時刻（日本時間）",tokyo(Date.now()+totalWait*1000),false);}
+      output.appendChild(summary);
+      steps.forEach(s=>{
+        const d=document.createElement("div");d.className="level-plan-step";
+        const h=document.createElement("strong");h.textContent=s.index+". "+s.name+"：Lv."+s.cur+" → Lv."+s.target;d.appendChild(h);
+        [["必要費用",money(s.cost)],["この段階で待つ時間",rate===null?"毎秒収入を入力してください":s.wait===null?"収入が0のため算出できません":duration(s.wait)],["完了後に増える収入（推定）",money(s.gain)+"/s"]].forEach(pair=>{const p=document.createElement("p");p.textContent=pair[0]+"："+pair[1];d.appendChild(p);});
+        output.appendChild(d);
+      });
+      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各段階の費用を所持金から支払い、前のキャラクターのレベルアップ後の収入増加を次の待ち時間に反映しています。";output.appendChild(note);
+    } catch(e) {
+      output.className="result show error";const msg=document.createElement("div");msg.className="big";msg.textContent=e.message||"入力を確認してください。";output.appendChild(msg);
+    }
+  }
+  root.addEventListener("input",()=>{save();calculate();});
+  root.addEventListener("change",()=>{save();calculate();});
+  root.addEventListener("click",e=>{const b=e.target.closest(".plan-remove");if(b){b.closest(".level-plan-row").remove();save();calculate();}});
+  document.getElementById("levelPlanAdd").addEventListener("click",()=>{addRow({currentLevel:1,targetLevel:340});save();calculate();});
+  document.getElementById("levelPlanCalculate").addEventListener("click",calculate);
+  ["idleRate","idleRateUnit","idleHeld","idleHeldUnit","levelEventPreset","levelEventMultiplier"].forEach(id=>{
+    const e=document.getElementById(id);if(e){e.addEventListener("input",calculate);e.addEventListener("change",calculate);}
+  });
+  document.querySelectorAll(".level-trait-checkbox").forEach(e=>{e.addEventListener("change",calculate);e.addEventListener("input",calculate);});
+  let restored=false;
+  try{const saved=localStorage.getItem(storageKey);if(saved!==null){const parsed=JSON.parse(saved);if(Array.isArray(parsed)){restored=true;parsed.forEach(addRow);}}}catch(_){}
+  if(!restored){addRow({name:"Gorgonzilla",currentLevel:1,targetLevel:340});addRow({name:"Chronomondo",currentLevel:1,targetLevel:340});save();}
   calculate();
 })();
 </script>
