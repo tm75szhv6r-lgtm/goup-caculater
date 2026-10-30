@@ -216,6 +216,14 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
     <div class="card idle-main-card">
       <h1>⏳ 放置収入・時間記録</h1>
       <p class="description">収入速度・開始時の所持金・目標金額を入力して「記録開始」を押してください。倍率を発動すると、その時間は倍率を適用して記録の増加額・所持金・目標到達予定を計算します。「記録終了して計算」を押すと記録結果を表示します。記録はこのブラウザに保存されます。</p>
+      <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
+        <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
+        <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
+        <div id="levelPlanRows" class="level-plan-rows"></div>
+        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button></div>
+        <div id="levelPlanResult" class="result" aria-live="polite"></div>
+        <p class="level-plan-note">費用には「レベル収入計算」で選択中のイベント・特性・追加倍率を適用します。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存されます。</p>
+      </section>
       <div class="field update-interval-field">
         <label for="updateIntervalSeconds">計算の更新間隔（秒・0.01秒刻み）</label>
         <div class="update-interval-control">
@@ -241,15 +249,8 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
       </form>
       <div id="idleStatus" class="result show" aria-live="polite"><div class="big">未記録</div><p>収入速度などを入力して「記録開始」を押してください。</p></div>
       <div id="idleResult" class="result" aria-live="polite"></div>
-      <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
-        <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
-        <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
-        <div id="levelPlanRows" class="level-plan-rows"></div>
-        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button></div>
-        <div id="levelPlanResult" class="result" aria-live="polite"></div>
-        <p class="level-plan-note">費用には「レベル収入計算」で選択中のイベント・特性・追加倍率を適用します。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存されます。</p>
-      </section>
-      <div id="idleResult" class="result" aria-live="polite"></div>
+
+
       <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。目標到達時間も同じ収入が続く前提で計算します。ゲーム内の収入倍率が変わった場合や、実際に収入が発生していない時間がある場合は差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
     </div>
 
