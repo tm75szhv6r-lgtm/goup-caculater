@@ -158,6 +158,20 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan-note{margin-top:12px;color:var(--muted);font-size:.86rem}
 @media(max-width:700px){.level-plan-row{grid-template-columns:1fr 1fr}.level-plan-row .char-field{grid-column:1/-1}.level-plan-summary{grid-template-columns:1fr}.level-plan-item.primary{grid-column:auto}}
 
+
+/* クラウド同期 */
+.cloud-sync-panel{margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#ffffff03}
+.cloud-sync-panel h2{margin:0 0 8px}
+.cloud-sync-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+.cloud-sync-grid .field{margin:0;min-width:0}
+.cloud-sync-grid input{width:100%;min-width:0}
+.cloud-sync-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cloud-sync-status{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:10px;color:var(--muted);overflow-wrap:anywhere}
+.cloud-sync-status.ok{border-color:#5ce1c077;color:var(--accent2)}
+.cloud-sync-status.error{border-color:var(--danger);color:var(--danger)}
+.cloud-sync-panel .hint{margin-top:8px}
+@media(max-width:560px){.cloud-sync-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -216,6 +230,27 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
     <div class="card idle-main-card">
       <h1>⏳ 放置収入・時間記録</h1>
       <p class="description">収入速度・開始時の所持金・目標金額を入力して「記録開始」を押してください。倍率を発動すると、その時間は倍率を適用して記録の増加額・所持金・目標到達予定を計算します。「記録終了して計算」を押すと記録結果を表示します。記録はこのブラウザに保存されます。</p>
+
+      <section id="cloudSyncPanel" class="cloud-sync-panel" aria-labelledby="cloudSyncTitle">
+        <h2 id="cloudSyncTitle">☁️ デバイス間クラウド同期</h2>
+        <p class="description">同じSupabaseプロジェクトと同じアカウントでログインした端末同士で、計算設定・放置記録・倍率設定・レベル上げ計画を共有します。</p>
+        <div class="cloud-sync-grid">
+          <div class="field"><label for="cloudSyncUrl">Supabase Project URL</label><input id="cloudSyncUrl" type="url" autocomplete="url" placeholder="https://xxxx.supabase.co"></div>
+          <div class="field"><label for="cloudSyncPublicKey">Publishable key（公開キー）</label><input id="cloudSyncPublicKey" type="text" autocomplete="off" placeholder="sb_publishable_..."><p class="hint">ブラウザ用の公開キーを入力します。secret / service_roleキーは絶対に入力しないでください。</p></div>
+          <div class="field"><label for="cloudSyncEmail">メールアドレス</label><input id="cloudSyncEmail" type="email" autocomplete="username" placeholder="アカウントのメールアドレス"></div>
+          <div class="field"><label for="cloudSyncPassword">パスワード</label><input id="cloudSyncPassword" type="password" autocomplete="current-password" placeholder="パスワード（保存されません）"></div>
+        </div>
+        <div class="cloud-sync-actions">
+          <button id="cloudSyncSignUp" class="btn" type="button">アカウント登録</button>
+          <button id="cloudSyncSignIn" class="btn primary" type="button">ログイン</button>
+          <button id="cloudSyncSignOut" class="btn" type="button">ログアウト</button>
+          <button id="cloudSyncPull" class="btn" type="button">☁️ クラウドから読み込む</button>
+          <button id="cloudSyncPush" class="btn" type="button">⬆️ この端末をクラウドに保存</button>
+        </div>
+        <div id="cloudSyncStatus" class="cloud-sync-status" role="status" aria-live="polite">未接続：Supabase接続情報は設定済みです。アカウント登録またはログインしてください。</div>
+        <p class="hint">SupabaseのURL・公開キーはこのファイルに設定済みです。初回は「アカウント登録」、別端末では同じメールアドレスとパスワードで「ログイン」してください。ログイン後は設定・記録が自動同期されます。既存データがクラウドにある場合、ログイン時に「読み込む」か「この端末で上書きする」か選べます。同時に複数端末で編集した場合は、最後に保存した内容が優先されます。</p>
+      </section>
+
       <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
         <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
         <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
@@ -2233,6 +2268,25 @@ if (multiplierActivationState && multiplierActivationState.startedAt + multiplie
 
 // ブラウザを再読み込みしても進行中の記録や最後の結果を復元する。
 renderIdleUI();
+
+// クラウドから共有データを読み込んだとき、稼働中のUI・タイマーも再読込する。
+window.goupReloadSharedState = function() {
+  idleState = loadIdleState();
+  const savedInterval = Number(localStorage.getItem(UPDATE_INTERVAL_STORAGE_KEY));
+  if (Number.isFinite(savedInterval) && savedInterval >= 0.01 && savedInterval <= 60) {
+    updateIntervalSecondsInput.value = savedInterval.toFixed(2);
+    renderUpdateIntervalDisplay();
+  }
+  const durations = loadMultiplierDurations();
+  for (const row of multiplierRows.querySelectorAll('.multiplier-row')) {
+    const m = row.dataset.multiplier;
+    row.querySelector('.multiplier-minutes').value = durations[m] ?? '';
+  }
+  multiplierActivationState = loadMultiplierActivationState();
+  renderMultiplierActivationStatus();
+  restartCalculationTimers();
+  renderIdleUI();
+};
 </script>
 
 <script>
@@ -3419,6 +3473,376 @@ renderCharacterDatabase();
   try{const saved=localStorage.getItem(storageKey);if(saved!==null){const parsed=JSON.parse(saved);if(Array.isArray(parsed)){restored=true;parsed.forEach(addRow);}}}catch(_){}
   if(!restored){addRow({name:"Gorgonzilla",currentLevel:1,targetLevel:340});addRow({name:"Chronomondo",currentLevel:1,targetLevel:340});save();}
   calculate();
+  window.goupReloadLevelPlan = function(data) {
+    root.replaceChildren();
+    if (Array.isArray(data)) data.forEach(addRow);
+    if (!root.children.length) {
+      addRow({name:"Gorgonzilla",currentLevel:1,targetLevel:340});
+      addRow({name:"Chronomondo",currentLevel:1,targetLevel:340});
+    }
+    save(); calculate();
+  };
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+  "use strict";
+  const APP_KEYS = [
+    "goupCalculatorIdleRecorderV1",
+    "goupCalculatorUpdateIntervalV2",
+    "goupCalculatorMultiplierDurationsV1",
+    "goupCalculatorMultiplierActivationV1",
+    "goupCalculatorLevelPlanV1",
+    "goupCalculatorFormSettingsV1"
+  ];
+  const CONFIG_KEY = "goupCalculatorCloudSyncConfigV1";
+  const LOCAL_CHANGE_KEY = "goupCalculatorCloudLocalChangeAtV1";
+  const LAST_SYNC_KEY = "goupCalculatorCloudLastSyncAtV1";
+  const TABLE = "goup_user_sync";
+  // Public GitHub Pages address used for email-confirmation redirects.
+  const AUTH_REDIRECT_URL = "https://tm75szhv6r-lgtm.github.io/goup-caculator/";
+  // Preconfigured for the user's GOUP calculator Supabase project.
+  // This is a browser-safe publishable key, not a secret/service_role key.
+  const DEFAULT_SUPABASE_URL = "https://jueyqqefolmvcigacolh.supabase.co";
+  const DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_e84iThbcsnEIk0SEgXk1lw_0nZFB7VX";
+  const byId = id => document.getElementById(id);
+  const urlInput = byId("cloudSyncUrl");
+  const keyInput = byId("cloudSyncPublicKey");
+  const emailInput = byId("cloudSyncEmail");
+  const passwordInput = byId("cloudSyncPassword");
+  const statusBox = byId("cloudSyncStatus");
+  if (!urlInput || !keyInput || !statusBox) return;
+
+  let client = null;
+  let currentUser = null;
+  let autoSyncReady = false;
+  let isApplyingCloud = false;
+  let saveTimer = null;
+  let lastCloudUpdatedAt = null;
+
+  function status(message, kind) {
+    statusBox.textContent = message;
+    statusBox.className = "cloud-sync-status" + (kind ? " " + kind : "");
+  }
+  function readConfig() {
+    return { url: urlInput.value.trim().replace(/\/$/, ""), key: keyInput.value.trim() };
+  }
+  function saveConfig() {
+    const cfg = readConfig();
+    try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (_) {}
+  }
+  function loadConfig() {
+    try {
+      const cfg = JSON.parse(localStorage.getItem(CONFIG_KEY) || "{}");
+      urlInput.value = typeof cfg.url === "string" && cfg.url.trim() ? cfg.url : DEFAULT_SUPABASE_URL;
+      keyInput.value = typeof cfg.key === "string" && cfg.key.trim() ? cfg.key : DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+    } catch (_) {
+      urlInput.value = DEFAULT_SUPABASE_URL;
+      keyInput.value = DEFAULT_SUPABASE_PUBLISHABLE_KEY;
+    }
+  }
+  function makeClient() {
+    if (!window.supabase || typeof window.supabase.createClient !== "function") {
+      throw new Error("クラウド接続ライブラリを読み込めませんでした。インターネット接続を確認してページを再読み込みしてください。");
+    }
+    const cfg = readConfig();
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(cfg.url)) {
+      throw new Error("Supabase Project URLを確認してください（https://xxxx.supabase.co）。");
+    }
+    if (!cfg.key || /service_role|secret/i.test(cfg.key)) {
+      throw new Error("公開キーが未入力か、使用できないキーです。Publishable keyを入力してください。");
+    }
+    saveConfig();
+    if (!client || client.__goupUrl !== cfg.url || client.__goupKey !== cfg.key) {
+      client = window.supabase.createClient(cfg.url, cfg.key, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      });
+      client.__goupUrl = cfg.url; client.__goupKey = cfg.key;
+      currentUser = null; autoSyncReady = false;
+    }
+    return client;
+  }
+  function captureFormValues() {
+    const values = {};
+    document.querySelectorAll("input[id], select[id], textarea[id]").forEach(el => {
+      if (el.id.startsWith("cloudSync")) return;
+      if (el.type === "password" || el.type === "file" || el.type === "button" || el.type === "submit" || el.type === "reset") return;
+      if (el.type === "checkbox" || el.type === "radio") values[el.id] = el.checked;
+      else values[el.id] = el.value;
+    });
+    return values;
+  }
+  function persistFormValues() {
+    if (isApplyingCloud) return;
+    try {
+      const raw = JSON.stringify(captureFormValues());
+      if (localStorage.getItem("goupCalculatorFormSettingsV1") !== raw) localStorage.setItem("goupCalculatorFormSettingsV1", raw);
+    } catch (_) {}
+  }
+  function collectPayload() {
+    persistFormValues();
+    const appStorage = {};
+    APP_KEYS.forEach(key => {
+      const raw = localStorage.getItem(key);
+      if (raw !== null) appStorage[key] = raw;
+    });
+    return { version: 1, appStorage, formValues: captureFormValues(), savedAt: new Date().toISOString() };
+  }
+  function applyPayload(payload) {
+    if (!payload || typeof payload !== "object" || !payload.appStorage || typeof payload.appStorage !== "object") {
+      throw new Error("クラウドに保存されたデータ形式が違います。");
+    }
+    isApplyingCloud = true;
+    try {
+      APP_KEYS.forEach(key => {
+        if (Object.prototype.hasOwnProperty.call(payload.appStorage, key)) {
+          const value = payload.appStorage[key];
+          if (typeof value === "string") localStorage.setItem(key, value);
+          else localStorage.setItem(key, JSON.stringify(value));
+        } else if (key !== "goupCalculatorFormSettingsV1") {
+          localStorage.removeItem(key);
+        }
+      });
+      const forms = payload.formValues && typeof payload.formValues === "object" ? payload.formValues : {};
+      Object.entries(forms).forEach(([id, value]) => {
+        if (id.startsWith("cloudSync")) return;
+        const el = byId(id);
+        if (!el || el.type === "password" || el.type === "file") return;
+        if ((el.type === "checkbox" || el.type === "radio") && typeof value === "boolean") el.checked = value;
+        else if (typeof value === "string" || typeof value === "number") el.value = String(value);
+      });
+      try { localStorage.setItem("goupCalculatorFormSettingsV1", JSON.stringify(forms)); } catch (_) {}
+      document.querySelectorAll("input[id],select[id],textarea[id]").forEach(el => {
+        if (el.id.startsWith("cloudSync")) return;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      try { if (typeof window.goupReloadSharedState === "function") window.goupReloadSharedState(); } catch (_) {}
+      try {
+        const planRaw = localStorage.getItem("goupCalculatorLevelPlanV1");
+        const planData = planRaw ? JSON.parse(planRaw) : [];
+        if (typeof window.goupReloadLevelPlan === "function") window.goupReloadLevelPlan(planData);
+      } catch (_) {}
+    } finally {
+      setTimeout(() => { isApplyingCloud = false; }, 100);
+    }
+  }
+  async function getSessionUser() {
+    const supa = makeClient();
+    const { data, error } = await supa.auth.getUser();
+    if (error) throw error;
+    if (!data.user) throw new Error("先にログインしてください。");
+    currentUser = data.user;
+    return data.user;
+  }
+  async function readCloudRow() {
+    const supa = makeClient();
+    const user = await getSessionUser();
+    const { data, error } = await supa.from(TABLE).select("data, updated_at").eq("user_id", user.id).maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+  async function pushCloud(silent) {
+    if (isApplyingCloud) return;
+    const supa = makeClient();
+    const user = await getSessionUser();
+    const payload = collectPayload();
+    payload.savedAt = new Date().toISOString();
+    const { error } = await supa.from(TABLE).upsert({ user_id: user.id, data: payload, updated_at: payload.savedAt }, { onConflict: "user_id" });
+    if (error) throw error;
+    lastCloudUpdatedAt = payload.savedAt;
+    try {
+      localStorage.setItem(LAST_SYNC_KEY, String(Date.parse(payload.savedAt)));
+      localStorage.setItem(LOCAL_CHANGE_KEY, String(Date.parse(payload.savedAt)));
+    } catch (_) {}
+    if (!silent) status("保存完了：この端末の設定・記録をクラウドに保存しました。", "ok");
+  }
+  async function pullCloud(silent) {
+    clearTimeout(saveTimer); saveTimer = null;
+    const row = await readCloudRow();
+    if (!row) throw new Error("クラウドに保存データがありません。先に「この端末をクラウドに保存」を押してください。");
+    applyPayload(row.data);
+    lastCloudUpdatedAt = row.updated_at || null;
+    try {
+      const stamp = String(Date.parse(row.updated_at || row.data.savedAt || new Date().toISOString()));
+      localStorage.setItem(LAST_SYNC_KEY, stamp);
+      localStorage.setItem(LOCAL_CHANGE_KEY, stamp);
+    } catch (_) {}
+    if (!silent) status("読み込み完了：クラウドのデータをこの端末に反映しました。最終保存：" + (lastCloudUpdatedAt || "不明"), "ok");
+  }
+  function schedulePush() {
+    if (!currentUser || !autoSyncReady || isApplyingCloud) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      saveTimer = null;
+      try { await pushCloud(true); status("自動同期済み：" + new Date().toLocaleTimeString("ja-JP"), "ok"); }
+      catch (e) { status("自動同期に失敗しました：" + (e.message || e), "error"); }
+    }, 1800);
+  }
+  // Watch only this app's keys. Do not sync Supabase's own authentication tokens.
+  const nativeSetItem = Storage.prototype.setItem;
+  const nativeRemoveItem = Storage.prototype.removeItem;
+  Storage.prototype.setItem = function(key, value) {
+    nativeSetItem.call(this, key, value);
+    if (this === localStorage && APP_KEYS.includes(String(key)) && !isApplyingCloud) {
+      try { nativeSetItem.call(localStorage, LOCAL_CHANGE_KEY, String(Date.now())); } catch (_) {}
+      schedulePush();
+    }
+  };
+  Storage.prototype.removeItem = function(key) {
+    nativeRemoveItem.call(this, key);
+    if (this === localStorage && APP_KEYS.includes(String(key)) && !isApplyingCloud) {
+      try { nativeSetItem.call(localStorage, LOCAL_CHANGE_KEY, String(Date.now())); } catch (_) {}
+      schedulePush();
+    }
+  };
+  document.querySelectorAll("input[id],select[id],textarea[id]").forEach(el => {
+    if (el.id.startsWith("cloudSync")) return;
+    el.addEventListener("input", () => { persistFormValues(); schedulePush(); });
+    el.addEventListener("change", () => { persistFormValues(); schedulePush(); });
+  });
+
+  byId("cloudSyncSignUp").addEventListener("click", async () => {
+    try {
+      const supa = makeClient();
+      const email = emailInput.value.trim(), password = passwordInput.value;
+      if (!email || password.length < 6) throw new Error("メールアドレスと6文字以上のパスワードを入力してください。");
+      status("アカウントを登録しています…");
+      const { data, error } = await supa.auth.signUp({
+        email, password,
+        options: { emailRedirectTo: AUTH_REDIRECT_URL }
+      });
+      if (error) throw error;
+      if (data.session) { currentUser = data.user; status("登録しました。続けて「この端末をクラウドに保存」を押してください。", "ok"); }
+      else status("登録リクエストを受け付けました。メール確認が必要な場合は、届いたメールを確認してからログインしてください。", "ok");
+    } catch (e) { status("登録できませんでした：" + (e.message || e), "error"); }
+  });
+  byId("cloudSyncSignIn").addEventListener("click", async () => {
+    try {
+      const supa = makeClient();
+      const email = emailInput.value.trim(), password = passwordInput.value;
+      if (!email) throw new Error("メールアドレスを入力してください。");
+      status("ログインしています…");
+      let user;
+      if (password) {
+        const { data, error } = await supa.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        user = data.user;
+      } else {
+        const { data, error } = await supa.auth.getUser();
+        if (error || !data.user) throw new Error("パスワードを入力してください（この端末に保存済みのログイン状態がある場合は、空欄のまま再開できます）。");
+        user = data.user;
+      }
+      currentUser = user;
+      const row = await readCloudRow();
+      if (row) {
+        const syncedAt = Number(localStorage.getItem(LAST_SYNC_KEY) || 0);
+        const localChangedAt = Number(localStorage.getItem(LOCAL_CHANGE_KEY) || 0);
+        const remoteChangedAt = Date.parse(row.updated_at || "") || 0;
+        const localDirty = localChangedAt > syncedAt;
+        const remoteDirty = remoteChangedAt > syncedAt;
+        let useCloud;
+        if (localDirty && remoteDirty) {
+          useCloud = window.confirm("この端末とクラウドの両方に、前回同期後の変更があります。\n\nOK：クラウドの内容でこの端末を更新\nキャンセル：この端末の内容でクラウドを上書き");
+        } else {
+          useCloud = !localDirty;
+        }
+        if (useCloud) await pullCloud(true); else await pushCloud(true);
+      } else {
+        await pushCloud(true);
+      }
+      autoSyncReady = true;
+      passwordInput.value = "";
+      status("ログイン済み・自動同期ON。設定変更は数秒後に保存され、別端末の変更も約10秒ごとに確認します。", "ok");
+    } catch (e) { status("ログイン・同期に失敗しました：" + (e.message || e), "error"); }
+  });
+  byId("cloudSyncSignOut").addEventListener("click", async () => {
+    try { if (client) { const { error } = await client.auth.signOut(); if (error) throw error; } }
+    catch (e) { status("ログアウトエラー：" + (e.message || e), "error"); return; }
+    currentUser = null; autoSyncReady = false; clearTimeout(saveTimer);
+    status("ログアウトしました。この端末のローカルデータは残っています。", "ok");
+  });
+  byId("cloudSyncPush").addEventListener("click", async () => {
+    try { await pushCloud(false); autoSyncReady = !!currentUser; }
+    catch (e) { status("クラウド保存に失敗しました：" + (e.message || e), "error"); }
+  });
+  byId("cloudSyncPull").addEventListener("click", async () => {
+    try {
+      if (!currentUser) await getSessionUser();
+      if (!window.confirm("クラウドの内容でこの端末の設定・記録を置き換えます。続けますか？")) return;
+      await pullCloud(false); autoSyncReady = true;
+    } catch (e) { status("クラウド読み込みに失敗しました：" + (e.message || e), "error"); }
+  });
+  loadConfig();
+  // Restore this browser's form values while awaiting an explicit cloud login.
+  try {
+    const forms = JSON.parse(localStorage.getItem("goupCalculatorFormSettingsV1") || "{}");
+    Object.entries(forms).forEach(([id, value]) => {
+      if (id.startsWith("cloudSync")) return;
+      const el = byId(id); if (!el || el.type === "password" || el.type === "file") return;
+      if ((el.type === "checkbox" || el.type === "radio") && typeof value === "boolean") el.checked = value;
+      else if (typeof value === "string" || typeof value === "number") el.value = String(value);
+    });
+    Object.keys(forms).forEach(id => {
+      const el = byId(id);
+      if (el && !id.startsWith("cloudSync")) {
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+  } catch (_) {}
+  // Poll the cloud so another logged-in device picks up changes without a manual reload.
+  setInterval(async () => {
+    if (!currentUser || !autoSyncReady || isApplyingCloud || saveTimer !== null) return;
+    try {
+      const row = await readCloudRow();
+      if (!row || !row.updated_at) return;
+      const remoteMs = Date.parse(row.updated_at);
+      const localMs = lastCloudUpdatedAt ? Date.parse(lastCloudUpdatedAt) : 0;
+      if (Number.isFinite(remoteMs) && remoteMs > localMs) {
+        applyPayload(row.data);
+        lastCloudUpdatedAt = row.updated_at;
+        try { localStorage.setItem(LAST_SYNC_KEY, String(remoteMs)); localStorage.setItem(LOCAL_CHANGE_KEY, String(remoteMs)); } catch (_) {}
+        status("別の端末の変更を同期しました：" + new Date(remoteMs).toLocaleTimeString("ja-JP"), "ok");
+      }
+    } catch (e) {
+      status("クラウド確認に失敗しました：" + (e.message || e), "error");
+    }
+  }, 10000);
+  status("未接続：Supabase接続情報は設定済みです。アカウント登録またはログインしてください。", "");
+  // Resume a saved Supabase session on page reopen. If offline edits and cloud edits both exist, ask before choosing.
+  setTimeout(async () => {
+    const cfg = readConfig();
+    if (!cfg.url || !cfg.key) return;
+    try {
+      const supa = makeClient();
+      const { data, error } = await supa.auth.getUser();
+      if (error || !data.user) return;
+      currentUser = data.user;
+      const row = await readCloudRow();
+      if (!row) {
+        await pushCloud(true);
+      } else {
+        const syncedAt = Number(localStorage.getItem(LAST_SYNC_KEY) || 0);
+        const localChangedAt = Number(localStorage.getItem(LOCAL_CHANGE_KEY) || 0);
+        const remoteChangedAt = Date.parse(row.updated_at || "") || 0;
+        const localDirty = localChangedAt > syncedAt;
+        const remoteDirty = remoteChangedAt > syncedAt;
+        if (localDirty && remoteDirty) {
+          status("ログイン状態を復元しましたが、ローカルとクラウド双方に未同期変更があります。「ログイン」を押して同期先を選択してください。", "");
+          return;
+        }
+        if (localDirty) await pushCloud(true);
+        else await pullCloud(true);
+      }
+      autoSyncReady = true;
+      status("ログイン状態を復元しました。自動同期ONです。", "ok");
+    } catch (e) {
+      status("保存済みセッションを再開できませんでした：" + (e.message || e), "error");
+    }
+  }, 900);
 })();
 </script>
 
