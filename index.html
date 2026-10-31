@@ -281,7 +281,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
         <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
         <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
         <div id="levelPlanRows" class="level-plan-rows"></div>
-        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button></div>
+        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button><button id="levelPlanCollapseAll" class="btn" type="button">すべて折りたたむ</button><button id="levelPlanExpandAll" class="btn" type="button">すべて展開</button></div>
         <div id="levelPlanResult" class="result" aria-live="polite"></div>
         <p class="level-plan-note">各キャラクターの欄でイベント変異・特性・その他の追加倍率を個別に設定できます。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存され、ログイン中はクラウド同期されます。</p>
       </section>
@@ -3956,6 +3956,14 @@ renderCharacterDatabase();
   });
   document.getElementById("levelPlanAdd").addEventListener("click",()=>{addRow({currentLevel:1,targetLevel:340});save();calculate();});
   document.getElementById("levelPlanCalculate").addEventListener("click",calculate);
+  document.getElementById("levelPlanCollapseAll").addEventListener("click",()=>{
+    root.querySelectorAll(".level-plan-row").forEach(row=>setPlanRowCollapsed(row,true));
+    save();
+  });
+  document.getElementById("levelPlanExpandAll").addEventListener("click",()=>{
+    root.querySelectorAll(".level-plan-row").forEach(row=>setPlanRowCollapsed(row,false));
+    save();
+  });
   ["idleRate","idleRateUnit","idleHeld","idleHeldUnit"].forEach(id=>{
     const e=document.getElementById(id);if(e){e.addEventListener("input",calculate);e.addEventListener("change",calculate);}
   });
