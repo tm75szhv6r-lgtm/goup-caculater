@@ -142,7 +142,13 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan h2{margin:0 0 8px}
 .level-plan-rows{display:grid;gap:12px;margin:14px 0}
 .level-plan-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
-.plan-main-fields{display:grid;grid-template-columns:minmax(190px,2fr) minmax(95px,.8fr) minmax(95px,.8fr) auto;gap:9px;align-items:end;min-width:0}
+.plan-main-fields{display:grid;grid-template-columns:minmax(190px,2fr) minmax(95px,.8fr) minmax(95px,.8fr);gap:9px;align-items:end;min-width:0}
+.level-plan-row-header{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.level-plan-row-summary{font-weight:850;overflow-wrap:anywhere;min-width:0;flex:1}
+.level-plan-row-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.level-plan-row-toggle{padding:7px 10px;font-size:.84rem;white-space:nowrap}
+.level-plan-row-content{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
+.level-plan-row.is-collapsed .level-plan-row-content{display:none}
 .level-plan-row .field{margin:0;min-width:0}
 .level-plan-row label{font-size:.82rem}
 .level-plan-row select,.level-plan-row input{width:100%;min-width:0}
@@ -170,7 +176,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan-step strong{display:block;margin-bottom:6px}
 .level-plan-step p{margin:4px 0;color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
 .level-plan-note{margin-top:12px;color:var(--muted);font-size:.86rem}
-@media(max-width:760px){.plan-main-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.plan-main-fields .char-field{grid-column:1/-1}.plan-modifier-top{grid-template-columns:1fr}.plan-trait-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.level-plan-row-header{align-items:flex-start;flex-wrap:wrap}.level-plan-row-summary{flex-basis:100%}.level-plan-row-actions{width:100%;justify-content:flex-end}.plan-main-fields{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.plan-main-fields .char-field{grid-column:1/-1}.plan-modifier-top{grid-template-columns:1fr}.plan-trait-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.level-plan-summary{grid-template-columns:1fr}.level-plan-item.primary{grid-column:auto}}
 @media(max-width:420px){.plan-main-fields{grid-template-columns:1fr}.plan-main-fields .char-field{grid-column:auto}.plan-trait-grid{grid-template-columns:1fr}}
 
@@ -3656,6 +3662,7 @@ renderCharacterDatabase();
   const sourceEventSelect = document.getElementById("levelEventPreset");
   const sourceOtherMultiplier = document.getElementById("levelEventMultiplier");
   const storageKey = "goupCalculatorLevelPlanV1";
+  let rowSequence = 0;
   const powers = {"1":0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10,Dc:11};
   const labels = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
   const sourceTraits = [...document.querySelectorAll(".level-trait-checkbox")];
@@ -3735,17 +3742,47 @@ renderCharacterDatabase();
     if(Array.from(select.options).some(o=>o.value===String(value)))select.value=String(value);
     return select;
   }
+  function updatePlanRowHeader(row) {
+    const select = row.querySelector(".plan-character");
+    const option = select?.selectedOptions[0];
+    const name = option?.dataset.characterName || option?.textContent.split(" — ")[0] || "キャラクター未選択";
+    const current = row.querySelector(".plan-current")?.value || "1";
+    const target = row.querySelector(".plan-target")?.value || "340";
+    const summary = row.querySelector(".level-plan-row-summary");
+    if (summary) summary.textContent = name + "　Lv." + current + " → Lv." + target;
+    const toggle = row.querySelector(".plan-row-toggle");
+    const collapsed = row.classList.contains("is-collapsed");
+    if (toggle) {
+      toggle.textContent = collapsed ? "▶ 設定を開く" : "▼ 折りたたむ";
+      toggle.setAttribute("aria-expanded", String(!collapsed));
+    }
+  }
+  function setPlanRowCollapsed(row, collapsed) {
+    row.classList.toggle("is-collapsed", !!collapsed);
+    updatePlanRowHeader(row);
+  }
   function addRow(data) {
     const d=data||{}, settings=modifierSettings(d), row=document.createElement("div"); row.className="level-plan-row";
+
+    // Always-visible summary/action bar so each planned character can be folded independently.
+    const header=document.createElement("div"); header.className="level-plan-row-header";
+    const rowSummary=document.createElement("div"); rowSummary.className="level-plan-row-summary";
+    const rowActions=document.createElement("div"); rowActions.className="level-plan-row-actions";
+    const toggle=document.createElement("button"); toggle.type="button"; toggle.className="btn level-plan-row-toggle plan-row-toggle";
+    toggle.setAttribute("aria-controls", "levelPlanRowContent-" + (++rowSequence));
+    toggle.setAttribute("aria-expanded", "true");
+    const remove=document.createElement("button");remove.type="button";remove.className="btn plan-remove";remove.textContent="削除";
+    remove.setAttribute("aria-label","このキャラクターを計画から削除");
+    rowActions.append(toggle,remove); header.append(rowSummary,rowActions);
+
+    const content=document.createElement("div");content.className="level-plan-row-content";content.id=toggle.getAttribute("aria-controls");
     const main=document.createElement("div"); main.className="plan-main-fields";
     const characterField=createField("キャラクター",addSelect(d.name||""),"char-field");
     const current=numberControl("plan-current",d.currentLevel??1,1,400,1);
     const target=numberControl("plan-target",d.targetLevel??340,1,400,1);
     const currentField=createField("現在レベル",current);
     const targetField=createField("目標レベル",target);
-    const remove=document.createElement("button");remove.type="button";remove.className="btn plan-remove";remove.textContent="削除";
-    remove.setAttribute("aria-label","このキャラクターを計画から削除");
-    main.append(characterField,currentField,targetField,remove);
+    main.append(characterField,currentField,targetField);
 
     const panel=document.createElement("div");panel.className="plan-modifier-panel";
     const panelTitle=document.createElement("strong");panelTitle.className="plan-modifier-title";panelTitle.textContent="イベント・変異設定";panel.appendChild(panelTitle);
@@ -3773,7 +3810,9 @@ renderCharacterDatabase();
     });
     fieldset.appendChild(traitGrid);panel.appendChild(fieldset);
     const summary=document.createElement("div");summary.className="plan-modifier-summary";summary.setAttribute("aria-live","polite");panel.appendChild(summary);
-    row.append(main,panel);root.appendChild(row);
+
+    content.append(main,panel);row.append(header,content);root.appendChild(row);
+    setPlanRowCollapsed(row, !!d.collapsed);
     updateModifierSummary(row);
   }
   function readRowModifiers(row) {
@@ -3804,6 +3843,7 @@ renderCharacterDatabase();
       name:r.querySelector(".plan-character").selectedOptions[0]?.dataset.characterName || r.querySelector(".plan-character").selectedOptions[0]?.textContent.split(" — ")[0] || "",
       currentLevel:Number(r.querySelector(".plan-current").value),
       targetLevel:Number(r.querySelector(".plan-target").value),
+      collapsed:r.classList.contains("is-collapsed"),
       eventValue:Number(r.querySelector(".plan-event").value),
       otherMultiplier:Number(r.querySelector(".plan-other-multiplier").value),
       traits:[...r.querySelectorAll(".plan-trait-checkbox:checked")].map(t=>t.dataset.traitName)
@@ -3907,9 +3947,13 @@ renderCharacterDatabase();
       output.className="result show error";const msg=document.createElement("div");msg.className="big";msg.textContent=e.message||"入力を確認してください。";output.appendChild(msg);
     }
   }
-  root.addEventListener("input",e=>{const row=e.target.closest(".level-plan-row");if(row)updateModifierSummary(row);save();calculate();});
-  root.addEventListener("change",e=>{const row=e.target.closest(".level-plan-row");if(row)updateModifierSummary(row);save();calculate();});
-  root.addEventListener("click",e=>{const b=e.target.closest(".plan-remove");if(b){b.closest(".level-plan-row").remove();save();calculate();}});
+  root.addEventListener("input",e=>{const row=e.target.closest(".level-plan-row");if(row){updateModifierSummary(row);updatePlanRowHeader(row);}save();calculate();});
+  root.addEventListener("change",e=>{const row=e.target.closest(".level-plan-row");if(row){updateModifierSummary(row);updatePlanRowHeader(row);}save();calculate();});
+  root.addEventListener("click",e=>{
+    const toggle=e.target.closest(".plan-row-toggle");
+    if(toggle){const row=toggle.closest(".level-plan-row");setPlanRowCollapsed(row,!row.classList.contains("is-collapsed"));save();return;}
+    const b=e.target.closest(".plan-remove");if(b){b.closest(".level-plan-row").remove();save();calculate();}
+  });
   document.getElementById("levelPlanAdd").addEventListener("click",()=>{addRow({currentLevel:1,targetLevel:340});save();calculate();});
   document.getElementById("levelPlanCalculate").addEventListener("click",calculate);
   ["idleRate","idleRateUnit","idleHeld","idleHeldUnit"].forEach(id=>{
