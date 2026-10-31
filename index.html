@@ -2505,632 +2505,632 @@ for (let level = 1; level <= 400; level++) {
 }
 
 /* 画像から読み取ったキャラクター名・基礎収入 */
-const GOUP_CHARACTERS = Object.freeze([
-  {
-    "rarity": "Divine",
-    "name": "Alligarto Alligarto",
-    "income": 12.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Tictac Tictac Sahur",
-    "income": 13.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Tractoro Dinosauro",
-    "income": 20.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Chimpanzini Kingini",
-    "income": 25.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Canneloni Dragoni",
-    "income": 16.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Tralaledon",
-    "income": 35.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Strawberry Elephant",
-    "income": 22.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "La Grande Combinacion",
-    "income": 14.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Gigalitraktos Spidorobos",
-    "income": 45.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Los Esok Sekolitos",
-    "income": 17.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Los Crocodillitos",
-    "income": 15.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Los 67",
-    "income": 21.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Bulbito Bandito Traktorito",
-    "income": 23.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Tiramisubmarini",
-    "income": 40.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Bunnibattini",
-    "income": 19.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Easternita Dragonita",
-    "income": 27.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Chickarito Mecharito",
-    "income": 30.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Vulturino Skeletono",
-    "income": 33.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Los Arigato Arigatos",
-    "income": 24.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "McPenne Dougal",
-    "income": 29.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Meccavallo",
-    "income": 42.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Pitiata Baem",
-    "income": 38.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Pippi Poppa Pippo Peppe",
-    "income": 31.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Capanna Distruttore",
-    "income": 47.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "BRR ES TEH PATIPUM",
-    "income": 28.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Tralalero Kingala",
-    "income": 39.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Miskin Makaroni",
-    "income": 43.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Lionelli Helicopterini",
-    "income": 18.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Hipopotamino Supermarketino",
-    "income": 41.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Ketchupini Nuggetini",
-    "income": 26.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Turtellini Submarino",
-    "income": 23.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Sealini Jetskini",
-    "income": 29.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Yetini Fridgeloni",
-    "income": 22.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Salsicino Furiosino",
-    "income": 28.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Dinosaurus",
-    "income": 34.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Supernovus Maximus",
-    "income": 39.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Cobrannini Kinginni",
-    "income": 49.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Cannonubis",
-    "income": 40.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Llamadona Primadona",
-    "income": 44.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "El Crunchador",
-    "income": 32.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Pandanini Cloudini",
-    "income": 37.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Croissantini et Caffettino",
-    "income": 42.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Dragolaso",
-    "income": 38.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Jaguarzinio",
-    "income": 48.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Glovtopus",
-    "income": 23.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Referendi Cardini",
-    "income": 27.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Bootini Stingini",
-    "income": 33.5,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Moonrini Astrini",
-    "income": 46.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Crabello Castelo",
-    "income": 46.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Rosamorte",
-    "income": 36.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Divine",
-    "name": "Pumpkinstein",
-    "income": 48.0,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Tung Tung Tung Asce…",
-    "income": 67,
-    "unit": "1"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Mega Yachtadon",
-    "income": 53,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Il Cannone Dominatore",
-    "income": 55,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Horseidon",
-    "income": 56,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Arcangelo Mantisio",
-    "income": 58,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Gorgonzilla",
-    "income": 60,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Pumpkinator",
-    "income": 61,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Titanocchio",
-    "income": 65,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Lionaldo",
-    "income": 66,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Goatini Messini",
-    "income": 66,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Wreckzilla 67",
-    "income": 67,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Chronomondo",
-    "income": 70,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "King Kongini Bananini",
-    "income": 71,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Chickeninio Paladino",
-    "income": 72,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Sir Pegasusio",
-    "income": 74,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Bearini Plammini Gua…",
-    "income": 75,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Il Marionetto",
-    "income": 77,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Triceradon",
-    "income": 80,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "La Catrina Mariposa",
-    "income": 85,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Sunculus Ferris",
-    "income": 90,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Servissimo",
-    "income": 93,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Guro Guro",
-    "income": 95,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Capitano Moby",
-    "income": 100,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Doom Doom Doom Sa…",
-    "income": 105,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Garbagzilla",
-    "income": 110,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Il Demonico Maskino",
-    "income": 115,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Demon Ship",
-    "income": 117,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Cerberus",
-    "income": 120,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Vulkarion",
-    "income": 125,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Godgodzilla",
-    "income": 127,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Bulzilla",
-    "income": 130,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Witchantula",
-    "income": 133,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Golemcoluss",
-    "income": 135,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Kingorilla",
-    "income": 140,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Fishini Mechinini",
-    "income": 145,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Don Guitarion",
-    "income": 147,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Ghost Cavallo Skeleto…",
-    "income": 150,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Gargolini",
-    "income": 153,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Cementzilla",
-    "income": 155,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Triplelaledon",
-    "income": 160,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Accordissimo",
-    "income": 165,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Cavezilla",
-    "income": 170,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Checkmate",
-    "income": 173,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Drago Polpo",
-    "income": 175,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Headless Pumpkin",
-    "income": 180,
-    "unit": "M"
-  },
-  {
-    "rarity": "Ascended",
-    "name": "Klombo",
-    "income": 185,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Hydralitraktos Spidoro…",
-    "income": 200,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Chimera",
-    "income": 210,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Meowberus",
-    "income": 215,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Hydragoni Skeletoni",
-    "income": 225,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Kitsune",
-    "income": 230,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Gigaclops",
-    "income": 240,
-    "unit": "M"
-  },
-  {
-    "rarity": "Forbidden",
-    "name": "Chainsawatron",
-    "income": 250,
-    "unit": "M"
-  }
-]);
+const GOUP_CHARACTERS = Object.freeze(  [
+    {
+      "rarity": "Divine",
+      "name": "Alligarto Alligarto",
+      "income": 12.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Tictac Tictac Sahur",
+      "income": 13.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Tractoro Dinosauro",
+      "income": 20.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Chimpanzini Kingini",
+      "income": 25.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Canneloni Dragoni",
+      "income": 16.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Tralaledon",
+      "income": 35.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Strawberry Elephant",
+      "income": 22.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "La Grande Combinacion",
+      "income": 14.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Gigalitraktos Spidorobos",
+      "income": 45.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Los Esok Sekolitos",
+      "income": 17.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Los Crocodillitos",
+      "income": 15.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Los 67",
+      "income": 21.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Bulbito Bandito Traktorito",
+      "income": 23.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Tiramisubmarini",
+      "income": 40.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Bunnibattini",
+      "income": 19.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Easternita Dragonita",
+      "income": 27.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Chickarito Mecharito",
+      "income": 30.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Vulturino Skeletono",
+      "income": 33.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Los Arigato Arigatos",
+      "income": 24.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "McPenne Dougal",
+      "income": 29.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Meccavallo",
+      "income": 42.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Pitiata Baem",
+      "income": 38.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Pippi Poppa Pippo Peppe",
+      "income": 31.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Capanna Distruttore",
+      "income": 47.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "BRR ES TEH PATIPUM",
+      "income": 28.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Tralalero Kingala",
+      "income": 39.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Miskin Makaroni",
+      "income": 43.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Lionelli Helicopterini",
+      "income": 18.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Hipopotamino Supermarketino",
+      "income": 41.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Ketchupini Nuggetini",
+      "income": 26.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Turtellini Submarino",
+      "income": 23.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Sealini Jetskini",
+      "income": 29.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Yetini Fridgeloni",
+      "income": 22.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Salsicino Furiosino",
+      "income": 28.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Dinosaurus",
+      "income": 34.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Supernovus Maximus",
+      "income": 39.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Cobrannini Kinginni",
+      "income": 49.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Cannonubis",
+      "income": 40.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Llamadona Primadona",
+      "income": 44.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "El Crunchador",
+      "income": 32.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Pandanini Cloudini",
+      "income": 37.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Croissantini et Caffettino",
+      "income": 42.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Dragolaso",
+      "income": 38.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Jaguarzinio",
+      "income": 48.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Glovtopus",
+      "income": 23.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Referendi Cardini",
+      "income": 27.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Bootini Stingini",
+      "income": 33.5,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Moonrini Astrini",
+      "income": 46.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Crabello Castelo",
+      "income": 46.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Rosamorte",
+      "income": 36.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Divine",
+      "name": "Pumpkinstein",
+      "income": 48.0,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Tung Tung Tung Asce…",
+      "income": 67,
+      "unit": "1"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Mega Yachtadon",
+      "income": 53,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Il Cannone Dominatore",
+      "income": 55,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Horseidon",
+      "income": 56,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Arcangelo Mantisio",
+      "income": 58,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Gorgonzilla",
+      "income": 60,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Pumpkinator",
+      "income": 61,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Titanocchio",
+      "income": 65,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Lionaldo",
+      "income": 66,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Goatini Messini",
+      "income": 66,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Wreckzilla 67",
+      "income": 67,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Chronomondo",
+      "income": 70,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "King Kongini Bananini",
+      "income": 71,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Chickeninio Paladino",
+      "income": 72,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Sir Pegasusio",
+      "income": 74,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Bearini Plammini Gua…",
+      "income": 75,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Il Marionetto",
+      "income": 77,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Triceradon",
+      "income": 80,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "La Catrina Mariposa",
+      "income": 85,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Sunculus Ferris",
+      "income": 90,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Servissimo",
+      "income": 93,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Guro Guro",
+      "income": 95,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Capitano Moby",
+      "income": 100,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Doom Doom Doom Sa…",
+      "income": 105,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Garbagzilla",
+      "income": 110,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Il Demonico Maskino",
+      "income": 115,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Demon Ship",
+      "income": 117,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Cerberus",
+      "income": 120,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Vulkarion",
+      "income": 125,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Godgodzilla",
+      "income": 127,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Bulzilla",
+      "income": 130,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Witchantula",
+      "income": 133,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Golemcoluss",
+      "income": 135,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Kingorilla",
+      "income": 140,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Fishini Mechinini",
+      "income": 145,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Don Guitarion",
+      "income": 147,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Ghost Cavallo Skeleto…",
+      "income": 150,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Gargolini",
+      "income": 153,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Cementzilla",
+      "income": 155,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Triplelaledon",
+      "income": 160,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Accordissimo",
+      "income": 165,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Cavezilla",
+      "income": 170,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Checkmate",
+      "income": 173,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Drago Polpo",
+      "income": 175,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Headless Pumpkin",
+      "income": 180,
+      "unit": "M"
+    },
+    {
+      "rarity": "Ascended",
+      "name": "Klombo",
+      "income": 185,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Hydralitraktos Spidoro…",
+      "income": 200,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Chimera",
+      "income": 210,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Meowberus",
+      "income": 215,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Hydragoni Skeletoni",
+      "income": 225,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Kitsune",
+      "income": 230,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Gigaclops",
+      "income": 240,
+      "unit": "M"
+    },
+    {
+      "rarity": "Forbidden",
+      "name": "Chainsawatron",
+      "income": 250,
+      "unit": "M"
+    }
+  ]);
 const levelCharacterSelect = document.getElementById('levelCharacterSelect');
 const levelCharacterList = document.getElementById('levelCharacterList');
 const levelIncomeForm = document.getElementById('levelIncomeForm');
@@ -3165,6 +3165,9 @@ function renderCharacterDatabase() {
   sortedCharacters.forEach(({ character, index }) => {
     const option = document.createElement('option');
     option.value = String(index);
+    option.dataset.characterName = character.name;
+    option.dataset.income = String(character.income);
+    option.dataset.unit = character.unit;
     option.textContent = character.name + ' — ' + formatCharacterIncome(character) + '（' + (rarityNames[character.rarity] || character.rarity) + '）';
     sortedGroup.appendChild(option);
 
@@ -3699,13 +3702,13 @@ renderCharacterDatabase();
     Array.from(sourceSelect.children).forEach(group => {
       if(group.tagName==="OPTGROUP"){
         const g=document.createElement("optgroup"); g.label=group.label;
-        Array.from(group.children).forEach(o=>{if(o.value){const c=document.createElement("option");c.value=o.value;c.textContent=o.textContent;g.appendChild(c);}});
+        Array.from(group.children).forEach(o=>{if(o.value){const c=document.createElement("option");c.value=o.value;c.textContent=o.textContent;c.dataset.characterName=o.dataset.characterName||o.textContent.split(" — ")[0];c.dataset.income=o.dataset.income||"";c.dataset.unit=o.dataset.unit||"";g.appendChild(c);}});
         if(g.children.length)s.appendChild(g);
       } else if(group.tagName==="OPTION" && group.value) {
-        const c=document.createElement("option");c.value=group.value;c.textContent=group.textContent;s.appendChild(c);
+        const c=document.createElement("option");c.value=group.value;c.textContent=group.textContent;c.dataset.characterName=group.dataset.characterName||group.textContent.split(" — ")[0];c.dataset.income=group.dataset.income||"";c.dataset.unit=group.dataset.unit||"";s.appendChild(c);
       }
     });
-    const match=Array.from(s.options).find(o=>o.textContent.split(" — ")[0]===name);
+    const match=Array.from(s.options).find(o=>(o.dataset.characterName||o.textContent.split(" — ")[0])===name);
     if(match)s.value=match.value;
     return s;
   }
@@ -3795,7 +3798,7 @@ renderCharacterDatabase();
   }
   function save() {
     const data=Array.from(root.querySelectorAll(".level-plan-row")).map(r=>({
-      name:r.querySelector(".plan-character").selectedOptions[0]?.textContent.split(" — ")[0]||"",
+      name:r.querySelector(".plan-character").selectedOptions[0]?.dataset.characterName || r.querySelector(".plan-character").selectedOptions[0]?.textContent.split(" — ")[0] || "",
       currentLevel:Number(r.querySelector(".plan-current").value),
       targetLevel:Number(r.querySelector(".plan-target").value),
       eventValue:Number(r.querySelector(".plan-event").value),
@@ -3810,11 +3813,24 @@ renderCharacterDatabase();
     const v=document.createElement("span");v.className="value";v.textContent=value;d.append(l,v);parent.appendChild(d);
   }
   function charData(select) {
-    const o=select.selectedOptions[0]; if(!o)throw new Error("キャラクターを選んでください。");
-    const part=o.textContent.split(" — ");const name=part[0],m=(part.slice(1).join(" — ")).trim().match(/^([\d,.]+)\s*(No|Oc|Sp|Sx|Qi|Qa|T|B|M|K)?\/s$/i);
-    if(!m)throw new Error(name+" の基礎収入を読み取れません。");
-    const n=Number(m[1].replace(/,/g,"")),unit=m[2]||"1",p=powers[unit]??powers[unit.toUpperCase()];
-    if(!Number.isFinite(n)||p===undefined)throw new Error(name+" の収入単位を読み取れません。");
+    const o=select.selectedOptions[0];
+    if(!o) throw new Error("キャラクターを選んでください。");
+    const name=o.dataset.characterName || o.textContent.split(" — ")[0];
+    // Do not parse the displayed label: it also contains the rarity text.
+    // Read machine-readable income, name and unit values to avoid parsing errors.
+    let n, unit;
+    if(o.dataset.income !== undefined && o.dataset.income !== "" && o.dataset.unit !== undefined && o.dataset.unit !== "") {
+      n=Number(o.dataset.income);
+      unit=o.dataset.unit || "1";
+    } else {
+      const displayText=o.textContent.split(" — ").slice(1).join(" — ").trim().replace(/\s*[（(].*?[）)]\s*$/, "");
+      const m=displayText.match(/^([\d,.]+)\s*(No|Oc|Sp|Sx|Qi|Qa|T|B|M|K)?\/s$/i);
+      if(!m) throw new Error(name+" の基礎収入を読み取れません。");
+      n=Number(m[1].replace(/,/g,""));
+      unit=m[2]||"1";
+    }
+    const p=powers[unit]??powers[String(unit).toUpperCase()];
+    if(!Number.isFinite(n)||p===undefined) throw new Error(name+" の収入単位を読み取れません。");
     return {name,base:n*Math.pow(1000,p)};
   }
   function multiplierMap() {
