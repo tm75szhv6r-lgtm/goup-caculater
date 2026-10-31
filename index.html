@@ -187,12 +187,12 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan-item.primary .value{font-size:1.35rem;color:var(--accent2)}
 .level-plan-step{padding:12px;margin-top:9px;border:1px solid var(--border);border-radius:10px;background:#ffffff04}
 .level-plan-result-details{margin-top:14px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;overflow:hidden}
-.level-plan-result-details>summary{padding:12px 14px;cursor:pointer;font-weight:850;list-style:none;display:flex;align-items:center;gap:8px}
-.level-plan-result-details>summary::-webkit-details-marker{display:none}
-.level-plan-result-details>summary::before{content:"＋";display:inline-grid;place-items:center;width:22px;height:22px;border:1px solid var(--border);border-radius:7px;font-size:.85rem;flex:0 0 auto}
-.level-plan-result-details[open]>summary::before{content:"−"}
-.level-plan-result-details>summary:hover{background:#ffffff08}
+.level-plan-result-toggle{display:flex;align-items:center;gap:8px;width:100%;padding:12px 14px;border:0;border-radius:0;background:transparent;color:var(--text);font:inherit;font-weight:850;text-align:left;cursor:pointer}
+.level-plan-result-toggle::before{content:"＋";display:inline-grid;place-items:center;width:22px;height:22px;border:1px solid var(--border);border-radius:7px;font-size:.85rem;flex:0 0 auto}
+.level-plan-result-toggle[aria-expanded="true"]::before{content:"−"}
+.level-plan-result-toggle:hover{background:#ffffff08}
 .level-plan-result-detail-body{padding:0 10px 10px}
+.level-plan-result-detail-body[hidden]{display:none !important}
 .level-plan-step strong{display:block;margin-bottom:6px}
 .level-plan-step p{margin:4px 0;color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
 .level-plan-note{margin-top:12px;color:var(--muted);font-size:.86rem}
@@ -3859,7 +3859,7 @@ renderCharacterDatabase();
     // bulk actions work reliably even if another style rule overrides the grid.
     if (content) {
       content.hidden = shouldCollapse;
-      content.style.display = shouldCollapse ? "none" : "";
+      content.style.setProperty("display", shouldCollapse ? "none" : "grid", "important");
     }
     updatePlanRowHeader(row);
   }
@@ -4036,16 +4036,26 @@ renderCharacterDatabase();
       else if(impossible)card(summary,"完了までの時間","収入が0のため、一部の待ち時間を計算できません",true);
       else {card(summary,"完了までの時間",duration(totalWait),true);if(totalWait<86400*365*100)card(summary,"完了予定時刻（日本時間）",tokyo(Date.now()+totalWait*1000),false);}
       output.appendChild(summary);
-      // Keep the per-character detail list collapsed by default so the result
-      // screen only shows the totals unless the user chooses to view the names.
-      const detailDisclosure = document.createElement("details");
+      // Use an explicit button and hidden state rather than the browser-native
+      // <details> element so folding works consistently across browsers.
+      const detailDisclosure = document.createElement("div");
       detailDisclosure.className = "level-plan-result-details";
-      detailDisclosure.open = resultDetailsExpanded;
-      const detailSummary = document.createElement("summary");
-      detailSummary.textContent = "キャラクターごとの詳細を表示（" + steps.length + "体）";
+      const detailSummary = document.createElement("button");
+      detailSummary.type = "button";
+      detailSummary.className = "level-plan-result-toggle";
+      detailSummary.setAttribute("aria-expanded", String(resultDetailsExpanded));
+      detailSummary.textContent = (resultDetailsExpanded ? "キャラクターごとの詳細を隠す" : "キャラクターごとの詳細を表示") + "（" + steps.length + "体）";
       const detailBody = document.createElement("div");
       detailBody.className = "level-plan-result-detail-body";
-      detailDisclosure.addEventListener("toggle", () => { resultDetailsExpanded = detailDisclosure.open; });
+      detailBody.hidden = !resultDetailsExpanded;
+      detailBody.style.setProperty("display", resultDetailsExpanded ? "block" : "none", "important");
+      detailSummary.addEventListener("click", () => {
+        resultDetailsExpanded = detailSummary.getAttribute("aria-expanded") !== "true";
+        detailSummary.setAttribute("aria-expanded", String(resultDetailsExpanded));
+        detailSummary.textContent = (resultDetailsExpanded ? "キャラクターごとの詳細を隠す" : "キャラクターごとの詳細を表示") + "（" + steps.length + "体）";
+        detailBody.hidden = !resultDetailsExpanded;
+        detailBody.style.setProperty("display", resultDetailsExpanded ? "block" : "none", "important");
+      });
       steps.forEach(s=>{
         const d=document.createElement("div");d.className="level-plan-step";
         const h=document.createElement("strong");h.textContent=s.index+". "+s.name+"：Lv."+s.cur+" → Lv."+s.target;d.appendChild(h);
