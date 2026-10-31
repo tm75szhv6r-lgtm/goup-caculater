@@ -515,7 +515,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 </div>
 <div class="card level-cost-card">
   <h2>💰 目標レベルまでの費用計算</h2>
-  <p class="description">上の「レベル1・変異なしの基礎収入」と単位を使って、現在のレベルから目標レベルまで上げる費用を計算します。例：基礎収入585M/s・レベル1→100なら約60.6Sxです。</p>
+  <p class="description">上の「レベル1・変異なしの基礎収入」と単位を使って、現在のレベルから目標レベルまで上げる費用を計算します。例：基礎収入585M/s・レベル1→100なら約53.6Sxです（イベント・特性倍率なし）。</p>
   <form id="levelCostForm" novalidate>
     <div class="level-cost-grid">
       <div class="field">
@@ -3444,8 +3444,11 @@ renderCharacterDatabase();
     for (let i = 0; i < a5.length; i++) {
       const multiplier = a5[i];
       const remaining = n - i * blockSize;
-      if (remaining < 0) break;
-      const count = Math.min(remaining, blockSize - 1) + 1;
+      // remaining is the number of levels still to add in this block.
+      // Stop at zero and use at most 5 entries to avoid double-counting a level
+      // at each 5-level boundary.
+      if (remaining <= 0) break;
+      const count = Math.min(remaining, blockSize);
       const powered = Math.pow(multiplier, count);
       total += blockMultiplier * multiplier * (powered - 1) / (multiplier - 1);
       blockMultiplier *= Math.pow(multiplier, blockSize);
