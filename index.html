@@ -342,6 +342,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
         </div>
         <div class="actions">
           <button id="idleStartButton" class="btn primary" type="button">▶ 記録開始</button>
+          <button id="idlePauseButton" class="btn" type="button" disabled>⏸ 一時停止</button>
           <button id="idleStopButton" class="btn" type="button" disabled>■ 記録終了して計算</button>
           <button id="idleResetButton" class="btn" type="button">記録をリセット</button>
         </div>
@@ -350,7 +351,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
       <div id="idleResult" class="result" aria-live="polite"></div>
 
 
-      <div class="notice">増加額は「入力した毎秒の収入 × 記録時間」で計算した推定値です。目標到達時間も同じ収入が続く前提で計算します。ゲーム内の収入倍率が変わった場合や、実際に収入が発生していない時間がある場合は差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
+      <div class="notice">増加額は「入力した毎秒の収入 × 実際に記録していた時間」で計算した推定値です。一時停止中は経過時間・収入計算に含みません。目標到達時間も同じ収入が続く前提で計算します。ゲーム内の収入倍率が変わった場合や、実際に収入が発生していない時間がある場合は差が出ます。記録はこのブラウザ内に保存され、別の端末や別のブラウザとは共有されません。</div>
     </div>
 
     <aside class="card idle-multiplier-card" aria-label="倍率時間計算">
@@ -1428,6 +1429,7 @@ const idleHeldUnitInput = document.getElementById('idleHeldUnit');
 const idleGoalInput = document.getElementById('idleGoal');
 const idleGoalUnitInput = document.getElementById('idleGoalUnit');
 const idleStartButton = document.getElementById('idleStartButton');
+const idlePauseButton = document.getElementById('idlePauseButton');
 const idleStopButton = document.getElementById('idleStopButton');
 const idleResetButton = document.getElementById('idleResetButton');
 const idleStatus = document.getElementById('idleStatus');
@@ -1470,7 +1472,9 @@ function restartCalculationTimers() {
   }
   if (idleState && idleState.activeRecord) {
     renderIdleActiveRecord();
-    idleTicker = setInterval(renderIdleActiveRecord, getCalculationUpdateIntervalMs());
+    if (!idleState.activeRecord.pausedAt) {
+      idleTicker = setInterval(renderIdleActiveRecord, getCalculationUpdateIntervalMs());
+    }
   }
 
   if (typeof multiplierActivationTicker !== 'undefined' && multiplierActivationTicker !== null) {
@@ -1525,7 +1529,13 @@ function setIdleInputsDisabled(disabled) {
   idleGoalInput.disabled = disabled;
   idleGoalUnitInput.disabled = disabled;
   idleStartButton.disabled = disabled;
+  idlePauseButton.disabled = !disabled;
   idleStopButton.disabled = !disabled;
+}
+
+function renderIdlePauseButton(record) {
+  idlePauseButton.textContent = record && record.pausedAt ? '▶ 記録を再開' : '⏸ 一時停止';
+  idlePauseButton.disabled = !record;
 }
 
 function getRecordMultiplierPeriods(record) {
@@ -1537,30 +1547,47 @@ function getRecordMultiplierPeriods(record) {
     .sort((a, b) => Number(a.startedAt) - Number(b.startedAt));
 }
 
-function calculateRecordEarned(record, untilTimestamp) {
-  const start = Number(record.startedAt);
-  const end = Math.max(start, Number(untilTimestamp));
-  const elapsedSeconds = Math.max(0, (end - start) / 1000);
-  const rateBase = idleToBase(record.rate, record.rateUnit);
-  let effectiveSeconds = elapsedSeconds;
+function getRecordSegments(record, untilTimestamp) {
+  const cutoff = Number(untilTimestamp);
+  const storedSegments = Array.isArray(record.recordingSegments) && record.recordingSegments.length
+    ? record.recordingSegments
+    : [{ startedAt: record.startedAt, endedAt: null }];
+  return storedSegments.map(segment => {
+    const segmentStart = Number(segment.startedAt);
+    const segmentEnd = segment.endedAt === null || segment.endedAt === undefined
+      ? cutoff
+      : Math.min(Number(segment.endedAt), cutoff);
+    return { startedAt: segmentStart, endedAt: segmentEnd };
+  }).filter(segment => Number.isFinite(segment.startedAt) && Number.isFinite(segment.endedAt) && segment.endedAt > segment.startedAt)
+    .sort((a, b) => a.startedAt - b.startedAt);
+}
 
-  for (const period of getRecordMultiplierPeriods(record)) {
-    const overlapStart = Math.max(start, Number(period.startedAt));
-    const overlapEnd = Math.min(end, Number(period.endsAt));
-    if (overlapEnd > overlapStart) {
-      // 通常の1倍分に、(倍率-1)倍分を加算する。記録額を二重計上しない。
-      effectiveSeconds += ((Number(period.multiplier) - 1) * (overlapEnd - overlapStart)) / 1000;
+function calculateRecordEarned(record, untilTimestamp) {
+  const rateBase = idleToBase(record.rate, record.rateUnit);
+  const segments = getRecordSegments(record, untilTimestamp);
+  let elapsedSeconds = 0;
+  let effectiveSeconds = 0;
+  const periods = getRecordMultiplierPeriods(record);
+
+  for (const segment of segments) {
+    const start = segment.startedAt;
+    const end = segment.endedAt;
+    const seconds = (end - start) / 1000;
+    elapsedSeconds += seconds;
+    effectiveSeconds += seconds;
+
+    for (const period of periods) {
+      const overlapStart = Math.max(start, Number(period.startedAt));
+      const overlapEnd = Math.min(end, Number(period.endsAt));
+      if (overlapEnd > overlapStart) {
+        // 通常の1倍分に、(倍率-1)倍分を加算する。記録停止中は加算しない。
+        effectiveSeconds += ((Number(period.multiplier) - 1) * (overlapEnd - overlapStart)) / 1000;
+      }
     }
   }
 
-  return {
-    elapsedSeconds,
-    effectiveSeconds,
-    rateBase,
-    earned: rateBase * effectiveSeconds
-  };
+  return { elapsedSeconds, effectiveSeconds, rateBase, earned: rateBase * effectiveSeconds };
 }
-
 function getRecordMultiplierAt(record, timestamp) {
   const active = getRecordMultiplierPeriods(record)
     .filter(period => Number(period.startedAt) <= timestamp && Number(period.endsAt) > timestamp)
@@ -1574,53 +1601,40 @@ function findRecordGoalReachedAt(record, goalBase, untilTimestamp) {
   const startingCash = record.heldValue === null || record.heldValue === undefined
     ? 0
     : idleToBase(Number(record.heldValue), record.heldUnit);
-  if (startingCash >= goalBase) return Number(record.startedAt);
+  const segments = getRecordSegments(record, untilTimestamp);
+  if (startingCash >= goalBase) return segments[0]?.startedAt ?? Number(record.startedAt);
 
-  const start = Number(record.startedAt);
-  const end = Math.max(start, Number(untilTimestamp));
-  const periods = getRecordMultiplierPeriods(record);
-  let cursor = start;
   let cash = startingCash;
-
-  function consumeSegment(segmentStart, segmentEnd, multiplier) {
-    if (segmentEnd <= segmentStart) return null;
-    const seconds = (segmentEnd - segmentStart) / 1000;
-    const segmentRate = rateBase * multiplier;
-    const segmentEarned = segmentRate * seconds;
-    if (cash + segmentEarned >= goalBase) {
-      return segmentStart + Math.max(0, goalBase - cash) / segmentRate * 1000;
+  const periods = getRecordMultiplierPeriods(record);
+  for (const segment of segments) {
+    const start = segment.startedAt;
+    const end = segment.endedAt;
+    const boundaries = [start, end];
+    for (const period of periods) {
+      const periodStart = Number(period.startedAt);
+      const periodEnd = Number(period.endsAt);
+      if (periodStart > start && periodStart < end) boundaries.push(periodStart);
+      if (periodEnd > start && periodEnd < end) boundaries.push(periodEnd);
     }
-    cash += segmentEarned;
-    return null;
-  }
+    boundaries.sort((a, b) => a - b);
+    const uniqueBoundaries = boundaries.filter((value, index) => index === 0 || value !== boundaries[index - 1]);
 
-  for (const period of periods) {
-    const periodStart = Math.max(start, Number(period.startedAt));
-    const periodEnd = Math.min(end, Number(period.endsAt));
-    if (periodEnd <= cursor || periodStart >= end) continue;
-
-    if (periodStart > cursor) {
-      const hit = consumeSegment(cursor, Math.min(periodStart, end), 1);
-      if (hit !== null) return hit;
-      cursor = Math.min(periodStart, end);
+    for (let i = 0; i < uniqueBoundaries.length - 1; i++) {
+      const segmentStart = uniqueBoundaries[i];
+      const segmentEnd = uniqueBoundaries[i + 1];
+      if (segmentEnd <= segmentStart) continue;
+      const activePeriod = getRecordMultiplierAt(record, segmentStart);
+      const multiplier = activePeriod ? Number(activePeriod.multiplier) : 1;
+      const segmentRate = rateBase * multiplier;
+      const segmentEarned = segmentRate * ((segmentEnd - segmentStart) / 1000);
+      if (cash + segmentEarned >= goalBase) {
+        return segmentStart + Math.max(0, goalBase - cash) / segmentRate * 1000;
+      }
+      cash += segmentEarned;
     }
-
-    const multiplierSegmentStart = Math.max(cursor, periodStart);
-    if (periodEnd > multiplierSegmentStart) {
-      const hit = consumeSegment(multiplierSegmentStart, periodEnd, Number(period.multiplier));
-      if (hit !== null) return hit;
-      cursor = periodEnd;
-    }
-    if (cursor >= end) break;
-  }
-
-  if (cursor < end) {
-    const hit = consumeSegment(cursor, end, 1);
-    if (hit !== null) return hit;
   }
   return null;
 }
-
 function estimateIdleGoalArrival(record, remaining, now) {
   const rateBase = idleToBase(record.rate, record.rateUnit);
   if (remaining <= 0) return now;
@@ -1649,7 +1663,8 @@ function renderIdleActiveRecord() {
   const estimatedEarned = earnedInfo.earned;
   const startingCashBase = record.heldValue === null ? 0 : idleToBase(record.heldValue, record.heldUnit);
   const currentCashBase = startingCashBase + estimatedEarned;
-  const activeMultiplierPeriod = getRecordMultiplierAt(record, now);
+  const isPaused = !!record.pausedAt;
+  const activeMultiplierPeriod = isPaused ? null : getRecordMultiplierAt(record, now);
   const activeMultiplier = activeMultiplierPeriod ? Number(activeMultiplierPeriod.multiplier) : 1;
 
   if (Number.isFinite(record.goalBase) && currentCashBase >= record.goalBase && !record.goalAlertSent) {
@@ -1663,9 +1678,10 @@ function renderIdleActiveRecord() {
 
   idleStatus.className = 'result show';
   idleStatus.replaceChildren();
-  addText(idleStatus, 'div', 'big', '🔴 記録中');
+  addText(idleStatus, 'div', 'big', isPaused ? '⏸ 記録を一時停止中' : '🔴 記録中');
   addText(idleStatus, 'p', '', '開始時刻：' + formatLocalDateTime(record.startedAt));
-  addText(idleStatus, 'div', '', '経過時間');
+  if (isPaused) addText(idleStatus, 'p', 'hint', '一時停止中は経過時間と収入の計算を停止しています。');
+  addText(idleStatus, 'div', '', '記録時間（一時停止を除く）');
   addText(idleStatus, 'div', 'big', formatPreciseDuration(elapsedSeconds));
   addText(idleStatus, 'div', '', '現在適用中の倍率');
   addText(idleStatus, 'div', 'big', activeMultiplier + '倍');
@@ -1688,13 +1704,17 @@ function renderIdleActiveRecord() {
       addText(idleStatus, 'p', '', '推定到達時刻：' + formatLocalArrivalDateTime(reachedAt));
     } else {
       const remaining = record.goalBase - currentCashBase;
-      const arrivalAt = estimateIdleGoalArrival(record, remaining, now);
-      const secondsLeft = Math.max(0, (arrivalAt - now) / 1000);
       addText(idleStatus, 'div', '', '目標まで残り');
       addText(idleStatus, 'div', 'big', formatIdleAmount(remaining));
-      addText(idleStatus, 'div', '', '到達までの予想時間');
-      addText(idleStatus, 'div', 'big', formatPreciseDuration(secondsLeft));
-      addText(idleStatus, 'div', 'result-datetime', '到達予定：' + formatLocalArrivalDateTime(arrivalAt));
+      if (isPaused) {
+        addText(idleStatus, 'p', 'hint', '到達までの予想時間は、記録を再開すると更新されます。');
+      } else {
+        const arrivalAt = estimateIdleGoalArrival(record, remaining, now);
+        const secondsLeft = Math.max(0, (arrivalAt - now) / 1000);
+        addText(idleStatus, 'div', '', '到達までの予想時間');
+        addText(idleStatus, 'div', 'big', formatPreciseDuration(secondsLeft));
+        addText(idleStatus, 'div', 'result-datetime', '到達予定：' + formatLocalArrivalDateTime(arrivalAt));
+      }
     }
   } else {
     addText(idleStatus, 'p', 'hint', 'この記録は旧バージョンで開始されたため、目標金額の予測は利用できません。記録終了後に、新しい記録を開始してください。');
@@ -1787,12 +1807,14 @@ function renderIdleUI() {
     idleGoalUnitInput.value = record.goalUnit || 'Sx';
 
     setIdleInputsDisabled(true);
+    renderIdlePauseButton(record);
     renderIdleActiveRecord();
-    idleTicker = setInterval(renderIdleActiveRecord, getCalculationUpdateIntervalMs());
+    if (!record.pausedAt) idleTicker = setInterval(renderIdleActiveRecord, getCalculationUpdateIntervalMs());
     return;
   }
 
   setIdleInputsDisabled(false);
+  renderIdlePauseButton(null);
   idleStopButton.disabled = true;
 
   if (idleState.lastResult) {
@@ -1871,6 +1893,8 @@ idleStartButton.addEventListener('click', () => {
   idleState = {
     activeRecord: {
       startedAt,
+      recordingSegments: [{ startedAt, endedAt: null }],
+      pausedAt: null,
       rate,
       rateUnit,
       heldValue,
@@ -1884,6 +1908,36 @@ idleStartButton.addEventListener('click', () => {
     },
     lastResult: null
   };
+
+  saveIdleState();
+  renderIdleUI();
+});
+
+idlePauseButton.addEventListener('click', () => {
+  const record = idleState.activeRecord;
+  if (!record) return;
+
+  if (!Array.isArray(record.recordingSegments) || record.recordingSegments.length === 0) {
+    // 旧バージョンで開始された記録にも対応する。
+    record.recordingSegments = [{ startedAt: record.startedAt, endedAt: null }];
+  }
+
+  if (!record.pausedAt) {
+    const pausedAt = Date.now();
+    const lastSegment = record.recordingSegments[record.recordingSegments.length - 1];
+    if (lastSegment && (lastSegment.endedAt === null || lastSegment.endedAt === undefined)) {
+      lastSegment.endedAt = pausedAt;
+    }
+    record.pausedAt = pausedAt;
+    if (idleTicker !== null) {
+      clearInterval(idleTicker);
+      idleTicker = null;
+    }
+  } else {
+    const resumedAt = Date.now();
+    record.pausedAt = null;
+    record.recordingSegments.push({ startedAt: resumedAt, endedAt: null });
+  }
 
   saveIdleState();
   renderIdleUI();
@@ -1913,6 +1967,7 @@ idleStopButton.addEventListener('click', () => {
     lastResult: {
       startedAt: record.startedAt,
       endedAt,
+      recordingSegments: getRecordSegments(record, endedAt).map(segment => ({ startedAt: segment.startedAt, endedAt: segment.endedAt })),
       elapsedSeconds,
       rate: record.rate,
       rateUnit: record.rateUnit,
