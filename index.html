@@ -158,6 +158,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan-row-toggle{padding:7px 10px;font-size:.84rem;white-space:nowrap}
 .level-plan-row-content{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
 .level-plan-row.is-collapsed .level-plan-row-content{display:none}
+.level-plan-row-content[hidden]{display:none !important}
 .level-plan-row .field{margin:0;min-width:0}
 .level-plan-row label{font-size:.82rem}
 .level-plan-row select,.level-plan-row input{width:100%;min-width:0}
@@ -3781,7 +3782,15 @@ renderCharacterDatabase();
     }
   }
   function setPlanRowCollapsed(row, collapsed) {
-    row.classList.toggle("is-collapsed", !!collapsed);
+    const shouldCollapse = !!collapsed;
+    const content = row.querySelector(".level-plan-row-content");
+    row.classList.toggle("is-collapsed", shouldCollapse);
+    // Apply both the semantic hidden state and an explicit display state so
+    // bulk actions work reliably even if another style rule overrides the grid.
+    if (content) {
+      content.hidden = shouldCollapse;
+      content.style.display = shouldCollapse ? "none" : "";
+    }
     updatePlanRowHeader(row);
   }
   function addRow(data) {
@@ -4034,13 +4043,23 @@ renderCharacterDatabase();
   document.getElementById("levelPlanBulkCurrentApply").addEventListener("click", () => applyBulkLevels("current"));
   document.getElementById("levelPlanBulkTargetApply").addEventListener("click", () => applyBulkLevels("target"));
   document.getElementById("levelPlanBulkBothApply").addEventListener("click", () => applyBulkLevels("both"));
-  document.getElementById("levelPlanCollapseAll").addEventListener("click",()=>{
-    root.querySelectorAll(".level-plan-row").forEach(row=>setPlanRowCollapsed(row,true));
+  const collapseAllButton = document.getElementById("levelPlanCollapseAll");
+  const expandAllButton = document.getElementById("levelPlanExpandAll");
+  function setAllPlanRowsCollapsed(shouldCollapse) {
+    const rows = root.querySelectorAll(".level-plan-row");
+    rows.forEach(row => setPlanRowCollapsed(row, shouldCollapse));
     save();
+    // Expose the resulting state for assistive technology and confirm the action.
+    (shouldCollapse ? collapseAllButton : expandAllButton)?.setAttribute("aria-pressed", "true");
+    (shouldCollapse ? expandAllButton : collapseAllButton)?.setAttribute("aria-pressed", "false");
+  }
+  collapseAllButton?.addEventListener("click", event => {
+    event.preventDefault();
+    setAllPlanRowsCollapsed(true);
   });
-  document.getElementById("levelPlanExpandAll").addEventListener("click",()=>{
-    root.querySelectorAll(".level-plan-row").forEach(row=>setPlanRowCollapsed(row,false));
-    save();
+  expandAllButton?.addEventListener("click", event => {
+    event.preventDefault();
+    setAllPlanRowsCollapsed(false);
   });
   ["idleRate","idleRateUnit","idleHeld","idleHeldUnit"].forEach(id=>{
     const e=document.getElementById(id);if(e){e.addEventListener("input",calculate);e.addEventListener("change",calculate);}
