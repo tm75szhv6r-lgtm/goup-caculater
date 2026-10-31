@@ -304,7 +304,7 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 
       <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
         <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
-        <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
+        <p class="description">キャラクターを登録すると、通知監視と完了時間の予測では「現在レベル → 目標レベル」に必要な費用が低い順に進めます。レベルアップ後に増える収入を、残りのキャラクターの待ち時間へ反映します。同じ費用の場合は登録順です。</p>
         <div class="level-plan-bulk" aria-labelledby="levelPlanBulkTitle">
           <h3 id="levelPlanBulkTitle">⚡ 全キャラのレベルを一括設定</h3>
           <p class="description">入力したレベルを、登録済みのすべてのキャラクターにまとめて適用します。片方だけ変更することも、現在レベルと目標レベルを同時に変更することもできます。</p>
@@ -4164,6 +4164,9 @@ renderCharacterDatabase();
       steps.push({ index:index+1, name:character.name, currentLevel, targetLevel, cost, gain });
     });
     if (!steps.length) throw new Error("現在レベルと目標レベルが同じキャラクターしかいません。目標レベルを上げてください。");
+    // Monitor the cheapest upgrade first. Keep each step's original row index so
+    // notifications still update the correct character in the visible list.
+    steps.sort((a, b) => (a.cost - b.cost) || (a.index - b.index));
     return steps;
   }
   function ensureMonitorAudio() {
@@ -4279,7 +4282,7 @@ renderCharacterDatabase();
       monitorStatus.classList.add("is-alert");
       return;
     }
-    if (!monitorState) { monitorStatus.textContent="通知監視は停止中です。開始すると、入力した順番にレベルアップ可能時刻を監視します。"; return; }
+    if (!monitorState) { monitorStatus.textContent="通知監視は停止中です。開始すると、必要費用が低い順にレベルアップ可能時刻を監視します。同じ費用の場合は登録順です。"; return; }
     if (monitorState.active) {
       monitorStatus.classList.add("is-running");
       const next=monitorState.steps[monitorState.nextIndex];
@@ -4369,7 +4372,7 @@ renderCharacterDatabase();
       saveMonitorState();
       setMonitorEditingLocked(true);
       monitorStartButton.disabled=true; monitorStopButton.disabled=false;
-      renderMonitorStatus("🔔 レベル上げ通知を開始しました。次の到達時刻を監視しています。この計画では、通知時点でレベルアップしたものとして費用を差し引き、収入増加を自動反映します。");
+      renderMonitorStatus("🔔 レベル上げ通知を開始しました。必要費用が低い順に到達時刻を監視します。通知時点でレベルアップしたものとして費用を差し引き、収入増加を自動反映します。");
       monitorTick();
       if (monitorState && monitorState.active && monitorTicker===null) monitorTicker=setInterval(monitorTick,1000);
     } catch (error) {
@@ -4430,20 +4433,26 @@ renderCharacterDatabase();
         const modifiers=readRowModifiers(r);
         const cost=Math.max(0,c.base*modifiers.totalMultiplier*(helpers.r5(target-1)-helpers.r5(cur-1)));
         const gain=Math.max(0,c.base*modifiers.totalMultiplier*((lm.get(target)||0)-(lm.get(cur)||0)));
+        if(!Number.isFinite(cost)||!Number.isFinite(gain))throw new Error(c.name+"の必要費用・収入増加を計算できません。");
+        steps.push({index:index+1,name:c.name,cur,target,cost,gain,wait:null,modifiers});
+      });
+      // Keep the time forecast in the same cheapest-first order as the notifier.
+      // The original index is retained only to identify the character's input row.
+      steps.sort((a,b)=>(a.cost-b.cost)||(a.index-b.index));
+      for(const s of steps){
         let wait=null;
         if(currentRate!==null){
-          const deficit=Math.max(0,cost-cash);
+          const deficit=Math.max(0,s.cost-cash);
           if(deficit===0)wait=0;
           else if(currentRate>0)wait=deficit/currentRate;
           else impossible=true;
           if(wait===null)cash=0;
-          else {totalWait+=wait;cash=Math.max(0,cash-cost);}
-          currentRate+=gain;
+          else {totalWait+=wait;cash=Math.max(0,cash-s.cost);}
+          currentRate+=s.gain;
           if(!Number.isFinite(currentRate))throw new Error("レベルアップ後の収入が計算範囲を超えました。");
-        } else cash=Math.max(0,cash-cost);
-        totalCost+=cost;totalGain+=gain;
-        steps.push({index:index+1,name:c.name,cur,target,cost,gain,wait,modifiers});
-      });
+        } else cash=Math.max(0,cash-s.cost);
+        totalCost+=s.cost;totalGain+=s.gain;s.wait=wait;
+      }
       const summary=document.createElement("div");summary.className="level-plan-summary";
       card(summary,"必要な合計金額",money(totalCost),true);
       card(summary,"現在の所持金",money(heldRaw===""?0:Number(heldRaw)*Math.pow(1000,powers[heldUnit]??0)),false);
@@ -4481,7 +4490,7 @@ renderCharacterDatabase();
         [["必要費用",money(s.cost)],["この段階で待つ時間",rate===null?"毎秒収入を入力してください":s.wait===null?"収入が0のため算出できません":duration(s.wait)],["完了後に増える収入（推定）",money(s.gain)+"/s"],["適用したイベント・変異",modText]].forEach(pair=>{const p=document.createElement("p");p.textContent=pair[0]+"："+pair[1];d.appendChild(p);});
         detailBody.appendChild(d);
       });
-      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各キャラクターに設定したイベント変異倍率と特性倍率を加算し、その後でその他の追加倍率を掛けています。各段階の費用を所持金から支払い、前のキャラクターのレベルアップ後の収入増加を次の待ち時間に反映します。";detailBody.appendChild(note);
+      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各キャラクターに設定したイベント変異倍率と特性倍率を加算し、その後でその他の追加倍率を掛けています。必要費用が低い順に費用を所持金から支払い、レベルアップ後の収入増加を残りのキャラクターの待ち時間に反映します。同額の場合は登録順です。";detailBody.appendChild(note);
       detailDisclosure.append(detailSummary, detailBody);
       output.appendChild(detailDisclosure);
     } catch(e) {
