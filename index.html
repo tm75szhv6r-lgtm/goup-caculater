@@ -176,6 +176,11 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .plan-trait-option:has(input:checked){border-color:var(--accent2);background:#5ce1c010}
 .plan-modifier-summary{margin-top:9px;color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
 .level-plan-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.level-plan-monitor-status{margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#111625;color:var(--muted);font-size:.9rem;overflow-wrap:anywhere}
+.level-plan-monitor-status strong{color:var(--accent2)}
+.level-plan-monitor-status.is-running{border-color:#5ce1c077;color:var(--text)}
+.level-plan-monitor-status.is-alert{border-color:#ffc56a;color:#ffdca0}
+.level-plan-monitor-status.is-error{border-color:var(--danger);color:var(--danger)}
 .level-plan-view-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#ffffff04}
 .level-plan-view-actions .btn{flex:0 0 auto}
 @media(max-width:560px){.level-plan-view-actions .btn{flex:1 1 150px}}
@@ -319,9 +324,10 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
           <button id="levelPlanExpandAll" class="btn" type="button">すべて展開</button>
         </div>
         <div id="levelPlanRows" class="level-plan-rows"></div>
-        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button></div>
+        <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn" type="button">計画を計算</button><button id="levelPlanMonitorStart" class="btn primary" type="button">🔔 レベル上げ通知を開始</button><button id="levelPlanMonitorStop" class="btn" type="button" disabled>■ 通知を停止</button></div>
+        <div id="levelPlanMonitorStatus" class="level-plan-monitor-status" role="status" aria-live="polite" hidden></div>
         <div id="levelPlanResult" class="result" aria-live="polite"></div>
-        <p class="level-plan-note">各キャラクターの欄でイベント変異・特性・その他の追加倍率を個別に設定できます。登録キャラクターが実際に収入編成に入っている前提です。将来のイベント倍率の切り替わりは予測に含めません。計画はこのブラウザに保存され、ログイン中はクラウド同期されます。</p>
+        <p class="level-plan-note">各キャラクターの欄でイベント変異・特性・その他の追加倍率を個別に設定できます。登録キャラクターが実際に収入編成に入っている前提です。「レベル上げ通知を開始」すると、各段階の到達時に通知音が鳴り、その時点でレベルアップしたものとして費用を差し引き、増えた収入を次の段階に反映します。将来の倍率切り替わりは予測に含めません。</p>
       </section>
       <div class="field update-interval-field">
         <label for="updateIntervalSeconds">計算の更新間隔（秒・0.01秒刻み）</label>
@@ -1562,31 +1568,67 @@ function getRecordSegments(record, untilTimestamp) {
     .sort((a, b) => a.startedAt - b.startedAt);
 }
 
+function getRecordRateChanges(record) {
+  return (Array.isArray(record.rateChanges) ? record.rateChanges : [])
+    .filter(change => Number.isFinite(Number(change.at)) && Number.isFinite(Number(change.rate)) && change.rate >= 0 && change.rateUnit)
+    .slice()
+    .sort((a, b) => Number(a.at) - Number(b.at));
+}
+function getRecordRateBaseAt(record, timestamp) {
+  let rateBase = idleToBase(Number(record.rate), record.rateUnit);
+  for (const change of getRecordRateChanges(record)) {
+    if (Number(change.at) > Number(timestamp)) break;
+    rateBase = idleToBase(Number(change.rate), change.rateUnit || record.rateUnit);
+  }
+  return rateBase;
+}
+function getRecordCashTransactions(record, untilTimestamp = Infinity) {
+  return (Array.isArray(record.cashTransactions) ? record.cashTransactions : [])
+    .filter(tx => Number.isFinite(Number(tx.at)) && Number.isFinite(Number(tx.amountBase)) && Number(tx.at) <= Number(untilTimestamp))
+    .slice()
+    .sort((a, b) => Number(a.at) - Number(b.at));
+}
+function getRecordCashTransactionTotal(record, untilTimestamp = Infinity) {
+  return getRecordCashTransactions(record, untilTimestamp).reduce((sum, tx) => sum + Number(tx.amountBase), 0);
+}
 function calculateRecordEarned(record, untilTimestamp) {
-  const rateBase = idleToBase(record.rate, record.rateUnit);
-  const segments = getRecordSegments(record, untilTimestamp);
+  const cutoff = Number(untilTimestamp);
+  const segments = getRecordSegments(record, cutoff);
   let elapsedSeconds = 0;
   let effectiveSeconds = 0;
+  let earned = 0;
   const periods = getRecordMultiplierPeriods(record);
+  const rateChanges = getRecordRateChanges(record);
 
   for (const segment of segments) {
     const start = segment.startedAt;
     const end = segment.endedAt;
-    const seconds = (end - start) / 1000;
-    elapsedSeconds += seconds;
-    effectiveSeconds += seconds;
-
+    const boundaries = [start, end];
     for (const period of periods) {
-      const overlapStart = Math.max(start, Number(period.startedAt));
-      const overlapEnd = Math.min(end, Number(period.endsAt));
-      if (overlapEnd > overlapStart) {
-        // 通常の1倍分に、(倍率-1)倍分を加算する。記録停止中は加算しない。
-        effectiveSeconds += ((Number(period.multiplier) - 1) * (overlapEnd - overlapStart)) / 1000;
-      }
+      const a = Number(period.startedAt), b = Number(period.endsAt);
+      if (a > start && a < end) boundaries.push(a);
+      if (b > start && b < end) boundaries.push(b);
+    }
+    for (const change of rateChanges) {
+      const at = Number(change.at);
+      if (at > start && at < end) boundaries.push(at);
+    }
+    boundaries.sort((a, b) => a - b);
+    const unique = boundaries.filter((value, index) => index === 0 || value !== boundaries[index - 1]);
+    for (let i = 0; i < unique.length - 1; i++) {
+      const a = unique[i], b = unique[i + 1];
+      if (b <= a) continue;
+      const seconds = (b - a) / 1000;
+      const activePeriod = getRecordMultiplierAt(record, a);
+      const multiplier = activePeriod ? Number(activePeriod.multiplier) : 1;
+      const segmentRate = getRecordRateBaseAt(record, a);
+      elapsedSeconds += seconds;
+      effectiveSeconds += seconds * multiplier;
+      earned += segmentRate * seconds * multiplier;
     }
   }
-
-  return { elapsedSeconds, effectiveSeconds, rateBase, earned: rateBase * effectiveSeconds };
+  const rateBase = getRecordRateBaseAt(record, cutoff);
+  return { elapsedSeconds, effectiveSeconds, rateBase, earned };
 }
 function getRecordMultiplierAt(record, timestamp) {
   const active = getRecordMultiplierPeriods(record)
@@ -1596,47 +1638,71 @@ function getRecordMultiplierAt(record, timestamp) {
 }
 
 function findRecordGoalReachedAt(record, goalBase, untilTimestamp) {
-  const rateBase = idleToBase(record.rate, record.rateUnit);
-  if (!Number.isFinite(rateBase) || rateBase <= 0) return null;
   const startingCash = record.heldValue === null || record.heldValue === undefined
     ? 0
     : idleToBase(Number(record.heldValue), record.heldUnit);
   const segments = getRecordSegments(record, untilTimestamp);
-  if (startingCash >= goalBase) return segments[0]?.startedAt ?? Number(record.startedAt);
-
-  let cash = startingCash;
   const periods = getRecordMultiplierPeriods(record);
+  const rateChanges = getRecordRateChanges(record);
+  const transactions = getRecordCashTransactions(record, untilTimestamp);
+  let txIndex = 0;
+  let cash = startingCash;
+
   for (const segment of segments) {
-    const start = segment.startedAt;
-    const end = segment.endedAt;
+    const start = segment.startedAt, end = segment.endedAt;
     const boundaries = [start, end];
     for (const period of periods) {
-      const periodStart = Number(period.startedAt);
-      const periodEnd = Number(period.endsAt);
-      if (periodStart > start && periodStart < end) boundaries.push(periodStart);
-      if (periodEnd > start && periodEnd < end) boundaries.push(periodEnd);
+      const a = Number(period.startedAt), b = Number(period.endsAt);
+      if (a > start && a < end) boundaries.push(a);
+      if (b > start && b < end) boundaries.push(b);
+    }
+    for (const change of rateChanges) {
+      const at = Number(change.at);
+      if (at > start && at < end) boundaries.push(at);
+    }
+    for (const tx of transactions) {
+      const at = Number(tx.at);
+      if (at > start && at < end) boundaries.push(at);
     }
     boundaries.sort((a, b) => a - b);
-    const uniqueBoundaries = boundaries.filter((value, index) => index === 0 || value !== boundaries[index - 1]);
+    const unique = boundaries.filter((value, index) => index === 0 || value !== boundaries[index - 1]);
 
-    for (let i = 0; i < uniqueBoundaries.length - 1; i++) {
-      const segmentStart = uniqueBoundaries[i];
-      const segmentEnd = uniqueBoundaries[i + 1];
-      if (segmentEnd <= segmentStart) continue;
-      const activePeriod = getRecordMultiplierAt(record, segmentStart);
-      const multiplier = activePeriod ? Number(activePeriod.multiplier) : 1;
-      const segmentRate = rateBase * multiplier;
-      const segmentEarned = segmentRate * ((segmentEnd - segmentStart) / 1000);
-      if (cash + segmentEarned >= goalBase) {
-        return segmentStart + Math.max(0, goalBase - cash) / segmentRate * 1000;
+    // Apply transactions that occurred while the recorder was between active segments.
+    while (txIndex < transactions.length && Number(transactions[txIndex].at) <= start) {
+      cash += Number(transactions[txIndex].amountBase);
+      txIndex++;
+    }
+    if (cash >= goalBase) return start;
+
+    for (let i = 0; i < unique.length - 1; i++) {
+      const a = unique[i], b = unique[i + 1];
+      if (b <= a) continue;
+      while (txIndex < transactions.length && Number(transactions[txIndex].at) <= a) {
+        cash += Number(transactions[txIndex].amountBase);
+        txIndex++;
       }
-      cash += segmentEarned;
+      if (cash >= goalBase) return a;
+      const activePeriod = getRecordMultiplierAt(record, a);
+      const multiplier = activePeriod ? Number(activePeriod.multiplier) : 1;
+      const segmentRate = getRecordRateBaseAt(record, a) * multiplier;
+      if (segmentRate > 0) {
+        const segmentEarned = segmentRate * ((b - a) / 1000);
+        if (cash + segmentEarned >= goalBase) {
+          return a + Math.max(0, goalBase - cash) / segmentRate * 1000;
+        }
+        cash += segmentEarned;
+      }
+    }
+    while (txIndex < transactions.length && Number(transactions[txIndex].at) <= end) {
+      cash += Number(transactions[txIndex].amountBase);
+      txIndex++;
     }
   }
   return null;
 }
+
 function estimateIdleGoalArrival(record, remaining, now) {
-  const rateBase = idleToBase(record.rate, record.rateUnit);
+  const rateBase = getRecordRateBaseAt(record, now);
   if (remaining <= 0) return now;
   const activePeriod = getRecordMultiplierAt(record, now);
   if (activePeriod) {
@@ -1662,7 +1728,7 @@ function renderIdleActiveRecord() {
   const rateBase = earnedInfo.rateBase;
   const estimatedEarned = earnedInfo.earned;
   const startingCashBase = record.heldValue === null ? 0 : idleToBase(record.heldValue, record.heldUnit);
-  const currentCashBase = startingCashBase + estimatedEarned;
+  const currentCashBase = startingCashBase + estimatedEarned + getRecordCashTransactionTotal(record, now);
   const isPaused = !!record.pausedAt;
   const activeMultiplierPeriod = isPaused ? null : getRecordMultiplierAt(record, now);
   const activeMultiplier = activeMultiplierPeriod ? Number(activeMultiplierPeriod.multiplier) : 1;
@@ -1720,7 +1786,8 @@ function renderIdleActiveRecord() {
     addText(idleStatus, 'p', 'hint', 'この記録は旧バージョンで開始されたため、目標金額の予測は利用できません。記録終了後に、新しい記録を開始してください。');
   }
 
-  addText(idleStatus, 'p', 'hint', `基準収入：${record.rate} ${record.rateUnit}/s。発動した倍率の時間は計算に反映済みです。`);
+  const currentRateForDisplay = rateBase / Math.pow(1000, IDLE_UNIT_POWER[record.rateUnit] ?? 0);
+  addText(idleStatus, 'p', 'hint', `基準収入（現在）：${Number(currentRateForDisplay.toPrecision(8))} ${record.rateUnit}/s。発動した倍率の時間と、通知で反映したレベルアップを計算に含めています。`);
   idleResult.className = 'result';
   idleResult.replaceChildren();
 }
@@ -1736,7 +1803,7 @@ function renderIdleCompletedResult(result) {
   addText(idleResult, 'div', 'big', formatIdleAmount(result.earned));
 
   const startCashBase = result.heldBase === null ? 0 : result.heldBase;
-  const endCashBase = startCashBase + result.earned;
+  const endCashBase = startCashBase + result.earned + getRecordCashTransactionTotal(result, result.endedAt);
   if (result.heldBase !== null) {
     addText(idleResult, 'div', '', '記録開始時の所持金');
     addText(idleResult, 'div', 'big', formatIdleAmount(result.heldBase));
@@ -1787,7 +1854,8 @@ function renderIdleCompletedResult(result) {
     }
   }
 
-  addText(idleResult, 'p', 'hint', `計算に使用した基準収入：${result.rate} ${result.rateUnit}/s。記録中に発動した倍率の期間を反映しています。`);
+  const finalRateForDisplay = (result.finalRateBase ?? getRecordRateBaseAt(result, result.endedAt)) / Math.pow(1000, IDLE_UNIT_POWER[result.rateUnit] ?? 0);
+  addText(idleResult, 'p', 'hint', `記録終了時の基準収入：${Number(finalRateForDisplay.toPrecision(8))} ${result.rateUnit}/s。記録中に発動した倍率と通知で反映したレベルアップを計算に含めています。`);
 }
 
 function renderIdleUI() {
@@ -1798,7 +1866,7 @@ function renderIdleUI() {
 
   if (idleState.activeRecord) {
     const record = idleState.activeRecord;
-    idleRateInput.value = String(record.rate);
+    idleRateInput.value = String(getRecordRateBaseAt(record, Date.now()) / Math.pow(1000, IDLE_UNIT_POWER[record.rateUnit] ?? 0));
     idleRateUnitInput.value = record.rateUnit;
     idleHeldInput.value = record.heldValue === null ? '' : String(record.heldValue);
     idleHeldUnitInput.value = record.heldUnit;
@@ -1818,10 +1886,13 @@ function renderIdleUI() {
   idleStopButton.disabled = true;
 
   if (idleState.lastResult) {
-    idleRateInput.value = String(idleState.lastResult.rate);
-    idleRateUnitInput.value = idleState.lastResult.rateUnit;
-    idleHeldInput.value = idleState.lastResult.heldValue === null ? '' : String(idleState.lastResult.heldValue);
-    idleHeldUnitInput.value = idleState.lastResult.heldUnit || 'Sx';
+    const completedRecord = idleState.lastResult;
+    const completedRateBase = getRecordRateBaseAt(completedRecord, completedRecord.endedAt);
+    const completedHeldBase = (completedRecord.heldBase === null ? 0 : completedRecord.heldBase) + completedRecord.earned + getRecordCashTransactionTotal(completedRecord, completedRecord.endedAt);
+    idleRateInput.value = String(completedRateBase / Math.pow(1000, IDLE_UNIT_POWER[completedRecord.rateUnit] ?? 0));
+    idleRateUnitInput.value = completedRecord.rateUnit;
+    idleHeldInput.value = String(completedHeldBase / Math.pow(1000, IDLE_UNIT_POWER[completedRecord.heldUnit || 'Sx'] ?? 0));
+    idleHeldUnitInput.value = completedRecord.heldUnit || 'Sx';
     idleGoalInput.value = idleState.lastResult.goalValue === null || idleState.lastResult.goalValue === undefined ? '' : String(idleState.lastResult.goalValue);
     idleGoalUnitInput.value = idleState.lastResult.goalUnit || 'Sx';
 
@@ -1903,6 +1974,8 @@ idleStartButton.addEventListener('click', () => {
       goalUnit,
       goalBase,
       rateBase,
+      rateChanges: [],
+      cashTransactions: [],
       multiplierPeriods,
       goalAlertSent: false
     },
@@ -1976,6 +2049,9 @@ idleStopButton.addEventListener('click', () => {
       heldUnit: record.heldUnit,
       heldBase,
       earned,
+      rateChanges: getRecordRateChanges(record),
+      cashTransactions: getRecordCashTransactions(record, endedAt),
+      finalRateBase: getRecordRateBaseAt(record, endedAt),
       multiplierPeriods: getRecordMultiplierPeriods(record),
       goalValue: record.goalValue ?? null,
       goalUnit: record.goalUnit || 'Sx',
@@ -3987,6 +4063,347 @@ renderCharacterDatabase();
     });
     return m;
   }
+  const monitorStartButton = document.getElementById("levelPlanMonitorStart");
+  const monitorStopButton = document.getElementById("levelPlanMonitorStop");
+  const monitorStatus = document.getElementById("levelPlanMonitorStatus");
+  const monitorStorageKey = "goupCalculatorLevelPlanMonitorV1";
+  let monitorTicker = null;
+  let monitorAudioContext = null;
+  let lastMonitorPersistAt = 0;
+  let monitorState = loadMonitorState();
+
+  function loadMonitorState() {
+    try {
+      const data = JSON.parse(localStorage.getItem(monitorStorageKey) || "null");
+      if (!data || !Array.isArray(data.steps) || !Number.isFinite(Number(data.cashBase)) || !Number.isFinite(Number(data.rateBase))) return null;
+      return data;
+    } catch (_) { return null; }
+  }
+  function saveMonitorState() {
+    try { localStorage.setItem(monitorStorageKey, JSON.stringify(monitorState)); } catch (_) {}
+  }
+  function monitorMultiplierPeriods() {
+    if (idleState.activeRecord) return getRecordMultiplierPeriods(idleState.activeRecord);
+    if (typeof multiplierActivationState !== "undefined" && multiplierActivationState) {
+      const m = multiplierActivationState;
+      const end = Number(m.startedAt) + Number(m.durationMinutes) * 60000;
+      if (Number.isFinite(Number(m.startedAt)) && Number.isFinite(end) && Number(m.multiplier) >= 1 && end > Number(m.startedAt)) {
+        return [{ multiplier:Number(m.multiplier), startedAt:Number(m.startedAt), endsAt:end }];
+      }
+    }
+    return [];
+  }
+  function monitorMultiplierAt(timestamp) {
+    const periods = monitorMultiplierPeriods()
+      .filter(p => Number(p.startedAt) <= timestamp && Number(p.endsAt) > timestamp)
+      .sort((a,b) => Number(b.startedAt)-Number(a.startedAt));
+    return periods.length ? Number(periods[0].multiplier) : 1;
+  }
+  function monitorAccrue(state, from, to) {
+    if (to <= from || state.rateBase <= 0) return 0;
+    const periods = monitorMultiplierPeriods();
+    const boundaries = [from, to];
+    for (const p of periods) {
+      const a = Number(p.startedAt), b = Number(p.endsAt);
+      if (a > from && a < to) boundaries.push(a);
+      if (b > from && b < to) boundaries.push(b);
+    }
+    boundaries.sort((a,b)=>a-b);
+    const unique = boundaries.filter((v,i)=>i===0 || v!==boundaries[i-1]);
+    let earned = 0;
+    for (let i=0;i<unique.length-1;i++) {
+      const a=unique[i], b=unique[i+1];
+      if (b>a) earned += state.rateBase * monitorMultiplierAt(a) * ((b-a)/1000);
+    }
+    return earned;
+  }
+  function monitorReadyAt(state, step, from, until) {
+    if (state.cashBase >= step.cost) return from;
+    if (state.rateBase <= 0 || until <= from) return null;
+    const periods = monitorMultiplierPeriods();
+    const boundaries = [from, until];
+    for (const p of periods) {
+      const a=Number(p.startedAt), b=Number(p.endsAt);
+      if (a>from && a<until) boundaries.push(a);
+      if (b>from && b<until) boundaries.push(b);
+    }
+    boundaries.sort((a,b)=>a-b);
+    const unique=boundaries.filter((v,i)=>i===0 || v!==boundaries[i-1]);
+    let cash=state.cashBase;
+    for (let i=0;i<unique.length-1;i++) {
+      const a=unique[i], b=unique[i+1];
+      const rate=state.rateBase*monitorMultiplierAt(a);
+      if (rate<=0) continue;
+      const earned=rate*((b-a)/1000);
+      if (cash+earned >= step.cost) return a+Math.max(0,step.cost-cash)/rate*1000;
+      cash+=earned;
+    }
+    return null;
+  }
+  function planStepsForMonitor() {
+    const helpers = window.goupLevelCostHelpers;
+    if (!helpers) throw new Error("費用計算の準備ができていません。ページを再読み込みしてください。");
+    const lm = multiplierMap();
+    if (lm.size < 400) throw new Error("レベル倍率一覧がまだ準備できていません。再読み込みしてください。");
+    const rows = Array.from(root.querySelectorAll(".level-plan-row"));
+    if (!rows.length) throw new Error("計画が空です。キャラクターを追加してください。");
+    const steps = [];
+    rows.forEach((row, index) => {
+      const character = charData(row.querySelector(".plan-character"));
+      const currentLevel = Number(row.querySelector(".plan-current").value);
+      const targetLevel = Number(row.querySelector(".plan-target").value);
+      if (!Number.isInteger(currentLevel) || currentLevel < 1 || currentLevel > 400 || !Number.isInteger(targetLevel) || targetLevel < currentLevel || targetLevel > 400) {
+        throw new Error((index+1)+"行目：レベルは1〜400で、目標は現在レベル以上にしてください。");
+      }
+      // 現在レベルと目標レベルが同じキャラクターは通知・購入対象にしない。
+      if (targetLevel === currentLevel) return;
+      const modifiers = readRowModifiers(row);
+      const cost = Math.max(0, character.base * modifiers.totalMultiplier * (helpers.r5(targetLevel-1)-helpers.r5(currentLevel-1)));
+      const gain = Math.max(0, character.base * modifiers.totalMultiplier * ((lm.get(targetLevel)||0)-(lm.get(currentLevel)||0)));
+      if (!Number.isFinite(cost) || !Number.isFinite(gain)) throw new Error(character.name+"の必要費用・収入増加を計算できません。");
+      steps.push({ index:index+1, name:character.name, currentLevel, targetLevel, cost, gain });
+    });
+    if (!steps.length) throw new Error("現在レベルと目標レベルが同じキャラクターしかいません。目標レベルを上げてください。");
+    return steps;
+  }
+  function ensureMonitorAudio() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    try {
+      if (!monitorAudioContext) monitorAudioContext = new Ctx();
+      // Reuse the monitor context for milestone chimes after a page reload, when a
+      // fresh user gesture has not yet prepared the shared goal-alert context.
+      if (typeof goalAudioContext !== "undefined" && !goalAudioContext) goalAudioContext = monitorAudioContext;
+      if (monitorAudioContext.state === "suspended") monitorAudioContext.resume().catch(()=>{});
+    } catch (_) {}
+  }
+  function playLevelReadySound() {
+    if (typeof playGoalReachedSound === "function") {
+      // The shared alert sound is unlocked by the Start button's user gesture.
+      playGoalReachedSound();
+      return;
+    }
+    if (!monitorAudioContext) return;
+    try {
+      if (monitorAudioContext.state === "suspended") monitorAudioContext.resume().catch(()=>{});
+      const ctx=monitorAudioContext, base=ctx.currentTime+0.03;
+      [880,1174.66,1567.98].forEach((freq,i)=>{
+        const osc=ctx.createOscillator(), gain=ctx.createGain(), start=base+i*0.17;
+        osc.type="sine"; osc.frequency.value=freq;
+        gain.gain.setValueAtTime(0.0001,start); gain.gain.exponentialRampToValueAtTime(0.16,start+0.025); gain.gain.exponentialRampToValueAtTime(0.0001,start+0.15);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(start); osc.stop(start+0.16);
+      });
+    } catch (_) {}
+  }
+  function baseToInputValue(baseValue, unit) {
+    const power = powers[unit] ?? 0;
+    return String(Number((baseValue / Math.pow(1000,power)).toPrecision(12)));
+  }
+  function currentMonitorBalanceAndRate() {
+    const now=Date.now();
+    if (idleState.activeRecord) {
+      const record=idleState.activeRecord;
+      const earned=calculateRecordEarned(record,now).earned;
+      const starting=record.heldValue===null || record.heldValue===undefined ? 0 : idleToBase(Number(record.heldValue),record.heldUnit);
+      return {cashBase:starting+earned+getRecordCashTransactionTotal(record,now),rateBase:getRecordRateBaseAt(record,now)};
+    }
+    const rawRate=document.getElementById("idleRate").value.trim();
+    const rawCash=document.getElementById("idleHeld").value.trim();
+    const rateUnit=document.getElementById("idleRateUnit").value;
+    const cashUnit=document.getElementById("idleHeldUnit").value;
+    const rateBase=rawRate===""?NaN:Number(rawRate)*Math.pow(1000,powers[rateUnit]??0);
+    const cashBase=rawCash===""?0:Number(rawCash)*Math.pow(1000,powers[cashUnit]??0);
+    if (!Number.isFinite(rateBase) || rateBase<0) throw new Error("通知開始前に「収入速度」を0以上で入力してください。");
+    if (!Number.isFinite(cashBase) || cashBase<0) throw new Error("「開始時の所持金」を0以上で入力してください。");
+    return {cashBase,rateBase};
+  }
+  function updateIdleInputsFromMonitor(state) {
+    if (idleState.activeRecord) {
+      const record=idleState.activeRecord;
+      if (!Array.isArray(record.rateChanges)) record.rateChanges=[];
+      if (!Array.isArray(record.cashTransactions)) record.cashTransactions=[];
+      return;
+    }
+    const rateUnit=document.getElementById("idleRateUnit").value;
+    const cashUnit=document.getElementById("idleHeldUnit").value;
+    const rateInput=document.getElementById("idleRate");
+    const cashInput=document.getElementById("idleHeld");
+    rateInput.value=baseToInputValue(state.rateBase,rateUnit);
+    cashInput.value=baseToInputValue(Math.max(0,state.cashBase),cashUnit);
+    rateInput.dispatchEvent(new Event("input",{bubbles:true}));
+    rateInput.dispatchEvent(new Event("change",{bubbles:true}));
+    cashInput.dispatchEvent(new Event("input",{bubbles:true}));
+    cashInput.dispatchEvent(new Event("change",{bubbles:true}));
+  }
+  function applyLevelReadyEvents(events, state) {
+    for (const event of events) {
+      const plannedRows=Array.from(root.querySelectorAll(".level-plan-row"));
+      const plannedRow=plannedRows[event.step.index-1];
+      if (plannedRow) {
+        const currentInput=plannedRow.querySelector(".plan-current");
+        if (currentInput) currentInput.value=String(event.step.targetLevel);
+        updatePlanRowHeader(plannedRow);
+      }
+      const message=event.step.name+"（Lv."+event.step.currentLevel+" → Lv."+event.step.targetLevel+"）のレベル上げタイミングです。計算上の収入を +"+money(event.step.gain)+"/s 更新しました。";
+      if (typeof announceGoalReached === "function") announceGoalReached("GOUP Calculator：レベル上げ可能！",message);
+      else playLevelReadySound();
+      const record=idleState.activeRecord;
+      if (record) {
+        if (!Array.isArray(record.rateChanges)) record.rateChanges=[];
+        if (!Array.isArray(record.cashTransactions)) record.cashTransactions=[];
+        const id=String(state.startedAt)+":"+String(event.step.index);
+        if (!record.rateChanges.some(change=>change.planEventId===id)) {
+          const unit=record.rateUnit || "Sx";
+          record.rateChanges.push({at:event.at,rate:Number(baseToInputValue(event.rateAfter,unit)),rateUnit:unit,planEventId:id});
+        }
+        if (!record.cashTransactions.some(tx=>tx.planEventId===id)) {
+          record.cashTransactions.push({at:event.at,amountBase:-event.step.cost,planEventId:id,description:event.step.name+" レベルアップ費用"});
+        }
+        const activeRateInput=document.getElementById("idleRate");
+        if (activeRateInput) activeRateInput.value=baseToInputValue(state.rateBase,unit);
+        saveIdleState();
+      }
+    }
+    if (events.length) {
+      save();
+      if (!idleState.activeRecord) updateIdleInputsFromMonitor(state);
+      else renderIdleActiveRecord();
+    }
+  }
+  function renderMonitorStatus(extraMessage) {
+    if (!monitorStatus) return;
+    monitorStatus.hidden = !monitorState && !extraMessage;
+    monitorStatus.className="level-plan-monitor-status";
+    if (extraMessage) {
+      monitorStatus.textContent=extraMessage;
+      monitorStatus.classList.add("is-alert");
+      return;
+    }
+    if (!monitorState) { monitorStatus.textContent="通知監視は停止中です。開始すると、入力した順番にレベルアップ可能時刻を監視します。"; return; }
+    if (monitorState.active) {
+      monitorStatus.classList.add("is-running");
+      const next=monitorState.steps[monitorState.nextIndex];
+      if (idleState.activeRecord && idleState.activeRecord.pausedAt) {
+        monitorStatus.textContent="⏸ 放置収入の記録が一時停止中なので、レベル上げ監視も停止しています。記録を再開すると続きから進みます。";
+      } else if (next) {
+        const now=Date.now();
+        const ready=monitorReadyAt(monitorState,next,now,now+1e15);
+        monitorStatus.textContent="🔔 監視中：次は「"+next.name+"」Lv."+next.currentLevel+" → Lv."+next.targetLevel+"。現在の計算収入："+money(monitorState.rateBase)+"/s。"+(ready===null?(monitorState.rateBase<=0?"収入が0のため、収入を入力するまで待機中です。":"必要額に届く時刻を計算中です。"):("到達予測："+tokyo(ready)+"（約"+duration(Math.max(0,(ready-now)/1000))+"後）"))+" 到達時は通知音を鳴らし、費用を差し引いて収入増加を次の段階へ反映します。";
+      } else {
+        monitorStatus.textContent="全キャラクターのレベル上げ計画が完了しました。";
+      }
+    } else if (monitorState.completed) {
+      monitorStatus.textContent="✅ レベル上げ計画はすべて完了しました。計算収入と所持金を更新しました。";
+    } else {
+      monitorStatus.textContent="通知監視は停止中です。これまでに完了した段階の収入増加は残っています。";
+    }
+  }
+  function setMonitorEditingLocked(locked) {
+    root.querySelectorAll("input,select").forEach(el=>{el.disabled=locked;});
+    root.querySelectorAll("button:not(.plan-row-toggle)").forEach(el=>{el.disabled=locked;});
+    const add=document.getElementById("levelPlanAdd"), calcButton=document.getElementById("levelPlanCalculate");
+    if(add)add.disabled=locked; if(calcButton)calcButton.disabled=locked;
+    for (const id of ["levelPlanBulkCurrent","levelPlanBulkTarget"]) { const el=document.getElementById(id); if(el)el.disabled=locked; }
+    for (const id of ["levelPlanBulkCurrentApply","levelPlanBulkTargetApply","levelPlanBulkBothApply"]) { const el=document.getElementById(id); if(el)el.disabled=locked; }
+  }
+  function finishMonitorIfDone() {
+    if (!monitorState || !monitorState.active || monitorState.nextIndex < monitorState.steps.length) return;
+    monitorState.active=false;
+    monitorState.completed=true;
+    saveMonitorState();
+    if (monitorTicker!==null) { clearInterval(monitorTicker); monitorTicker=null; }
+    setMonitorEditingLocked(false);
+    if (monitorStartButton) monitorStartButton.disabled=false;
+    if (monitorStopButton) monitorStopButton.disabled=true;
+  }
+  function monitorTick() {
+    if (!monitorState || !monitorState.active) return;
+    const now=Date.now();
+    // A deliberate pause in the idle recorder also pauses this monitor's earning clock.
+    if (idleState.activeRecord && idleState.activeRecord.pausedAt) {
+      monitorState.lastUpdateAt=now;
+      saveMonitorState();
+      renderMonitorStatus();
+      return;
+    }
+    let cursor=Number(monitorState.lastUpdateAt);
+    if (!Number.isFinite(cursor) || cursor>now) cursor=now;
+    const events=[];
+    let loopGuard=0;
+    while (monitorState.nextIndex < monitorState.steps.length && loopGuard++ < monitorState.steps.length+2) {
+      const step=monitorState.steps[monitorState.nextIndex];
+      const readyAt=monitorReadyAt(monitorState,step,cursor,now);
+      if (readyAt===null) {
+        monitorState.cashBase+=monitorAccrue(monitorState,cursor,now);
+        cursor=now;
+        break;
+      }
+      monitorState.cashBase+=monitorAccrue(monitorState,cursor,readyAt);
+      monitorState.cashBase=Math.max(0,monitorState.cashBase-step.cost);
+      monitorState.rateBase+=step.gain;
+      events.push({step,at:readyAt,rateAfter:monitorState.rateBase,cashAfter:monitorState.cashBase});
+      monitorState.nextIndex++;
+      cursor=readyAt;
+    }
+    if (cursor<now) monitorState.cashBase+=monitorAccrue(monitorState,cursor,now);
+    monitorState.lastUpdateAt=now;
+    if (events.length) {
+      monitorState.lastEvent=events[events.length-1].step.name;
+      saveMonitorState();
+      applyLevelReadyEvents(events,monitorState);
+    } else if (now-lastMonitorPersistAt >= 1000) {
+      saveMonitorState();
+      lastMonitorPersistAt=now;
+    }
+    finishMonitorIfDone();
+    renderMonitorStatus();
+  }
+  function startMonitor() {
+    try {
+      if (monitorState && monitorState.active) return;
+      ensureMonitorAudio();
+      if (typeof prepareGoalAlerts === "function") prepareGoalAlerts();
+      const steps=planStepsForMonitor();
+      const initial=currentMonitorBalanceAndRate();
+      monitorState={version:1,active:true,completed:false,startedAt:Date.now(),lastUpdateAt:Date.now(),nextIndex:0,steps,cashBase:initial.cashBase,rateBase:initial.rateBase,initialRateBase:initial.rateBase,initialCashBase:initial.cashBase};
+      saveMonitorState();
+      setMonitorEditingLocked(true);
+      monitorStartButton.disabled=true; monitorStopButton.disabled=false;
+      renderMonitorStatus("🔔 レベル上げ通知を開始しました。次の到達時刻を監視しています。この計画では、通知時点でレベルアップしたものとして費用を差し引き、収入増加を自動反映します。");
+      monitorTick();
+      if (monitorState && monitorState.active && monitorTicker===null) monitorTicker=setInterval(monitorTick,1000);
+    } catch (error) {
+      renderMonitorStatus(error.message || "通知監視を開始できませんでした。");
+      monitorStatus.classList.remove("is-alert"); monitorStatus.classList.add("is-error");
+    }
+  }
+  function stopMonitor() {
+    if (!monitorState || !monitorState.active) return;
+    monitorTick();
+    if (monitorState && monitorState.active) monitorState.active=false;
+    if (monitorTicker!==null) { clearInterval(monitorTicker); monitorTicker=null; }
+    if (monitorState && !idleState.activeRecord) updateIdleInputsFromMonitor(monitorState);
+    saveMonitorState();
+    setMonitorEditingLocked(false);
+    monitorStartButton.disabled=false; monitorStopButton.disabled=true;
+    renderMonitorStatus("通知監視を停止しました。ここまでに反映した費用・収入増加は維持されています。");
+  }
+  monitorStartButton.addEventListener("click",startMonitor);
+  monitorStopButton.addEventListener("click",stopMonitor);
+  if (monitorState && monitorState.active) {
+    ensureMonitorAudio();
+    setMonitorEditingLocked(true);
+    monitorStartButton.disabled=true; monitorStopButton.disabled=false;
+    renderMonitorStatus();
+    monitorTick();
+    if (monitorState && monitorState.active) monitorTicker=setInterval(monitorTick,1000);
+  } else {
+    setMonitorEditingLocked(false);
+    if (monitorStartButton) monitorStartButton.disabled=false;
+    if (monitorStopButton) monitorStopButton.disabled=true;
+    renderMonitorStatus();
+  }
+
   function calculate() {
     output.replaceChildren();output.className="result show";
     try {
