@@ -139,6 +139,15 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 
 /* 放置収入と連動するキャラクターレベル上げ計画 */
 .level-plan{margin-top:18px;padding:16px;border:1px solid var(--border);border-radius:14px;background:#ffffff03}
+.level-plan-bulk{margin:14px 0;padding:14px;border:1px solid var(--border);border-radius:12px;background:#ffffff04}
+.level-plan-bulk h3{margin:0 0 6px;font-size:1rem}
+.level-plan-bulk .description{margin:0 0 10px;font-size:.88rem}
+.level-plan-bulk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.level-plan-bulk-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.level-plan-bulk-status{margin-top:10px;color:var(--muted);font-size:.86rem;overflow-wrap:anywhere}
+.level-plan-bulk-status.ok{color:var(--accent2)}
+.level-plan-bulk-status.error{color:var(--danger)}
+@media(max-width:560px){.level-plan-bulk-grid{grid-template-columns:1fr}.level-plan-bulk-actions .btn{width:100%}}
 .level-plan h2{margin:0 0 8px}
 .level-plan-rows{display:grid;gap:12px;margin:14px 0}
 .level-plan-row{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;min-width:0}
@@ -280,6 +289,20 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
       <section id="levelPlan" class="level-plan" aria-labelledby="levelPlanTitle">
         <h2 id="levelPlanTitle">🎯 レベル上げ計画（放置収入と連動）</h2>
         <p class="description">上から順番にレベル上げするキャラクターを登録します。上の「収入速度」「開始時の所持金」を使い、1体目のレベルアップ後に増える収入を2体目以降の待ち時間へ反映します。</p>
+        <div class="level-plan-bulk" aria-labelledby="levelPlanBulkTitle">
+          <h3 id="levelPlanBulkTitle">⚡ 全キャラのレベルを一括設定</h3>
+          <p class="description">入力したレベルを、登録済みのすべてのキャラクターにまとめて適用します。片方だけ変更することも、現在レベルと目標レベルを同時に変更することもできます。</p>
+          <div class="level-plan-bulk-grid">
+            <div class="field"><label for="levelPlanBulkCurrent">全キャラの現在レベル（1〜400）</label><input id="levelPlanBulkCurrent" type="number" min="1" max="400" step="1" placeholder="例：1" inputmode="numeric"></div>
+            <div class="field"><label for="levelPlanBulkTarget">全キャラの目標レベル（1〜400）</label><input id="levelPlanBulkTarget" type="number" min="1" max="400" step="1" placeholder="例：340" inputmode="numeric"></div>
+          </div>
+          <div class="level-plan-bulk-actions">
+            <button id="levelPlanBulkCurrentApply" class="btn" type="button">現在レベルだけ全キャラに適用</button>
+            <button id="levelPlanBulkTargetApply" class="btn" type="button">目標レベルだけ全キャラに適用</button>
+            <button id="levelPlanBulkBothApply" class="btn primary" type="button">現在・目標レベルを一括適用</button>
+          </div>
+          <div id="levelPlanBulkStatus" class="level-plan-bulk-status" role="status" aria-live="polite">数値を入力して、適用するボタンを押してください。</div>
+        </div>
         <div id="levelPlanRows" class="level-plan-rows"></div>
         <div class="level-plan-actions"><button id="levelPlanAdd" class="btn" type="button">＋ キャラクターを追加</button><button id="levelPlanCalculate" class="btn primary" type="button">計画を計算</button><button id="levelPlanCollapseAll" class="btn" type="button">すべて折りたたむ</button><button id="levelPlanExpandAll" class="btn" type="button">すべて展開</button></div>
         <div id="levelPlanResult" class="result" aria-live="polite"></div>
@@ -3956,6 +3979,61 @@ renderCharacterDatabase();
   });
   document.getElementById("levelPlanAdd").addEventListener("click",()=>{addRow({currentLevel:1,targetLevel:340});save();calculate();});
   document.getElementById("levelPlanCalculate").addEventListener("click",calculate);
+
+  // Bulk-set current and/or target levels on every character currently in the plan.
+  const bulkCurrentInput = document.getElementById("levelPlanBulkCurrent");
+  const bulkTargetInput = document.getElementById("levelPlanBulkTarget");
+  const bulkStatus = document.getElementById("levelPlanBulkStatus");
+  function readBulkLevel(input, label) {
+    const raw = input.value.trim();
+    if (raw === "") throw new Error(label + "を入力してください。");
+    const value = Number(raw);
+    if (!Number.isInteger(value) || value < 1 || value > 400) {
+      throw new Error(label + "は1〜400の整数で入力してください。");
+    }
+    return value;
+  }
+  function applyBulkLevels(mode) {
+    const rows = Array.from(root.querySelectorAll(".level-plan-row"));
+    bulkStatus.className = "level-plan-bulk-status";
+    try {
+      if (!rows.length) throw new Error("先にキャラクターを追加してください。");
+      const newCurrent = mode === "target" ? null : readBulkLevel(bulkCurrentInput, "全キャラの現在レベル");
+      const newTarget = mode === "current" ? null : readBulkLevel(bulkTargetInput, "全キャラの目標レベル");
+
+      // Validate all rows first so an invalid bulk change never partly applies.
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const cur = newCurrent === null ? Number(row.querySelector(".plan-current").value) : newCurrent;
+        const target = newTarget === null ? Number(row.querySelector(".plan-target").value) : newTarget;
+        const option = row.querySelector(".plan-character")?.selectedOptions[0];
+        const name = option?.dataset.characterName || option?.textContent.split(" — ")[0] || (i + 1) + "体目";
+        if (!Number.isInteger(cur) || cur < 1 || cur > 400 || !Number.isInteger(target) || target < 1 || target > 400) {
+          throw new Error(name + "の現在レベル・目標レベルを1〜400の整数にしてください。");
+        }
+        if (target < cur) {
+          throw new Error(name + "の目標レベルが現在レベルを下回るため適用できません。現在・目標レベルを確認してください。");
+        }
+      }
+
+      rows.forEach(row => {
+        if (newCurrent !== null) row.querySelector(".plan-current").value = String(newCurrent);
+        if (newTarget !== null) row.querySelector(".plan-target").value = String(newTarget);
+        updatePlanRowHeader(row);
+      });
+      save();
+      calculate();
+      const applied = mode === "current" ? "現在レベルをLv." + newCurrent : mode === "target" ? "目標レベルをLv." + newTarget : "現在レベルをLv." + newCurrent + "、目標レベルをLv." + newTarget;
+      bulkStatus.textContent = rows.length + "体すべてに適用しました：" + applied;
+      bulkStatus.className = "level-plan-bulk-status ok";
+    } catch (error) {
+      bulkStatus.textContent = error.message || "入力を確認してください。";
+      bulkStatus.className = "level-plan-bulk-status error";
+    }
+  }
+  document.getElementById("levelPlanBulkCurrentApply").addEventListener("click", () => applyBulkLevels("current"));
+  document.getElementById("levelPlanBulkTargetApply").addEventListener("click", () => applyBulkLevels("target"));
+  document.getElementById("levelPlanBulkBothApply").addEventListener("click", () => applyBulkLevels("both"));
   document.getElementById("levelPlanCollapseAll").addEventListener("click",()=>{
     root.querySelectorAll(".level-plan-row").forEach(row=>setPlanRowCollapsed(row,true));
     save();
