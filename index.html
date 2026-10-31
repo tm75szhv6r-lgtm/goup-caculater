@@ -186,6 +186,13 @@ main:has(#idle.active){width:min(1360px,calc(100% - 28px))}
 .level-plan-item.primary{grid-column:1/-1;border-color:#5ce1c077;background:#5ce1c010}
 .level-plan-item.primary .value{font-size:1.35rem;color:var(--accent2)}
 .level-plan-step{padding:12px;margin-top:9px;border:1px solid var(--border);border-radius:10px;background:#ffffff04}
+.level-plan-result-details{margin-top:14px;border:1px solid var(--border);border-radius:12px;background:#ffffff04;overflow:hidden}
+.level-plan-result-details>summary{padding:12px 14px;cursor:pointer;font-weight:850;list-style:none;display:flex;align-items:center;gap:8px}
+.level-plan-result-details>summary::-webkit-details-marker{display:none}
+.level-plan-result-details>summary::before{content:"＋";display:inline-grid;place-items:center;width:22px;height:22px;border:1px solid var(--border);border-radius:7px;font-size:.85rem;flex:0 0 auto}
+.level-plan-result-details[open]>summary::before{content:"−"}
+.level-plan-result-details>summary:hover{background:#ffffff08}
+.level-plan-result-detail-body{padding:0 10px 10px}
 .level-plan-step strong{display:block;margin-bottom:6px}
 .level-plan-step p{margin:4px 0;color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
 .level-plan-note{margin-top:12px;color:var(--muted);font-size:.86rem}
@@ -3694,6 +3701,7 @@ renderCharacterDatabase();
   const sourceOtherMultiplier = document.getElementById("levelEventMultiplier");
   const storageKey = "goupCalculatorLevelPlanV1";
   let rowSequence = 0;
+  let resultDetailsExpanded = false;
   const powers = {"1":0,K:1,M:2,B:3,T:4,Qa:5,Qi:6,Sx:7,Sp:8,Oc:9,No:10,Dc:11};
   const labels = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc"];
   const sourceTraits = [...document.querySelectorAll(".level-trait-checkbox")];
@@ -3973,15 +3981,27 @@ renderCharacterDatabase();
       else if(impossible)card(summary,"完了までの時間","収入が0のため、一部の待ち時間を計算できません",true);
       else {card(summary,"完了までの時間",duration(totalWait),true);if(totalWait<86400*365*100)card(summary,"完了予定時刻（日本時間）",tokyo(Date.now()+totalWait*1000),false);}
       output.appendChild(summary);
+      // Keep the per-character detail list collapsed by default so the result
+      // screen only shows the totals unless the user chooses to view the names.
+      const detailDisclosure = document.createElement("details");
+      detailDisclosure.className = "level-plan-result-details";
+      detailDisclosure.open = resultDetailsExpanded;
+      const detailSummary = document.createElement("summary");
+      detailSummary.textContent = "キャラクターごとの詳細を表示（" + steps.length + "体）";
+      const detailBody = document.createElement("div");
+      detailBody.className = "level-plan-result-detail-body";
+      detailDisclosure.addEventListener("toggle", () => { resultDetailsExpanded = detailDisclosure.open; });
       steps.forEach(s=>{
         const d=document.createElement("div");d.className="level-plan-step";
         const h=document.createElement("strong");h.textContent=s.index+". "+s.name+"：Lv."+s.cur+" → Lv."+s.target;d.appendChild(h);
         const traitText=s.modifiers.selectedTraits.length?s.modifiers.selectedTraits.join("、"):"なし";
         const modText="イベント："+s.modifiers.eventName+" ×"+s.modifiers.eventMultiplier+"／特性："+traitText+"（合計＋"+s.modifiers.traitBonus+"）／その他：×"+s.modifiers.otherMultiplier+"／適用倍率：×"+Number(s.modifiers.totalMultiplier.toPrecision(6));
         [["必要費用",money(s.cost)],["この段階で待つ時間",rate===null?"毎秒収入を入力してください":s.wait===null?"収入が0のため算出できません":duration(s.wait)],["完了後に増える収入（推定）",money(s.gain)+"/s"],["適用したイベント・変異",modText]].forEach(pair=>{const p=document.createElement("p");p.textContent=pair[0]+"："+pair[1];d.appendChild(p);});
-        output.appendChild(d);
+        detailBody.appendChild(d);
       });
-      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各キャラクターに設定したイベント変異倍率と特性倍率を加算し、その後でその他の追加倍率を掛けています。各段階の費用を所持金から支払い、前のキャラクターのレベルアップ後の収入増加を次の待ち時間に反映します。";output.appendChild(note);
+      const note=document.createElement("p");note.className="level-plan-note";note.textContent="各キャラクターに設定したイベント変異倍率と特性倍率を加算し、その後でその他の追加倍率を掛けています。各段階の費用を所持金から支払い、前のキャラクターのレベルアップ後の収入増加を次の待ち時間に反映します。";detailBody.appendChild(note);
+      detailDisclosure.append(detailSummary, detailBody);
+      output.appendChild(detailDisclosure);
     } catch(e) {
       output.className="result show error";const msg=document.createElement("div");msg.className="big";msg.textContent=e.message||"入力を確認してください。";output.appendChild(msg);
     }
